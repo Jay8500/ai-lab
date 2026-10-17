@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
   const action = String(body.action ?? '');
   const apiKey = Deno.env.get('RESEND_API_KEY') ?? '';
   const { data: setting } = await admin.from('platform_settings').select('value').eq('key', 'email').maybeSingle();
-  const cfg = { from_name: 'SpreadApps', from_email: 'updates@spreadapps.in', reply_to: '', footer: '', ...(setting?.value ?? {}) };
+  const cfg = { from_name: 'SpreadApps', from_email: 'updates@mail.spreadapps.in', reply_to: '', footer: '', ...(setting?.value ?? {}) };
   const from = `${cfg.from_name} <${cfg.from_email}>`;
 
   if (action === 'status') return json({ configured: !!apiKey, from, reply_to: cfg.reply_to });

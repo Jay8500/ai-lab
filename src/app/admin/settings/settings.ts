@@ -60,8 +60,8 @@ interface BrandSettings {
           <app-field label="From name" required [error]="emailErr().from_name" hint="Shown as the sender, e.g. SpreadApps.">
             <input class="input" name="fn" [(ngModel)]="email.from_name" maxlength="60" />
           </app-field>
-          <app-field label="From address" required [error]="emailErr().from_email" hint="Must be on a domain verified in Resend.">
-            <input class="input" type="email" name="fe" [(ngModel)]="email.from_email" placeholder="updates@spreadapps.in" />
+          <app-field label="From address" required [error]="emailErr().from_email" hint="Must be on your verified Resend domain (mail.spreadapps.in).">
+            <input class="input" type="email" name="fe" [(ngModel)]="email.from_email" placeholder="updates@mail.spreadapps.in" />
           </app-field>
           <app-field label="Reply-to" optional [error]="emailErr().reply_to" hint="Where replies go.">
             <input class="input" type="email" name="rt" [(ngModel)]="email.reply_to" placeholder="support@spreadapps.in" />
@@ -105,7 +105,7 @@ export class AdminSettings implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly logo = environment.brand.logo;
   protected circles: CirclesSettings = { enabled: true, api_url: '', project_id: '' };
-  protected email: EmailSettings = { from_name: 'SpreadApps', from_email: 'updates@spreadapps.in', reply_to: '', footer: '' };
+  protected email: EmailSettings = { from_name: 'SpreadApps', from_email: 'updates@mail.spreadapps.in', reply_to: '', footer: '' };
   private emailSubmitted = false;
 
   /** Sender rules — the address must be a real email on a verified domain. */
@@ -115,7 +115,7 @@ export class AdminSettings implements OnInit {
     const ok = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
     if (!this.email.from_name.trim()) e.from_name = 'Enter the sender name people will see in their inbox.';
     if (!this.email.from_email.trim()) e.from_email = 'Enter the address emails are sent from.';
-    else if (!ok(this.email.from_email)) e.from_email = 'That address doesn’t look right — e.g. updates@spreadapps.in.';
+    else if (!ok(this.email.from_email)) e.from_email = 'That address doesn’t look right — e.g. updates@mail.spreadapps.in.';
     if (this.email.reply_to.trim() && !ok(this.email.reply_to)) e.reply_to = 'Enter a valid reply-to address, or leave it empty.';
     return e;
   }
