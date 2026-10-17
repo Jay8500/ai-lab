@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
+import { CirclesLogo } from '../../shared/circles-logo';
 import { AdminService } from '../../core/admin.service';
 import { AuthService } from '../../core/auth.service';
 import { ToastService } from '../../core/toast.service';
@@ -22,7 +23,7 @@ interface BrandSettings {
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, CirclesLogo],
   template: `
     <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Platform settings</h1>
     <p class="text-sm text-slate-500">Defaults for the whole AI-Lab platform.</p>
@@ -30,7 +31,7 @@ interface BrandSettings {
     <div class="mt-5 grid gap-5 lg:grid-cols-2">
       <form class="card space-y-4 p-5 sm:p-6" (ngSubmit)="saveCircles()">
         <div class="flex items-center gap-3">
-          <span class="grid size-10 place-items-center rounded-xl bg-teal-50 text-teal-600"><lucide-icon name="life-buoy" class="size-5" /></span>
+          <span class="grid size-10 place-items-center rounded-xl bg-slate-50 ring-1 ring-slate-100"><app-circles-logo [size]="24" /></span>
           <div><h2 class="section-title">Circles ticketing</h2><p class="text-xs text-slate-400">Where in-app support tickets are forwarded.</p></div>
         </div>
         <label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" class="size-4 accent-[var(--brand)]" name="en" [(ngModel)]="circles.enabled" /> Show support widget to labs</label>
@@ -71,6 +72,7 @@ export class AdminSettings implements OnInit {
   private readonly admin = inject(AdminService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly cdr = inject(ChangeDetectorRef);
   protected readonly logo = environment.brand.logo;
   protected circles: CirclesSettings = { enabled: true, api_url: '', project_id: '' };
   protected brand: BrandSettings = { name: 'SpreadApps', product: 'AI-Lab', support_email: '', base_domain: environment.baseDomain };
@@ -81,6 +83,7 @@ export class AdminSettings implements OnInit {
     this.circles = { ...this.circles, ...((await this.admin.setting<CirclesSettings>('circles')) ?? {}) };
     this.brand = { ...this.brand, ...((await this.admin.setting<BrandSettings>('brand')) ?? {}) };
     this.loaded.set(true);
+    this.cdr.markForCheck();
   }
 
   async saveCircles() {

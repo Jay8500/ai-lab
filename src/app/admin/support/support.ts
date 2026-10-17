@@ -3,6 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { CirclesLogo } from '../../shared/circles-logo';
 import { AdminService } from '../../core/admin.service';
 import { SupportTicket } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
@@ -16,11 +17,11 @@ const PRIORITY: Record<SupportTicket['priority'], string> = {
 
 @Component({
   selector: 'app-admin-support',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, CirclesLogo],
   template: `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Support · Circles</h1>
+        <h1 class="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-slate-900"><app-circles-logo [size]="30" /> Support · Circles</h1>
         <p class="text-sm text-slate-500">Tickets raised from inside lab dashboards, with lab context and screenshots.</p>
       </div>
       <a routerLink="/admin/settings" class="btn-ghost"><lucide-icon name="settings" class="size-4" /> Circles connection</a>

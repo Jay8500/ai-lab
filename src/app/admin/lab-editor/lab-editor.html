@@ -211,7 +211,11 @@
             @for (g of secretGroups; track g.title) {
               <div class="card p-5">
                 <div class="flex items-center gap-3">
-                  <span class="grid size-9 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon [name]="g.icon" class="size-4" /></span>
+                  @if (g.img) {
+                    <span class="grid size-9 place-items-center rounded-xl bg-slate-50 ring-1 ring-slate-100"><img [src]="g.img" alt="" class="size-5" /></span>
+                  } @else {
+                    <span class="grid size-9 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon [name]="g.icon" class="size-4" /></span>
+                  }
                   <div><h3 class="text-sm font-bold text-slate-800">{{ g.title }}</h3><p class="text-xs text-slate-400">{{ g.hint }}</p></div>
                 </div>
                 <div class="mt-4 space-y-3">

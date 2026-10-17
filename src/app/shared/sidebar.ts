@@ -7,6 +7,8 @@ export interface NavItem {
   path: string;
   label: string;
   icon: string;
+  /** Optional image (e.g. a partner logo) shown instead of the icon */
+  img?: string;
   exact?: boolean;
   badge?: number;
 }
@@ -71,7 +73,11 @@ export const SidebarState = {
         @for (n of items(); track n.path) {
           <a [routerLink]="n.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!n.exact }"
              class="nav-link relative" [class]="{ 'md:justify-center md:px-0': mini }" [title]="n.label">
-            <lucide-icon [name]="n.icon" class="size-[18px] shrink-0" />
+            @if (n.img) {
+              <img [src]="n.img" alt="" class="size-[18px] shrink-0" />
+            } @else {
+              <lucide-icon [name]="n.icon" class="size-[18px] shrink-0" />
+            }
             <span class="truncate" [class]="{ 'md:hidden': mini }">{{ n.label }}</span>
             @if (n.badge) {
               <span class="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white" [class]="{ 'md:absolute md:top-1 md:right-2': mini }">{{ n.badge }}</span>

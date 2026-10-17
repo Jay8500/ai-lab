@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -32,6 +32,8 @@ export class AdminLabEditor implements OnInit {
   protected readonly tenantSvc = inject(TenantService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  // Zoneless app: the form lives in plain fields, so tell Angular when they are (re)loaded
+  private readonly cdr = inject(ChangeDetectorRef);
   protected readonly baseDomain = environment.baseDomain;
   protected readonly sidebar = SidebarState;
 
@@ -60,7 +62,7 @@ export class AdminLabEditor implements OnInit {
 
   protected readonly row = computed(() => this.admin.rows().find((r) => r.id === this.id()));
 
-  protected readonly secretGroups: { title: string; icon: string; hint: string; fields: SecretField[] }[] = [
+  protected readonly secretGroups: { title: string; icon: string; img?: string; hint: string; fields: SecretField[] }[] = [
     {
       title: 'WhatsApp', icon: 'message-circle', hint: 'Automatic report delivery (Meta Cloud API / Gupshup / Interakt / WATI). Without keys, staff use click-to-chat.',
       fields: [
@@ -92,7 +94,7 @@ export class AdminLabEditor implements OnInit {
       ],
     },
     {
-      title: 'Circles support', icon: 'life-buoy', hint: 'Routes this lab\'s tickets into a Circles project.',
+      title: 'Circles support', icon: 'life-buoy', img: 'brand/circles-logo.svg', hint: 'Routes this lab\'s tickets into a Circles project.',
       fields: [
         { key: 'circles_project_id', label: 'Circles project ID' },
         { key: 'circles_api_key', label: 'Circles API key', secret: true },
@@ -118,6 +120,7 @@ export class AdminLabEditor implements OnInit {
     }
     this.load(t);
     this.secrets = await this.admin.getSecrets(t.id);
+    this.cdr.markForCheck();
     this.refreshSide();
   }
 
@@ -126,6 +129,7 @@ export class AdminLabEditor implements OnInit {
     this.pages = { show_track: true, show_ai: true, show_support: true, show_whatsapp: true, show_powered_by: true, ...(t.pages ?? {}) };
     this.tests = structuredClone(t.test_catalog ?? []);
     this.dirty.set(false);
+    this.cdr.markForCheck();
   }
 
   private async refreshSide() {

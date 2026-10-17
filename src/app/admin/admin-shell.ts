@@ -63,7 +63,7 @@ export class AdminShell implements OnInit {
     { path: '/admin/labs', label: 'Labs (clients)', icon: 'building-2' },
     { path: '/admin/plans', label: 'Plans & pricing', icon: 'wallet' },
     { path: '/admin/billing', label: 'Billing', icon: 'receipt' },
-    { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', badge: this.admin.totals().tickets || undefined },
+    { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', img: 'brand/circles-logo.svg', badge: this.admin.totals().tickets || undefined },
     ...(this.auth.isRoot()
       ? [
           { path: '/admin/team', label: 'SpreadApps team', icon: 'users' },

@@ -9,13 +9,14 @@ import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { AddPatientModal } from '../shared/add-patient-modal';
 import { BrandMark } from '../shared/brand-mark';
+import { CirclesLogo } from '../shared/circles-logo';
 import { CirclesSupport } from '../shared/circles-support-modal';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 import { TenantHeader } from '../shared/tenant-header';
 
 @Component({
   selector: 'app-lab-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo],
   template: `
     @let mini = sidebar.collapsed();
     <app-sidebar [items]="nav()" heading="Workspace">
@@ -35,13 +36,13 @@ import { TenantHeader } from '../shared/tenant-header';
         @if (tenant.pages().show_support) {
           @if (mini) {
             <button class="nav-link hidden w-full justify-center md:flex" (click)="support.open.set(true)" title="Need help? Raise ticket">
-              <lucide-icon name="life-buoy" class="size-[18px]" />
+              <app-circles-logo [size]="20" />
             </button>
           } @else {
             <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-teal-500 p-4 text-white">
               <div class="absolute -top-6 -right-6 size-20 rounded-full bg-white/10"></div>
               <div class="absolute -right-2 -bottom-8 size-16 rounded-full bg-white/10"></div>
-              <lucide-icon name="life-buoy" class="relative size-5" />
+              <span class="relative grid size-9 place-items-center rounded-xl bg-white"><app-circles-logo [size]="22" /></span>
               <p class="relative mt-2 text-sm font-bold">Need help?</p>
               <p class="relative text-[11px] text-white/80">Raise a ticket — powered by Circles</p>
               <button class="relative mt-3 w-full rounded-xl bg-white/95 py-2 text-xs font-bold text-teal-700 transition hover:bg-white" (click)="support.open.set(true)">
@@ -98,7 +99,7 @@ import { TenantHeader } from '../shared/tenant-header';
             <lucide-icon name="search" class="size-5" /> Reports
           </a>
           <button class="flex flex-col items-center gap-0.5 py-1 text-[11px] font-semibold text-slate-400" (click)="support.open.set(true)">
-            <lucide-icon name="life-buoy" class="size-5" /> Support
+            <app-circles-logo [size]="20" /> Support
           </button>
         </div>
       </nav>

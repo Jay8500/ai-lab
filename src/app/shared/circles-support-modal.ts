@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
+import { CirclesLogo } from './circles-logo';
 import { SupportService } from '../core/support.service';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
@@ -10,15 +11,15 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent';
 /** Slide-over "Raise a ticket" panel, powered by Circles. */
 @Component({
   selector: 'app-circles-support',
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, CirclesLogo],
   template: `
     @if (support.open()) {
       <div class="animate-fade-in fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[2px]" (click)="close()"></div>
       <aside class="animate-slide-in fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl" role="dialog" aria-label="Support">
         <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div class="flex items-center gap-3">
-            <span class="grid size-10 place-items-center rounded-xl bg-teal-50 text-teal-600">
-              <lucide-icon name="life-buoy" class="size-5" />
+            <span class="grid size-10 place-items-center rounded-xl bg-slate-50 ring-1 ring-slate-100">
+              <app-circles-logo [size]="24" />
             </span>
             <div>
               <h2 class="font-bold text-slate-800">Need help?</h2>
