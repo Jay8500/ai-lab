@@ -1,4 +1,14 @@
-export type Role = 'super_admin' | 'lab_owner' | 'lab_staff';
+export type Role = 'super_admin' | 'platform_admin' | 'lab_owner' | 'lab_staff';
+
+export const ROLE_LABELS: Record<Role, string> = {
+  super_admin: 'Super admin',
+  platform_admin: 'SpreadApps admin',
+  lab_owner: 'Lab admin',
+  lab_staff: 'Lab staff',
+};
+
+/** Job titles for lab staff (display + future per-title permissions). */
+export const STAFF_TITLES = ['Receptionist', 'Lab technician', 'Pathologist', 'Sample collector', 'Accountant', 'Manager', 'Other'];
 export type TenantStatus = 'trial' | 'active' | 'suspended' | 'expired';
 export type VisitStatus = 'collected' | 'in_lab' | 'verified' | 'ready' | 'delivered';
 export type BillingModel = 'free' | 'monthly' | 'yearly' | 'per_report' | 'revenue_share' | 'hybrid';
@@ -97,6 +107,7 @@ export interface Profile {
   full_name: string | null;
   role: Role;
   tenant_id: string | null;
+  title?: string | null;
   created_at?: string;
 }
 

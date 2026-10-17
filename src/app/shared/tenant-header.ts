@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth.service';
@@ -7,7 +7,6 @@ import { LabService } from '../core/lab.service';
 import { TenantService } from '../core/tenant.service';
 import { SidebarState } from './sidebar';
 
-const ROLE_LABEL = { super_admin: 'SpreadApps admin', lab_owner: 'Lab owner', lab_staff: 'Reception / staff' };
 
 /** Top bar of the lab workspace (navigation lives in the sidebar). */
 @Component({
@@ -78,7 +77,7 @@ export class TenantHeader {
   readonly addPatient = output<void>();
   protected readonly menu = signal(false);
   protected readonly today = new Date();
-  protected readonly roleLabel = computed(() => ROLE_LABEL[this.auth.profile()?.role ?? 'lab_staff']);
+  protected readonly roleLabel = this.auth.roleLabel;
 
   async signOut() {
     await this.auth.signOut();

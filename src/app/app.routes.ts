@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { labGuard, ownerGuard, superAdminGuard } from './core/guards';
+import { labGuard, ownerGuard, rootGuard, superAdminGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.HomePage) },
@@ -27,7 +27,8 @@ export const routes: Routes = [
       { path: 'plans', loadComponent: () => import('./admin/plans/plans').then((m) => m.AdminPlans) },
       { path: 'billing', loadComponent: () => import('./admin/billing/billing').then((m) => m.AdminBilling) },
       { path: 'support', loadComponent: () => import('./admin/support/support').then((m) => m.AdminSupport) },
-      { path: 'settings', loadComponent: () => import('./admin/settings/settings').then((m) => m.AdminSettings) },
+      { path: 'team', canActivate: [rootGuard], loadComponent: () => import('./admin/team/team').then((m) => m.AdminTeam) },
+      { path: 'settings', canActivate: [rootGuard], loadComponent: () => import('./admin/settings/settings').then((m) => m.AdminSettings) },
     ],
   },
   { path: '**', redirectTo: '' },

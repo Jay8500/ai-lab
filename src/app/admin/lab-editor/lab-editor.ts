@@ -5,10 +5,11 @@ import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { AdminService, monthlyValue } from '../../core/admin.service';
-import { BillingEvent, Profile, Tenant, TenantPages, TenantSecrets, TestItem } from '../../core/models';
+import { BillingEvent, Tenant, TenantPages, TenantSecrets, TestItem } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { SidebarState } from '../../shared/sidebar';
+import { TeamManager } from '../../shared/team-manager';
 import { LabStatusPill } from '../lab-status-pill';
 
 type Tab = 'branding' | 'domain' | 'pages' | 'tests' | 'integrations' | 'plan' | 'users';
@@ -22,7 +23,7 @@ interface SecretField {
 
 @Component({
   selector: 'app-admin-lab-editor',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill, TeamManager],
   templateUrl: './lab-editor.html',
 })
 export class AdminLabEditor implements OnInit {
@@ -41,7 +42,7 @@ export class AdminLabEditor implements OnInit {
     { key: 'tests', label: 'Tests', icon: 'test-tube' },
     { key: 'integrations', label: 'API keys', icon: 'key-round' },
     { key: 'plan', label: 'Plan & billing', icon: 'credit-card' },
-    { key: 'users', label: 'Users', icon: 'users' },
+    { key: 'users', label: 'Admins & staff', icon: 'users' },
   ];
   protected readonly tab = signal<Tab>('branding');
 
@@ -54,9 +55,7 @@ export class AdminLabEditor implements OnInit {
   protected readonly uploading = signal<string | null>(null);
   protected readonly reveal = signal<Record<string, boolean>>({});
 
-  protected readonly users = signal<Profile[]>([]);
   protected readonly bills = signal<BillingEvent[]>([]);
-  protected nu = { full_name: '', email: '', password: '', role: 'lab_owner' };
   protected nb = { kind: 'subscription' as BillingEvent['kind'], amount: 0, period: new Date().toISOString().slice(0, 7), status: 'due' as BillingEvent['status'], note: '' };
 
   protected readonly row = computed(() => this.admin.rows().find((r) => r.id === this.id()));
@@ -130,9 +129,7 @@ export class AdminLabEditor implements OnInit {
   }
 
   private async refreshSide() {
-    const [u, b] = await Promise.all([this.admin.users(this.id()).catch(() => []), this.admin.billing(this.id())]);
-    this.users.set(u);
-    this.bills.set(b);
+    this.bills.set(await this.admin.billing(this.id()));
   }
 
   touch() {
@@ -253,45 +250,6 @@ export class AdminLabEditor implements OnInit {
   async markBill(b: BillingEvent, status: BillingEvent['status']) {
     await this.admin.setBillingStatus(b.id, status);
     this.bills.set(await this.admin.billing(this.id()));
-  }
-
-  // ── Users ──
-  async addUser() {
-    try {
-      await this.admin.createUser(this.id(), this.nu);
-      this.users.set(await this.admin.users(this.id()));
-      this.toast.success(`Login created for ${this.nu.email}`);
-      this.nu = { full_name: '', email: '', password: '', role: 'lab_staff' };
-    } catch (e) {
-      this.toast.error((e as Error).message);
-    }
-  }
-
-  async resetPw(u: Profile) {
-    const pw = prompt(`New password for ${u.email} (8+ characters)`);
-    if (!pw) return;
-    try {
-      await this.admin.resetPassword(this.id(), u.id, pw);
-      this.toast.success('Password updated');
-    } catch (e) {
-      this.toast.error((e as Error).message);
-    }
-  }
-
-  async removeUser(u: Profile) {
-    if (!confirm(`Remove login ${u.email}?`)) return;
-    try {
-      await this.admin.removeUser(this.id(), u.id);
-      this.users.update((l) => l.filter((x) => x.id !== u.id));
-    } catch (e) {
-      this.toast.error((e as Error).message);
-    }
-  }
-
-  genPassword() {
-    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    const arr = crypto.getRandomValues(new Uint32Array(10));
-    this.nu.password = Array.from(arr, (n) => chars[n % chars.length]).join('') + '@1';
   }
 
   async deleteLab() {

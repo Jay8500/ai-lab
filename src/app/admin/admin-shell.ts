@@ -27,7 +27,7 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
           <span class="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">{{ auth.initials() }}</span>
           <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }">
             <p class="truncate text-sm font-semibold text-slate-700">{{ auth.displayName() }}</p>
-            <p class="truncate text-[11px] text-slate-400">Super admin</p>
+            <p class="truncate text-[11px] text-slate-400">{{ auth.roleLabel() }}</p>
           </div>
           <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" [class]="{ 'md:hidden': mini }" (click)="signOut()" title="Sign out">
             <lucide-icon name="log-out" class="size-4" />
@@ -64,7 +64,12 @@ export class AdminShell implements OnInit {
     { path: '/admin/plans', label: 'Plans & pricing', icon: 'wallet' },
     { path: '/admin/billing', label: 'Billing', icon: 'receipt' },
     { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', badge: this.admin.totals().tickets || undefined },
-    { path: '/admin/settings', label: 'Platform settings', icon: 'settings' },
+    ...(this.auth.isRoot()
+      ? [
+          { path: '/admin/team', label: 'SpreadApps team', icon: 'users' },
+          { path: '/admin/settings', label: 'Platform settings', icon: 'settings' },
+        ]
+      : []),
   ]);
 
   async ngOnInit() {

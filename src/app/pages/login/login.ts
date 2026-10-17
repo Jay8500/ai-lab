@@ -38,11 +38,11 @@ export class LoginPage implements OnInit {
   protected readonly t = computed(() => this.tenant.tenant());
   protected readonly title = computed(() =>
     this.mode() === 'forgot' ? 'Reset your password' : this.mode() === 'reset' ? 'Choose a new password'
-      : this.t()?.pages?.login_title || (this.t() ? 'Staff sign in' : 'Welcome back'),
+      : this.t()?.pages?.login_title || (this.t() ? 'Staff sign in' : 'Admin sign in'),
   );
   protected readonly subtitle = computed(() =>
     this.t()?.pages?.login_subtitle ||
-    (this.t() ? `Sign in to the ${this.t()!.name} workspace` : `Sign in to ${this.brand.name} ${this.brand.product}`),
+    (this.t() ? `Sign in to the ${this.t()!.name} workspace` : `${this.brand.name} ${this.brand.product} console — authorised team only`),
   );
 
   async ngOnInit() {
@@ -81,40 +81,42 @@ export class LoginPage implements OnInit {
   }
 
   /**
-   * Each role has exactly one home:
-   *  super admin → admin console on the platform host
-   *  lab owner/staff → their own lab's site
-   * Signing in somewhere else ends that session and points to the right address.
+   * Strict separation — an account only works where it belongs:
+   *  admin address  → SpreadApps admins only
+   *  lab subdomain  → that lab's admins and staff only
+   * Anything else is signed out immediately.
    */
   private async routeFor(p: Profile) {
     const next = this.route.snapshot.queryParamMap.get('next');
     const lab = this.t();
+    const isPlatform = p.role === 'super_admin' || p.role === 'platform_admin';
 
-    if (p.role === 'super_admin') {
-      if (!lab) {
+    if (!lab) {
+      if (isPlatform) {
         await this.router.navigateByUrl(next?.startsWith('/admin') ? next : '/admin');
         return;
       }
-      await this.sendElsewhere('SpreadApps admin console', this.tenant.platformUrl('/login'));
-      return;
+      // A lab account on the admin address: refuse, but point them to their own lab
+      const { data } = await this.sb.client.from('tenants').select('slug, name').eq('id', p.tenant_id ?? '').maybeSingle();
+      await this.auth.signOut();
+      if (data?.slug) {
+        this.elsewhere.set({ label: `${data.name} workspace`, url: this.tenant.labUrl(data.slug, '/login'), host: new URL(this.tenant.labUrl(data.slug, '/login')).host });
+        return;
+      }
+      throw new Error('This sign-in is for SpreadApps admins only.');
     }
 
-    if (lab && p.tenant_id === lab.id) {
+    if (!isPlatform && p.tenant_id === lab.id) {
       await this.router.navigateByUrl(next?.startsWith('/lab') ? next : '/lab');
       return;
     }
 
-    const { data } = await this.sb.client.from('tenants').select('slug, name').eq('id', p.tenant_id ?? '').maybeSingle();
-    if (!data?.slug) {
-      await this.auth.signOut();
-      throw new Error('This account is not linked to any lab yet. Contact SpreadApps.');
-    }
-    const url = this.tenant.labUrl(data.slug, '/lab');
-    if (this.tenant.isSameOrigin(url)) {
-      location.href = url;
+    if (isPlatform) {
+      await this.sendElsewhere('SpreadApps admin console', this.tenant.platformUrl('/login'));
       return;
     }
-    await this.sendElsewhere(`${data.name} workspace`, this.tenant.labUrl(data.slug, '/login'));
+    await this.auth.signOut();
+    throw new Error(`This account doesn't belong to ${lab.name}.`);
   }
 
   private async sendElsewhere(label: string, url: string) {

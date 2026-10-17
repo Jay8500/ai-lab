@@ -13,7 +13,7 @@ export const superAdminGuard: CanActivateFn = async (_r, state) => {
     location.href = tenant.platformUrl('/admin');
     return false;
   }
-  if (auth.isSuperAdmin()) return true;
+  if (auth.isPlatformAdmin()) return true;
   return router.createUrlTree(['/login'], { queryParams: { next: state.url } });
 };
 
@@ -27,6 +27,14 @@ export const labGuard: CanActivateFn = async (_r, state) => {
   if (!t) return router.createUrlTree(['/']);
   if (auth.isLabUser() && auth.profile()?.tenant_id === t.id) return true;
   return router.createUrlTree(['/login'], { queryParams: { next: state.url } });
+};
+
+/** Platform team & settings: the SpreadApps owner only. */
+export const rootGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await auth.init();
+  return auth.isRoot() ? true : router.createUrlTree(['/admin']);
 };
 
 /** Plan, billing and team: lab owner only. */

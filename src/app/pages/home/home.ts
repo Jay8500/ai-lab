@@ -21,36 +21,27 @@ export class HomePage {
   protected readonly year = new Date().getFullYear();
 
   protected token = '';
-  protected labSlug = '';
 
   protected readonly t = computed(() => this.tenant.tenant());
   protected readonly pages = this.tenant.pages;
-  /** Signed-in users get a shortcut to their own area — only where that area lives. */
-  protected readonly dashboardLink = computed(() => {
-    if (this.t()) return this.auth.isLabUser() && this.auth.profile()?.tenant_id === this.t()!.id ? '/lab' : null;
-    return this.auth.isSuperAdmin() ? '/admin' : null;
-  });
+  /** Lab staff signed in on their own lab get a shortcut to the workspace. */
+  protected readonly dashboardLink = computed(() =>
+    this.t() && this.auth.isLabUser() && this.auth.profile()?.tenant_id === this.t()!.id ? '/lab' : null,
+  );
   protected readonly waLink = computed(() => {
     const n = (this.t()?.whatsapp_number || this.t()?.contact_phone || '').replace(/\D/g, '');
     return n ? `https://wa.me/${n.length === 10 ? '91' + n : n}` : null;
   });
 
-  protected readonly features = [
-    { icon: 'building-2', title: 'Every lab, its own brand', text: 'Subdomain, logo, colours, favicon and cover page per client — all set from one admin console.' },
-    { icon: 'zap', title: 'Token in 5 seconds', text: 'Reception registers the patient, picks tests and prints a token. Works on the front-desk PC or a phone.' },
-    { icon: 'send', title: 'Reports on WhatsApp', text: 'Drop the PDF, tap Notify. Patients track progress live and download the official report — no login.' },
-    { icon: 'sparkles', title: 'AI report explainer', text: 'Plain-language summaries patients understand, with the medical disclaimer built in.' },
-    { icon: 'wallet', title: 'Flexible plans', text: 'Monthly, yearly, pay-per-report or hybrid pricing with free trial days per client.' },
-    { icon: 'life-buoy', title: 'Support via Circles', text: 'Labs raise tickets with screenshots right inside the app; they land in Circles with full context.' },
-  ];
+  constructor() {
+    // The platform address is the admin console only — no public landing, no customer list.
+    if (!this.tenant.tenant() && !this.tenant.notFound()) {
+      this.router.navigateByUrl(this.auth.isPlatformAdmin() ? '/admin' : '/login', { replaceUrl: true });
+    }
+  }
 
   track() {
     const tk = this.token.trim();
     if (tk) this.router.navigate(['/track', tk.toUpperCase()]);
-  }
-
-  openLab() {
-    const s = this.labSlug.trim().toLowerCase();
-    if (s) location.href = this.tenant.labUrl(s, '/');
   }
 }

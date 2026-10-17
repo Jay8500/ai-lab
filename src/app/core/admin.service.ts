@@ -2,6 +2,16 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { BillingEvent, Plan, Profile, SupportTicket, Tenant, TenantSecrets } from './models';
 import { SupabaseService } from './supabase.service';
 
+export type UserScope = 'lab' | 'platform';
+
+export interface NewUser {
+  email: string;
+  password: string;
+  full_name: string;
+  role: string;
+  title?: string | null;
+}
+
 export interface TenantStats {
   tenant_id: string;
   visits_total: number;
@@ -148,21 +158,26 @@ export class AdminService {
   }
 
   // ── Users (via edge function, needs service role) ──
-  async users(tenantId: string): Promise<Profile[]> {
-    const res = await this.callUsers({ action: 'list', tenant_id: tenantId });
+  // Lab scope: a lab's admins + staff. Platform scope (super admin only): SpreadApps admins.
+  async users(tenantId: string | null, scope: UserScope = 'lab'): Promise<Profile[]> {
+    const res = await this.callUsers({ action: 'list', scope, tenant_id: tenantId });
     return res.users ?? [];
   }
 
-  async createUser(tenantId: string, u: { email: string; password: string; full_name: string; role: string }) {
-    await this.callUsers({ action: 'create', tenant_id: tenantId, ...u });
+  async createUser(tenantId: string | null, u: NewUser, scope: UserScope = 'lab') {
+    await this.callUsers({ action: 'create', scope, tenant_id: tenantId, ...u });
   }
 
-  async resetPassword(tenantId: string, userId: string, password: string) {
-    await this.callUsers({ action: 'reset_password', tenant_id: tenantId, user_id: userId, password });
+  async updateUser(tenantId: string | null, userId: string, patch: Partial<NewUser>, scope: UserScope = 'lab') {
+    await this.callUsers({ action: 'update', scope, tenant_id: tenantId, user_id: userId, ...patch });
   }
 
-  async removeUser(tenantId: string, userId: string) {
-    await this.callUsers({ action: 'remove', tenant_id: tenantId, user_id: userId });
+  async resetPassword(tenantId: string | null, userId: string, password: string, scope: UserScope = 'lab') {
+    await this.callUsers({ action: 'reset_password', scope, tenant_id: tenantId, user_id: userId, password });
+  }
+
+  async removeUser(tenantId: string | null, userId: string, scope: UserScope = 'lab') {
+    await this.callUsers({ action: 'remove', scope, tenant_id: tenantId, user_id: userId });
   }
 
   private async callUsers(body: Record<string, unknown>) {

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Session } from '@supabase/supabase-js';
-import { Profile } from './models';
+import { Profile, ROLE_LABELS } from './models';
 import { rememberStorage, SupabaseService } from './supabase.service';
 
 const LAST_EMAIL_KEY = 'sa_last_email';
@@ -13,8 +13,16 @@ export class AuthService {
   readonly profile = signal<Profile | null>(null);
   readonly ready = signal(false);
 
-  readonly isSuperAdmin = computed(() => this.profile()?.role === 'super_admin');
+  /** SpreadApps owner — manages platform admins and platform settings. */
+  readonly isRoot = computed(() => this.profile()?.role === 'super_admin');
+  /** Any SpreadApps admin (owner or team) — the admin console. */
+  readonly isPlatformAdmin = computed(() => ['super_admin', 'platform_admin'].includes(this.profile()?.role ?? ''));
   readonly isLabUser = computed(() => ['lab_owner', 'lab_staff'].includes(this.profile()?.role ?? ''));
+  readonly roleLabel = computed(() => {
+    const p = this.profile();
+    if (!p) return '';
+    return p.role === 'lab_staff' && p.title ? p.title : ROLE_LABELS[p.role];
+  });
   readonly isOwner = computed(() => this.profile()?.role === 'lab_owner');
   readonly displayName = computed(() => this.profile()?.full_name || this.profile()?.email?.split('@')[0] || '');
   readonly initials = computed(() =>
