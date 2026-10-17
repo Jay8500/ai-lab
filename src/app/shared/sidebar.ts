@@ -56,7 +56,13 @@ export const SidebarState = {
     >
       <div class="flex h-16 shrink-0 items-center gap-2 px-4" [class]="{ 'md:justify-center md:px-0': mini }">
         <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }"><ng-content select="[sidebar-brand]" /></div>
-        <div class="hidden" [class]="{ 'md:block': mini }"><ng-content select="[sidebar-mark]" /></div>
+        <!-- Collapsed: the logo is the expand button (shows the expand icon on hover / focus) -->
+        <button type="button" class="group relative hidden size-11 place-items-center rounded-xl transition hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none"
+                [class]="{ 'md:grid': mini }" (click)="state.toggleCollapsed()" title="Expand menu" aria-label="Expand menu">
+          <span class="transition-opacity duration-150 group-hover:opacity-0 group-focus-visible:opacity-0"><ng-content select="[sidebar-mark]" /></span>
+          <lucide-icon name="panel-left-open"
+                       class="absolute size-5 text-slate-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100" />
+        </button>
         <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" [class]="{ 'md:block': !mini }"
                 (click)="state.toggleCollapsed()" title="Collapse menu">
           <lucide-icon name="panel-left-close" class="size-[18px]" />
@@ -83,11 +89,6 @@ export const SidebarState = {
               <span class="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white" [class]="{ 'md:absolute md:top-1 md:right-2': mini }">{{ n.badge }}</span>
             }
           </a>
-        }
-        @if (mini) {
-          <button class="nav-link hidden w-full justify-center md:flex" (click)="state.toggleCollapsed()" title="Expand menu">
-            <lucide-icon name="panel-left-open" class="size-[18px]" />
-          </button>
         }
       </nav>
 

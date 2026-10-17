@@ -106,7 +106,7 @@ type Gender = 'M' | 'F' | 'O';
               <p class="text-slate-500">{{ selected().length }} test(s)</p>
               <p class="text-lg font-bold text-slate-800">₹{{ total() }}</p>
             </div>
-            <button type="submit" class="btn-primary" [disabled]="!name.trim() || !selected().length || saving()">
+            <button type="submit" class="btn-primary" [disabled]="saving()">
               <lucide-icon [name]="saving() ? 'loader-circle' : 'zap'" class="size-4" [class.animate-spin]="saving()" />
               Generate token
             </button>
@@ -159,19 +159,24 @@ export class AddPatientModal {
   }
 
   async save() {
-    if (!this.name.trim() || !this.selected().length) return;
+    const mobile = this.mobile.replace(/[\s-]/g, '');
+    if (!this.name.trim()) return this.toast.warn('Enter the patient name.');
+    if (mobile && !/^(\+?91)?[6-9]\d{9}$/.test(mobile)) return this.toast.warn('Enter a valid 10-digit mobile number.');
+    if (this.age !== null && (this.age < 0 || this.age > 120)) return this.toast.warn('Age must be between 0 and 120.');
+    if (!this.selected().length) return this.toast.warn('Select at least one test.');
     this.saving.set(true);
     try {
       const v = await this.lab.add({
         patient_name: this.name.trim(),
-        mobile: this.mobile.replace(/\s/g, ''),
+        mobile,
         age: this.age ?? null,
         gender: this.gender(),
         tests: this.selected(),
       });
       this.created.set(v);
+      this.toast.success(`Token ${v.token} created`);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.saving.set(false);
     }

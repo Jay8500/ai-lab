@@ -85,7 +85,7 @@ export class PatientCard {
     try {
       await this.lab.setStatus(this.visit(), to);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.working.set(false);
     }
@@ -97,7 +97,7 @@ export class PatientCard {
       await this.lab.uploadReport(this.visit(), file);
       this.toast.success(`Report uploaded for ${this.visit().patient_name}`);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.uploading.set(false);
     }
@@ -120,7 +120,7 @@ export class PatientCard {
     try {
       await this.lab.markNotified(v);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.working.set(false);
     }

@@ -7,6 +7,7 @@ import { AuthService } from '../../core/auth.service';
 import { Profile } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
+import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
 
 type Mode = 'login' | 'forgot' | 'reset';
@@ -22,6 +23,7 @@ export class LoginPage implements OnInit {
   private readonly sb = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(ToastService);
   protected readonly brand = environment.brand;
 
   protected email = this.auth.lastEmail;
@@ -29,8 +31,6 @@ export class LoginPage implements OnInit {
   protected remember = this.auth.rememberMe;
   protected readonly showPw = signal(false);
   protected readonly busy = signal(false);
-  protected readonly error = signal('');
-  protected readonly info = signal('');
   protected readonly mode = signal<Mode>('login');
   /** Set when the account belongs to a different site (admin console or another lab). */
   protected readonly elsewhere = signal<{ label: string; url: string; host: string } | null>(null);
@@ -51,22 +51,33 @@ export class LoginPage implements OnInit {
       return;
     }
     const p = this.auth.profile();
-    if (p) await this.routeFor(p).catch((e: Error) => this.error.set(e.message));
+    if (p) await this.routeFor(p).catch((e) => this.toast.fail(e));
   }
 
   async submit() {
-    this.error.set('');
-    this.info.set('');
     this.elsewhere.set(null);
+    const email = this.email.trim();
+    if (this.mode() !== 'reset' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      this.toast.warn(email ? 'Enter a valid email address.' : 'Enter your email.');
+      return;
+    }
+    if (this.mode() === 'login' && !this.password) {
+      this.toast.warn('Enter your password.');
+      return;
+    }
+    if (this.mode() === 'reset' && this.password.length < 8) {
+      this.toast.warn('Password must be at least 8 characters.');
+      return;
+    }
     this.busy.set(true);
     try {
       if (this.mode() === 'forgot') {
-        await this.auth.sendReset(this.email.trim());
-        this.info.set('If that email has an account, a reset link is on its way.');
+        await this.auth.sendReset(email);
+        this.toast.success('Reset link sent, if that email has an account.');
         this.mode.set('login');
       } else if (this.mode() === 'reset') {
         await this.auth.updatePassword(this.password);
-        this.info.set('Password updated. You are signed in.');
+        this.toast.success('Password updated.');
         const p = this.auth.profile();
         if (p) await this.routeFor(p);
       } else {
@@ -74,7 +85,7 @@ export class LoginPage implements OnInit {
         await this.routeFor(p);
       }
     } catch (e) {
-      this.error.set((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }

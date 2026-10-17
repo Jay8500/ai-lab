@@ -5,6 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
 import { TenantService } from '../../core/tenant.service';
+import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
 
 /** Cover page: a lab's branded landing when on a lab host, otherwise the SpreadApps AI-Lab landing. */
@@ -17,6 +18,7 @@ export class HomePage {
   protected readonly tenant = inject(TenantService);
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   protected readonly brand = environment.brand;
   protected readonly year = new Date().getFullYear();
 
@@ -42,6 +44,7 @@ export class HomePage {
 
   track() {
     const tk = this.token.trim();
+    if (!tk) return this.toast.warn('Enter the token from your receipt.');
     if (tk) this.router.navigate(['/track', tk.toUpperCase()]);
   }
 }

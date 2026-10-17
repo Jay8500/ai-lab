@@ -22,7 +22,7 @@
         <lucide-icon name="search" class="ml-2 size-4 shrink-0 text-slate-400" />
         <input class="min-w-0 flex-1 bg-transparent py-2 font-mono text-sm tracking-wider uppercase outline-none" name="q" [(ngModel)]="query"
                placeholder="Enter your token" autocomplete="off" />
-        <button class="btn-primary !py-2" type="submit" [disabled]="!query.trim()">Track</button>
+        <button class="btn-primary !py-2" type="submit">Track</button>
       </form>
 
       @if (loading() && !result()) {

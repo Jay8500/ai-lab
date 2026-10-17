@@ -63,7 +63,7 @@ interface BrandSettings {
           <div><h2 class="section-title">Your password</h2><p class="text-xs text-slate-400">Signed in as {{ auth.profile()?.email }}</p></div>
         </div>
         <input class="input" type="password" name="pw" [(ngModel)]="pw" placeholder="New password (8+ characters)" autocomplete="new-password" minlength="8" />
-        <button class="btn-primary" type="submit" [disabled]="pw.length < 8"><lucide-icon name="key-round" class="size-4" /> Update password</button>
+        <button class="btn-primary" type="submit"><lucide-icon name="key-round" class="size-4" /> Update password</button>
       </form>
     </div>
   `,
@@ -95,6 +95,7 @@ export class AdminSettings implements OnInit {
   }
 
   async changePw() {
+    if (this.pw.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     await this.run(() => this.auth.updatePassword(this.pw));
     this.pw = '';
   }
@@ -104,7 +105,7 @@ export class AdminSettings implements OnInit {
       await fn();
       this.toast.success('Saved');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 }

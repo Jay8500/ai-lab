@@ -138,6 +138,9 @@ export class AdminPlans {
   }
 
   async save(f: Partial<Plan>) {
+    if (!f.name?.trim()) return this.toast.warn('Enter a plan name.');
+    if (!/^[a-z0-9_-]{2,30}$/i.test(f.code ?? '')) return this.toast.warn('Plan code: letters, numbers, - or _ only.');
+    if ([f.price, f.per_report_fee, f.revenue_share_pct, f.setup_fee].some((v) => Number(v) < 0)) return this.toast.warn('Prices cannot be negative.');
     this.busy.set(true);
     try {
       const num = (v: unknown) => (v === '' || v === null || v === undefined ? 0 : Number(v));
@@ -152,7 +155,7 @@ export class AdminPlans {
       this.form.set(null);
       this.toast.success('Plan saved');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }

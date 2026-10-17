@@ -108,7 +108,7 @@ import { LabStatusPill } from '../lab-status-pill';
               <input id="lk" class="input font-mono uppercase" maxlength="5" name="prefix" [(ngModel)]="form.token_prefix" />
             </div>
           </div>
-          <button class="btn-primary w-full" type="submit" [disabled]="busy() || !form.name || !form.slug">
+          <button class="btn-primary w-full" type="submit" [disabled]="busy()">
             <lucide-icon [name]="busy() ? 'loader-circle' : 'plus'" class="size-4" [class.animate-spin]="busy()" /> Create lab
           </button>
         </form>
@@ -161,6 +161,11 @@ export class AdminLabs implements OnInit {
   }
 
   async create() {
+    const slug = this.form.slug.trim().toLowerCase();
+    if (!this.form.name.trim()) return this.toast.warn('Enter the lab name.');
+    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) return this.toast.warn('Subdomain: lowercase letters, numbers and dashes only.');
+    if (!(Number(this.form.trial_days) >= 0)) return this.toast.warn('Trial days must be 0 or more.');
+    if (!/^#[0-9a-f]{6}$/i.test(this.form.brand_color)) return this.toast.warn('Brand colour must look like #6366F1.');
     this.busy.set(true);
     try {
       const t = await this.admin.createTenant({
@@ -178,7 +183,7 @@ export class AdminLabs implements OnInit {
       this.toast.success(`${t.name} created`);
       this.router.navigate(['/admin/labs', t.id]);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }

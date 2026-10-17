@@ -86,7 +86,7 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent';
               </div>
             </div>
             <div class="pb-safe mt-auto border-t border-slate-100 p-5">
-              <button class="btn-primary w-full" type="submit" [disabled]="!summary.trim() || busy()">
+              <button class="btn-primary w-full" type="submit" [disabled]="busy()">
                 <lucide-icon [name]="busy() ? 'loader-circle' : 'send'" class="size-4" [class.animate-spin]="busy()" />
                 Submit ticket
               </button>
@@ -119,7 +119,7 @@ export class CirclesSupport {
   pick(e: Event) {
     const f = (e.target as HTMLInputElement).files?.[0] ?? null;
     if (f && f.size > 5 * 1024 * 1024) {
-      this.toast.error('Screenshot must be under 5 MB');
+      this.toast.warn('Screenshot must be under 5 MB.');
       return;
     }
     this.file = f;
@@ -128,6 +128,7 @@ export class CirclesSupport {
   }
 
   async submit() {
+    if (!this.summary.trim()) return this.toast.warn('Add a short summary of the issue.');
     this.busy.set(true);
     try {
       const id = await this.support.submit({
@@ -137,13 +138,14 @@ export class CirclesSupport {
         screenshot: this.file,
       });
       this.ticketId.set(id);
+      this.toast.success('Ticket raised.');
       this.summary = '';
       this.details = '';
       this.file = null;
       this.fileName.set('');
       this.preview.set(null);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }

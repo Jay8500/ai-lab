@@ -108,7 +108,7 @@ export class AdminBilling implements OnInit {
       await this.admin.loadAll();
       this.toast.success(targets.length ? `${targets.length} invoice(s) created for ${this.period}` : 'Nothing new to bill this month');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }

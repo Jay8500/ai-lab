@@ -27,7 +27,7 @@ import { TenantHeader } from '../shared/tenant-header';
           <span class="block truncate font-mono text-[11px] text-slate-400">{{ tenant.slug() }}.spreadapps.in</span>
         </span>
       </a>
-      <a sidebar-mark routerLink="/lab"><img [src]="tenant.logo()" alt="" class="size-9 rounded-xl bg-white object-contain ring-1 ring-slate-100" /></a>
+      <img sidebar-mark [src]="tenant.logo()" alt="" class="size-9 rounded-xl bg-white object-contain ring-1 ring-slate-100" />
 
       <div sidebar-footer class="space-y-3">
         @if (!mini) {
@@ -129,7 +129,7 @@ export class LabShell implements OnInit {
     try {
       await this.lab.load();
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 }

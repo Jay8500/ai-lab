@@ -20,7 +20,7 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
           <span class="block text-[11px] font-semibold text-brand">{{ brand.product }} · Admin</span>
         </span>
       </a>
-      <a sidebar-mark routerLink="/admin"><img [src]="brand.logo" alt="" class="size-8" /></a>
+      <img sidebar-mark [src]="brand.logo" alt="" class="size-8" />
 
       <div sidebar-footer>
         <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:justify-center': mini }">
@@ -76,7 +76,7 @@ export class AdminShell implements OnInit {
     try {
       await this.admin.loadAll();
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 

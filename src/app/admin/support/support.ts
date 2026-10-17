@@ -90,7 +90,7 @@ export class AdminSupport implements OnInit {
       await this.admin.setTicketStatus(t.id, status);
       this.tickets.update((l) => l.map((x) => (x.id === t.id ? { ...x, status } : x)));
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 

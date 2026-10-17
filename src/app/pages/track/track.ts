@@ -6,6 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { VISIT_STEPS, VisitStatus } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
+import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
 
 interface TrackResult {
@@ -36,6 +37,7 @@ export class TrackPage implements OnDestroy {
   protected readonly tenant = inject(TenantService);
   private readonly sb = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
 
   protected readonly steps = VISIT_STEPS;
   protected readonly result = signal<TrackResult | null>(null);
@@ -75,6 +77,7 @@ export class TrackPage implements OnDestroy {
 
   search() {
     const tk = this.query.trim().toUpperCase();
+    if (!tk) return this.toast.warn('Enter the token from your receipt.');
     if (tk) this.router.navigate(['/track', tk]);
   }
 

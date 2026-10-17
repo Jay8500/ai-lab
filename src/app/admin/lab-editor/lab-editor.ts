@@ -142,6 +142,8 @@ export class AdminLabEditor implements OnInit {
 
   async save() {
     if (!this.draft) return;
+    const problem = this.validate();
+    if (problem) return this.toast.warn(problem);
     this.saving.set(true);
     try {
       const d = this.draft;
@@ -159,10 +161,29 @@ export class AdminLabEditor implements OnInit {
       this.load(saved);
       this.toast.success('Saved — changes are live on the lab pages');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** First thing that is wrong with the form, as a short message — or null. */
+  private validate(): string | null {
+    const d = this.draft!;
+    const hex = /^#[0-9a-f]{6}$/i;
+    if (!d.name.trim()) return 'Lab name is required.';
+    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(d.slug.trim().toLowerCase())) return 'Subdomain: lowercase letters, numbers and dashes only.';
+    if (d.custom_domain?.trim() && !/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(d.custom_domain.trim())) return 'Custom domain looks wrong (e.g. reports.mylab.com).';
+    if (!/^[A-Z]{1,5}$/i.test(d.token_prefix.trim())) return 'Token prefix: 1–5 letters.';
+    if (!hex.test(d.brand_color) || !hex.test(d.accent_color)) return 'Colours must look like #6366F1.';
+    if (d.contact_email?.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.contact_email.trim())) return 'Contact email is not valid.';
+    if (!(Number(d.trial_days) >= 0)) return 'Trial days must be 0 or more.';
+    if (d.custom_price !== null && (d.custom_price as unknown) !== '' && Number(d.custom_price) < 0) return 'Custom price cannot be negative.';
+    const codes = this.tests.map((t) => t.code.trim().toUpperCase()).filter(Boolean);
+    if (this.tests.some((t) => t.code.trim() && !t.name.trim())) return 'Every test needs a name.';
+    if (new Set(codes).size !== codes.length) return 'Two tests have the same code.';
+    if (this.tests.some((t) => Number(t.price) < 0)) return 'Test prices cannot be negative.';
+    return null;
   }
 
   discard() {
@@ -179,7 +200,7 @@ export class AdminLabEditor implements OnInit {
       this.draft[`${kind}_url`] = url;
       this.touch();
     } catch (err) {
-      this.toast.error((err as Error).message);
+      this.toast.fail(err);
     } finally {
       this.uploading.set(null);
     }
@@ -240,6 +261,8 @@ export class AdminLabEditor implements OnInit {
   }
 
   async addBill() {
+    if (!(Number(this.nb.amount) > 0)) return this.toast.warn('Enter an amount greater than 0.');
+    if (!/^\d{4}-\d{2}$/.test(this.nb.period)) return this.toast.warn('Period must look like 2026-10.');
     try {
       await this.admin.addBilling({ ...this.nb, tenant_id: this.id(), amount: Number(this.nb.amount), paid_at: this.nb.status === 'paid' ? new Date().toISOString() : null });
       this.bills.set(await this.admin.billing(this.id()));
@@ -247,7 +270,7 @@ export class AdminLabEditor implements OnInit {
       this.nb.note = '';
       this.toast.success('Billing entry added');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 
@@ -265,7 +288,7 @@ export class AdminLabEditor implements OnInit {
       this.toast.success('Lab deleted');
       this.router.navigateByUrl('/admin/labs');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 

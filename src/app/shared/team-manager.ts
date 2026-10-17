@@ -83,7 +83,7 @@ import { ToastService } from '../core/toast.service';
             </select>
           </div>
         }
-        <button class="btn-primary w-full" type="submit" [disabled]="busy() || !form.email || form.password.length < 8">
+        <button class="btn-primary w-full" type="submit" [disabled]="busy()">
           <lucide-icon [name]="busy() ? 'loader-circle' : 'user-plus'" class="size-4" [class.animate-spin]="busy()" /> Create login
         </button>
         @if (signInHint()) {
@@ -136,7 +136,7 @@ export class TeamManager {
     try {
       this.users.set(await this.admin.users(this.tenantId(), this.scope()));
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.loading.set(false);
     }
@@ -149,6 +149,8 @@ export class TeamManager {
   }
 
   async create() {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.form.email.trim())) return this.toast.warn('Enter a valid email address.');
+    if (this.form.password.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     this.busy.set(true);
     try {
       await this.admin.createUser(this.tenantId(), this.form, this.scope());
@@ -156,7 +158,7 @@ export class TeamManager {
       this.form = this.blank();
       await this.load();
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }
@@ -175,7 +177,7 @@ export class TeamManager {
       await this.admin.updateUser(this.tenantId(), u.id, p, this.scope());
       this.toast.success(msg);
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
     await this.load();
   }
@@ -183,11 +185,12 @@ export class TeamManager {
   async resetPw(u: Profile) {
     const pw = prompt(`New password for ${u.email} (8+ characters)`);
     if (!pw) return;
+    if (pw.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     try {
       await this.admin.resetPassword(this.tenantId(), u.id, pw, this.scope());
       this.toast.success('Password updated');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 
@@ -198,7 +201,7 @@ export class TeamManager {
       this.users.update((l) => l.filter((x) => x.id !== u.id));
       this.toast.success('Login removed');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 }

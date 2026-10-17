@@ -109,7 +109,7 @@ export class LabReports implements OnInit {
     try {
       this.rows.set(await this.lab.search(this.q));
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     } finally {
       this.busy.set(false);
     }
@@ -131,7 +131,7 @@ export class LabReports implements OnInit {
       this.rows.update((r) => r.filter((x) => x.id !== v.id));
       this.toast.success('Visit deleted');
     } catch (e) {
-      this.toast.error((e as Error).message);
+      this.toast.fail(e);
     }
   }
 }
