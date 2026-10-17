@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/auth.service';
 import { TenantService } from '../../core/tenant.service';
@@ -10,7 +11,7 @@ import { Avatar } from '../../shared/avatar';
 /** "My profile" — used inside both the admin console and the lab workspace. */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, LucideAngularModule, DatePipe, Avatar],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, Avatar],
   template: `
     @if (auth.profile(); as p) {
       <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">My profile</h1>
@@ -80,6 +81,11 @@ import { Avatar } from '../../shared/avatar';
           <button class="btn-ghost w-full" type="submit" [disabled]="savingPw()">
             <lucide-icon name="key-round" class="size-4" /> Update password
           </button>
+          <a routerLink="../security" class="mt-2 flex items-center gap-3 rounded-xl border border-slate-100 p-3 text-sm transition hover:bg-slate-50">
+            <span class="grid size-9 place-items-center rounded-lg bg-rose-50 text-rose-600"><lucide-icon name="shield-check" class="size-4" /></span>
+            <span class="flex-1"><b class="block text-slate-700">Account security</b><span class="text-xs text-slate-400">Devices signed in to your account</span></span>
+            <lucide-icon name="chevron-right" class="size-4 text-slate-400" />
+          </a>
         </form>
       </div>
     }

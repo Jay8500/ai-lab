@@ -84,7 +84,6 @@ export interface TenantSecrets {
   ai_api_key: string | null;
   circles_project_id: string | null;
   circles_api_key: string | null;
-  extra: Record<string, string>;
 }
 
 export interface Plan {

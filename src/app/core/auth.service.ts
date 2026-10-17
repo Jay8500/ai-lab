@@ -111,10 +111,20 @@ export class AuthService {
     return this.sb.publicUrl('avatars', path);
   }
 
+  /** True while a sign-out started by this browser is in progress (not a remote revoke). */
+  signingOut = false;
+
+  /** Signs out THIS device only — other devices are managed under Account security. */
   async signOut(): Promise<void> {
-    await this.sb.client.auth.signOut();
+    this.signingOut = true;
+    try {
+      await this.sb.client.auth.signOut({ scope: 'local' });
+    } catch {
+      /* session may already be revoked server-side; local sign-out still happens */
+    }
     this.session.set(null);
     this.profile.set(null);
+    this.signingOut = false;
   }
 
   private async loadProfile(): Promise<Profile | null> {

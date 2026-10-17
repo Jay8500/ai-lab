@@ -128,16 +128,16 @@ export class AdminService {
     this.tenants.update((l) => l.filter((t) => t.id !== id));
   }
 
+  /** API keys are encrypted in Supabase Vault; only SpreadApps admins can decrypt them. */
   async getSecrets(tenantId: string): Promise<TenantSecrets> {
-    const { data } = await this.sb.client.from('tenant_secrets').select('*').eq('tenant_id', tenantId).maybeSingle();
-    return (data as TenantSecrets) ?? ({ tenant_id: tenantId, extra: {} } as TenantSecrets);
+    const { data, error } = await this.sb.client.rpc('get_tenant_secrets', { p_tenant: tenantId });
+    if (error) throw error;
+    return { tenant_id: tenantId, ...(data ?? {}) } as TenantSecrets;
   }
 
   async saveSecrets(s: TenantSecrets): Promise<void> {
-    const { error } = await this.sb.client
-      .from('tenant_secrets')
-      .upsert({ ...s, updated_at: new Date().toISOString() });
-    if (error) throw new Error(error.message);
+    const { error } = await this.sb.client.rpc('set_tenant_secrets', { p_tenant: s.tenant_id, p_values: s });
+    if (error) throw error;
   }
 
   async uploadBranding(tenantId: string, kind: 'logo' | 'favicon' | 'cover', file: File): Promise<string> {
@@ -175,6 +175,10 @@ export class AdminService {
 
   async resetPassword(tenantId: string | null, userId: string, password: string, scope: UserScope = 'lab') {
     await this.callUsers({ action: 'reset_password', scope, tenant_id: tenantId, user_id: userId, password });
+  }
+
+  async signOutEverywhere(tenantId: string | null, userId: string, scope: UserScope = 'lab') {
+    await this.callUsers({ action: 'signout_all', scope, tenant_id: tenantId, user_id: userId });
   }
 
   async removeUser(tenantId: string | null, userId: string, scope: UserScope = 'lab') {

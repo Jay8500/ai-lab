@@ -12,6 +12,7 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { routes } from './app.routes';
 import { AuthService } from './core/auth.service';
+import { SessionService } from './core/session.service';
 import { TenantService } from './core/tenant.service';
 import { APP_ICONS } from './icons';
 
@@ -20,7 +21,10 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     importProvidersFrom(LucideAngularModule.pick(APP_ICONS)),
-    provideAppInitializer(() => Promise.all([inject(TenantService).init(), inject(AuthService).init()])),
+    provideAppInitializer(() => {
+      inject(SessionService); // starts watching this device's session once signed in
+      return Promise.all([inject(TenantService).init(), inject(AuthService).init()]);
+    }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

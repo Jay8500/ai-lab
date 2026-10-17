@@ -45,6 +45,31 @@
           <span>This lab's {{ tenant.tenant()!.status === 'trial' ? 'free trial has ended' : 'subscription is inactive' }}. You can sign in to view data; contact {{ brand.name }} to reactivate.</span>
         </div>
       }
+      @if (kickedNotice()) {
+        <div class="animate-fade-up mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <lucide-icon name="shield-check" class="mt-0.5 size-4 shrink-0" />
+          <span><b class="block">You were signed out</b>Your account was signed in on another device, or this device was removed from your account.</span>
+        </div>
+      }
+      @if (pending(); as pd) {
+        <div class="animate-fade-up mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+          <p class="flex items-center gap-2 text-sm font-bold text-rose-800">
+            <lucide-icon name="triangle-alert" class="size-4" /> Already signed in on {{ pd.devices.length }} other device(s)
+          </p>
+          <ul class="mt-2 space-y-1 text-xs text-rose-700">
+            @for (d of pd.devices.slice(0, 4); track $index) {
+              <li class="flex items-center gap-1.5"><lucide-icon name="monitor" class="size-3.5" /> {{ d }}</li>
+            }
+          </ul>
+          <p class="mt-2 text-xs text-rose-700">Continue here and those devices will be signed out.</p>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" class="btn-ghost !py-2 text-xs" (click)="cancelHere()" [disabled]="busy()">Cancel</button>
+            <button type="button" class="btn !bg-rose-600 !py-2 text-xs text-white hover:!bg-rose-700" (click)="continueHere()" [disabled]="busy()">
+              <lucide-icon [name]="busy() ? 'loader-circle' : 'log-out'" class="size-3.5" [class.animate-spin]="busy()" /> Continue here
+            </button>
+          </div>
+        </div>
+      }
       @if (elsewhere(); as e) {
         <div class="animate-fade-up mt-5 rounded-2xl border border-brand/20 bg-brand/5 p-4">
           <p class="flex items-center gap-2 text-sm font-semibold text-slate-800">
@@ -54,7 +79,7 @@
           <a [href]="e.url" class="btn-primary mt-3 w-full">Go to {{ e.host }} <lucide-icon name="arrow-right" class="size-4" /></a>
         </div>
       }
-      <form class="mt-6 space-y-4" (ngSubmit)="submit()">
+      <form class="mt-6 space-y-4" [class.hidden]="!!pending()" (ngSubmit)="submit()">
         @if (mode() !== 'reset') {
           <div>
             <label class="label" for="em">{{ mode() === 'forgot' ? 'Email' : 'Username or email' }}</label>

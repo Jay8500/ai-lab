@@ -8,6 +8,7 @@ import { Profile } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
+import { describeDevice, SessionService } from '../../core/session.service';
 import { BrandMark } from '../../shared/brand-mark';
 
 type Mode = 'login' | 'forgot' | 'reset';
@@ -24,6 +25,7 @@ export class LoginPage implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly sessions = inject(SessionService);
   protected readonly brand = environment.brand;
 
   protected email = this.auth.lastEmail;
@@ -32,6 +34,11 @@ export class LoginPage implements OnInit {
   protected readonly showPw = signal(false);
   protected readonly busy = signal(false);
   protected readonly mode = signal<Mode>('login');
+  /** Signed in, but the account is already active on other devices — waiting for the user's choice. */
+  protected readonly pending = signal<{ profile: Profile; devices: string[] } | null>(null);
+  /** This browser was signed out because the account was used / removed elsewhere. */
+  protected readonly kickedNotice = signal(false);
+
   /** Set when the account belongs to a different site (admin console or another lab). */
   protected readonly elsewhere = signal<{ label: string; url: string; host: string } | null>(null);
 
@@ -46,6 +53,7 @@ export class LoginPage implements OnInit {
   );
 
   async ngOnInit() {
+    if (this.sessions.consumeKickedNotice()) this.kickedNotice.set(true);
     if (this.route.snapshot.queryParamMap.get('reset')) {
       this.mode.set('reset');
       return;
@@ -84,6 +92,20 @@ export class LoginPage implements OnInit {
         if (p) await this.routeFor(p);
       } else {
         const p = await this.auth.signIn(this.email.trim(), this.password, this.remember, this.t()?.slug ?? null);
+        this.kickedNotice.set(false);
+        if (this.belongsHere(p)) {
+          const others = (await this.sessions.list()).filter((s) => !s.is_current);
+          if (others.length) {
+            this.pending.set({
+              profile: p,
+              devices: others.map((s) => {
+                const d = describeDevice(s.user_agent);
+                return `${d.browser} on ${d.os}`;
+              }),
+            });
+            return;
+          }
+        }
         await this.routeFor(p);
       }
     } catch (e) {
@@ -91,6 +113,37 @@ export class LoginPage implements OnInit {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private belongsHere(p: Profile): boolean {
+    const platform = p.role === 'super_admin' || p.role === 'platform_admin';
+    const lab = this.t();
+    return lab ? !platform && p.tenant_id === lab.id : platform;
+  }
+
+  /** Keep this sign-in and sign the account out everywhere else. */
+  async continueHere() {
+    const pend = this.pending();
+    if (!pend) return;
+    this.busy.set(true);
+    try {
+      const n = await this.sessions.revokeOthers();
+      this.pending.set(null);
+      this.toast.success(`Signed out ${n} other device(s).`);
+      await this.routeFor(pend.profile);
+    } catch (e) {
+      this.toast.fail(e, 'Could not sign out the other devices.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** Don't take over — drop the sign-in that was just made here. */
+  async cancelHere() {
+    this.pending.set(null);
+    this.password = '';
+    await this.auth.signOut();
+    this.toast.info('Sign-in cancelled. Your other device stays signed in.');
   }
 
   /**

@@ -56,6 +56,7 @@ import { SidebarState } from './sidebar';
                   <p class="truncate text-xs text-slate-400">{{ auth.profile()?.email }}</p>
                 </div>
                 <a routerLink="/lab/profile" (click)="menu.set(false)" class="nav-link"><lucide-icon name="users" class="size-4" /> My profile</a>
+                <a routerLink="/lab/security" (click)="menu.set(false)" class="nav-link"><lucide-icon name="shield-check" class="size-4" /> Account security</a>
                 @if (auth.isOwner()) {
                   <a routerLink="/lab/account" (click)="menu.set(false)" class="nav-link"><lucide-icon name="settings" class="size-4" /> Plan & team</a>
                 }

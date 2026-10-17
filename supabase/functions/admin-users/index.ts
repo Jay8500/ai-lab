@@ -117,6 +117,14 @@ Deno.serve(async (req) => {
     return error ? json({ error: error.message }, 400) : json({ ok: true });
   }
 
+  if (action === 'signout_all') {
+    if (body.user_id === meId) return json({ error: 'Use Account security to manage your own devices' }, 400);
+    const target = await loadTarget(body.user_id);
+    if (!target) return json({ error: 'User not found' }, 404);
+    const { data, error } = await admin.rpc('admin_revoke_user_sessions', { p_user: target.id });
+    return error ? json({ error: error.message }, 400) : json({ ok: true, sessions: data });
+  }
+
   if (action === 'remove') {
     if (body.user_id === meId) return json({ error: 'You cannot remove yourself' }, 400);
     const target = await loadTarget(body.user_id);

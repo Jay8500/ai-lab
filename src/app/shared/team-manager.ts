@@ -47,6 +47,7 @@ import { Avatar } from './avatar';
                   </select>
                 }
                 <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="resetPw(u)" title="Set new password"><lucide-icon name="key-round" class="size-4" /></button>
+                <button class="rounded-lg p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="signOutAll(u)" title="Sign out of all devices"><lucide-icon name="log-out" class="size-4" /></button>
                 <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="remove(u)" title="Remove login"><lucide-icon name="trash-2" class="size-4" /></button>
               }
             </li>
@@ -198,6 +199,16 @@ export class TeamManager {
     try {
       await this.admin.resetPassword(this.tenantId(), u.id, pw, this.scope());
       this.toast.success('Password updated');
+    } catch (e) {
+      this.toast.fail(e);
+    }
+  }
+
+  async signOutAll(u: Profile) {
+    if (!confirm(`Sign ${u.full_name || u.email} out of every device?`)) return;
+    try {
+      await this.admin.signOutEverywhere(this.tenantId(), u.id, this.scope());
+      this.toast.success('Signed out of all devices.');
     } catch (e) {
       this.toast.fail(e);
     }
