@@ -41,7 +41,12 @@ import { FormField } from './form-field';
                 <p class="truncate text-sm font-semibold text-slate-700">
                   {{ u.full_name || u.username }} @if (u.id === me()) { <span class="text-xs font-normal text-slate-400">(you)</span> }
                 </p>
-                <p class="truncate text-xs text-slate-400"><span class="font-mono text-slate-500">{{ u.username }}</span> · {{ email(u) || 'username sign-in only' }} · since {{ u.created_at | date: 'MMM d, y' }}</p>
+                <p class="truncate text-xs text-slate-400"><span class="font-mono text-slate-500">{{ u.username }}</span> ·
+                  @if (email(u)) { {{ email(u) }} } @else {
+                    <button type="button" class="pill border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100" (click)="setEmail(u)"
+                            title="Without an email they can’t reset their password or receive announcements">No email · Add</button>
+                  }
+                  · since {{ u.created_at | date: 'MMM d, y' }}</p>
               </div>
               @if (u.id === me() || u.role === 'super_admin') {
                 <span class="pill border-slate-200 bg-slate-50 text-slate-500">{{ label(u) }}</span>
@@ -55,6 +60,7 @@ import { FormField } from './form-field';
                     @for (t of titles; track t) { <option [value]="t">{{ t }}</option> }
                   </select>
                 }
+                <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="setEmail(u)" [title]="email(u) ? 'Change email' : 'Add email'"><lucide-icon name="mail" class="size-4" /></button>
                 <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="resetPw(u)" title="Set new password"><lucide-icon name="key-round" class="size-4" /></button>
                 <button class="rounded-lg p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="signOutAll(u)" title="Sign out of all devices"><lucide-icon name="log-out" class="size-4" /></button>
                 <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="remove(u)" title="Remove login"><lucide-icon name="trash-2" class="size-4" /></button>
@@ -317,6 +323,23 @@ export class TeamManager {
       this.toast.success('Password updated');
     } catch (e) {
       this.toast.fail(e);
+    }
+  }
+
+  /** Add or change a login's email (needed for password reset and announcements). */
+  async setEmail(u: Profile) {
+    const current = this.email(u);
+    const input = prompt(`${current ? 'Change' : 'Add'} email for ${u.full_name || u.username}`, current);
+    if (input === null) return;
+    const value = input.replace(/\s+/g, '').toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return this.toast.warn('That email doesn’t look right — e.g. name@example.com.');
+    if (value === current) return;
+    try {
+      await this.admin.updateUser(this.tenantId(), u.id, { email: value }, this.scope());
+      this.toast.success('Email saved.');
+      await this.load();
+    } catch (e) {
+      this.toast.fail(e, 'Could not save the email.');
     }
   }
 

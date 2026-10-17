@@ -74,10 +74,22 @@ export const SidebarState = {
           <lucide-icon name="panel-left-open"
                        class="absolute size-5 text-slate-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100" />
         </button>
-        <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" [class]="{ 'md:block': !mini }"
-                (click)="state.toggleCollapsed()" [title]="state.peek() ? 'Keep menu open' : 'Collapse menu'">
-          <lucide-icon [name]="state.peek() ? 'panel-left-open' : 'panel-left-close'" class="size-[18px]" />
-        </button>
+        @if (state.peek()) {
+          <!-- Slid open by hover: pin it, or close it again -->
+          <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-brand md:block"
+                  (click)="state.toggleCollapsed()" title="Keep menu open" aria-label="Keep menu open">
+            <lucide-icon name="pin" class="size-4" />
+          </button>
+          <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 md:block"
+                  (click)="closePeek()" title="Close menu" aria-label="Close menu">
+            <lucide-icon name="panel-left-close" class="size-[18px]" />
+          </button>
+        } @else {
+          <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" [class]="{ 'md:block': !mini }"
+                  (click)="state.toggleCollapsed()" title="Collapse menu" aria-label="Collapse menu">
+            <lucide-icon name="panel-left-close" class="size-[18px]" />
+          </button>
+        }
         <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 md:hidden" (click)="state.drawer.set(false)" aria-label="Close menu">
           <lucide-icon name="x" class="size-5" />
         </button>
@@ -124,6 +136,12 @@ export class Sidebar {
   }
 
   onLeave() {
+    clearTimeout(this.peekTimer);
+    SidebarState.peek.set(false);
+  }
+
+  /** Close the hover slide-out; it won't reopen until the mouse leaves and comes back. */
+  closePeek() {
     clearTimeout(this.peekTimer);
     SidebarState.peek.set(false);
   }

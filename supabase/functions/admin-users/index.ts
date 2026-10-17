@@ -109,6 +109,18 @@ Deno.serve(async (req) => {
       if (target.id === meId) return json({ error: 'You cannot change your own role' }, 400);
       patch.role = body.role;
     }
+    // Add / change the sign-in email (e.g. an account created without one)
+    if (body.email !== undefined) {
+      const email = String(body.email ?? '').trim().toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.endsWith('@' + NO_EMAIL_DOMAIN)) {
+        return json({ error: 'Enter a valid email address' }, 400);
+      }
+      const { data: clash } = await admin.from('profiles').select('id').eq('email', email).neq('id', target.id).maybeSingle();
+      if (clash) return json({ error: 'That email already has an account' }, 400);
+      const { error: authErr } = await admin.auth.admin.updateUserById(target.id, { email, email_confirm: true });
+      if (authErr) return json({ error: authErr.message }, 400);
+      patch.email = email;
+    }
     const { error } = await admin.from('profiles').update(patch).eq('id', target.id);
     return error ? json({ error: error.message }, 400) : json({ ok: true });
   }
