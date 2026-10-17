@@ -8,6 +8,7 @@ import { SupabaseService } from '../../core/supabase.service';
 import { cleanText } from '../../core/text-clean';
 import { ToastService } from '../../core/toast.service';
 import { FormField } from '../../shared/form-field';
+import { DialogService } from '../../core/dialog.service';
 
 type Category = 'general' | 'payment' | 'feature' | 'maintenance' | 'trial';
 type Field = 'subject' | 'body' | 'audience';
@@ -76,6 +77,7 @@ export class AdminAnnouncements implements OnInit {
   protected readonly admin = inject(AdminService);
   private readonly sb = inject(SupabaseService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   protected readonly categories = CATEGORIES;
   protected readonly templates = TEMPLATES;
@@ -156,8 +158,18 @@ export class AdminAnnouncements implements OnInit {
     this.touched.update((t) => ({ ...t, [f]: true }));
   }
 
-  useTemplate(t: (typeof TEMPLATES)[number]) {
-    if ((this.subject() || this.body()) && !confirm('Replace the current subject and message with this template?')) return;
+  async useTemplate(t: (typeof TEMPLATES)[number]) {
+    if (
+      (this.subject() || this.body()) &&
+      !(await this.dialog.confirm({
+        title: `Use the “${t.l}” template?`,
+        message: 'Your current subject and message will be replaced.',
+        confirmText: 'Replace',
+        tone: 'warning',
+        icon: 'file-text',
+      }))
+    )
+      return;
     this.category.set(t.category);
     this.subject.set(t.subject);
     this.body.set(t.body);
@@ -212,7 +224,15 @@ export class AdminAnnouncements implements OnInit {
     this.submitted.set(true);
     if (this.errorCount()) return this.toast.warn(this.errorCount() === 1 ? 'One field needs attention.' : `${this.errorCount()} fields need attention.`);
     const n = this.audienceInfo()?.count ?? 0;
-    if (!confirm(`Send “${this.subject().trim()}” to ${n} recipient(s) now? This can’t be undone.`)) return;
+    const go = await this.dialog.confirm({
+      title: `Send to ${n} recipient${n === 1 ? '' : 's'}?`,
+      message: `“${this.subject().trim()}” will be emailed now from ${this.fromLabel() || 'SpreadApps'}. Sent emails can’t be recalled.`,
+      details: [`Type: ${this.catLabel(this.category()).l}`, this.sampleText() ? `Goes to e.g. ${this.sampleText()}` : ''].filter(Boolean),
+      confirmText: 'Send now',
+      tone: 'primary',
+      icon: 'send',
+    });
+    if (!go) return;
     this.sending.set('send');
     try {
       const r = await this.call({ action: 'send', ...this.payload(), audience: this.audience() });

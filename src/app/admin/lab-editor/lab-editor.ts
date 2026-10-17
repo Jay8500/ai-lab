@@ -11,6 +11,7 @@ import { ToastService } from '../../core/toast.service';
 import { SidebarState } from '../../shared/sidebar';
 import { TeamManager } from '../../shared/team-manager';
 import { LabStatusPill } from '../lab-status-pill';
+import { DialogService } from '../../core/dialog.service';
 
 type Tab = 'branding' | 'domain' | 'pages' | 'tests' | 'integrations' | 'plan' | 'users';
 
@@ -35,6 +36,7 @@ export class AdminLabEditor implements OnInit {
   protected readonly tenantSvc = inject(TenantService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(DialogService);
   // Zoneless app: the form lives in plain fields, so tell Angular when they are (re)loaded
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly baseDomain = environment.baseDomain;
@@ -297,7 +299,18 @@ export class AdminLabEditor implements OnInit {
 
   async deleteLab() {
     if (!this.draft) return;
-    const typed = prompt(`This permanently deletes ${this.draft.name}, all its visits and logins' lab access.\nType the subdomain "${this.draft.slug}" to confirm.`);
+    const typed = await this.dialog.prompt({
+      title: `Delete ${this.draft.name}?`,
+      message: 'This permanently removes the lab and cannot be undone:',
+      details: ['All patient visits and report PDFs', 'Branding, pages, tests and API keys', 'Lab admin and staff access to this lab'],
+      label: `Type “${this.draft.slug}” to confirm`,
+      placeholder: this.draft.slug,
+      mono: true,
+      requireMatch: this.draft.slug,
+      confirmText: 'Delete lab',
+      tone: 'danger',
+      icon: 'trash-2',
+    });
     if (typed !== this.draft.slug) return;
     try {
       await this.admin.deleteTenant(this.draft.id);

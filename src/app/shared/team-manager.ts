@@ -16,6 +16,7 @@ import { Profile, realEmail, Role, ROLE_LABELS, STAFF_TITLES } from '../core/mod
 import { ToastService } from '../core/toast.service';
 import { Avatar } from './avatar';
 import { FormField } from './form-field';
+import { DialogService } from '../core/dialog.service';
 
 /**
  * List + create + edit logins for one scope:
@@ -158,6 +159,7 @@ export class TeamManager {
   private readonly admin = inject(AdminService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   protected readonly roleLabels = ROLE_LABELS;
   protected readonly titles = STAFF_TITLES;
@@ -238,6 +240,11 @@ export class TeamManager {
     }
   }
 
+  private randomPassword(): string {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    return Array.from(crypto.getRandomValues(new Uint32Array(10)), (n) => chars[n % chars.length]).join('') + '@1';
+  }
+
   generate() {
     const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
     const arr = crypto.getRandomValues(new Uint32Array(10));
@@ -315,9 +322,18 @@ export class TeamManager {
   }
 
   async resetPw(u: Profile) {
-    const pw = prompt(`New password for ${u.username} (8+ characters)`);
+    const pw = await this.dialog.prompt({
+      title: `New password for ${u.full_name || u.username}`,
+      message: 'Share it with them privately. They can change it later from My profile.',
+      label: 'New password',
+      value: this.randomPassword(),
+      mono: true,
+      hint: 'A strong password is suggested — you can type your own.',
+      validate: (v) => (v.length < 8 ? 'At least 8 characters.' : !/[A-Za-z]/.test(v) || !/\d/.test(v) ? 'Use letters and at least one number.' : null),
+      confirmText: 'Set password',
+      icon: 'key-round',
+    });
     if (!pw) return;
-    if (pw.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     try {
       await this.admin.resetPassword(this.tenantId(), u.id, pw, this.scope());
       this.toast.success('Password updated');
@@ -329,10 +345,19 @@ export class TeamManager {
   /** Add or change a login's email (needed for password reset and announcements). */
   async setEmail(u: Profile) {
     const current = this.email(u);
-    const input = prompt(`${current ? 'Change' : 'Add'} email for ${u.full_name || u.username}`, current);
+    const input = await this.dialog.prompt({
+      title: `${current ? 'Change' : 'Add'} email for ${u.full_name || u.username}`,
+      message: 'Needed for “Forgot password” and SpreadApps announcements. They can also sign in with it.',
+      label: 'Email address',
+      type: 'email',
+      value: current,
+      placeholder: 'name@example.com',
+      validate: (v) => (!v ? 'Enter an email address.' : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) ? null : 'That email doesn’t look right — e.g. name@example.com.'),
+      confirmText: 'Save email',
+      icon: 'mail',
+    });
     if (input === null) return;
     const value = input.replace(/\s+/g, '').toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) return this.toast.warn('That email doesn’t look right — e.g. name@example.com.');
     if (value === current) return;
     try {
       await this.admin.updateUser(this.tenantId(), u.id, { email: value }, this.scope());
@@ -344,7 +369,14 @@ export class TeamManager {
   }
 
   async signOutAll(u: Profile) {
-    if (!confirm(`Sign ${u.full_name || u.username} out of every device?`)) return;
+    const ok = await this.dialog.confirm({
+      title: `Sign ${u.full_name || u.username} out everywhere?`,
+      message: 'All their devices are signed out within seconds. Their login stays active — they can sign in again with their password.',
+      confirmText: 'Sign out everywhere',
+      tone: 'warning',
+      icon: 'log-out',
+    });
+    if (!ok) return;
     try {
       await this.admin.signOutEverywhere(this.tenantId(), u.id, this.scope());
       this.toast.success('Signed out of all devices.');
@@ -354,7 +386,14 @@ export class TeamManager {
   }
 
   async remove(u: Profile) {
-    if (!confirm(`Remove the login for ${u.username}? They will no longer be able to sign in.`)) return;
+    const ok = await this.dialog.confirm({
+      title: `Remove ${u.full_name || u.username}?`,
+      message: `The login ${u.username} will be deleted and they won’t be able to sign in. Tasks assigned to them are removed too.`,
+      confirmText: 'Remove login',
+      tone: 'danger',
+      icon: 'trash-2',
+    });
+    if (!ok) return;
     try {
       await this.admin.removeUser(this.tenantId(), u.id, this.scope());
       this.users.update((l) => l.filter((x) => x.id !== u.id));

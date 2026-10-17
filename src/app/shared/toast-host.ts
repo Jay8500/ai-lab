@@ -1,5 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { environment } from '../../environments/environment';
+import { TenantService } from '../core/tenant.service';
 import { ToastKind, ToastService } from '../core/toast.service';
 
 const STYLE: Record<ToastKind, { icon: string; box: string; badge: string }> = {
@@ -22,7 +24,12 @@ const STYLE: Record<ToastKind, { icon: string; box: string; badge: string }> = {
           <span class="grid size-6 shrink-0 place-items-center rounded-full text-white {{ s.badge }}">
             <lucide-icon [name]="s.icon" class="size-3.5" />
           </span>
-          <span class="min-w-0 flex-1">{{ t.text }}</span>
+          <span class="min-w-0 flex-1">
+            <span class="mb-0.5 flex items-center gap-1.5 text-[10px] font-semibold tracking-wide uppercase opacity-60">
+              <img [src]="brandLogo()" alt="" class="size-3.5 rounded-sm bg-white object-contain" /> {{ brandName() }}
+            </span>
+            <span class="block">{{ t.text }}</span>
+          </span>
           <button class="rounded-lg p-1 opacity-60 transition hover:bg-black/5 hover:opacity-100" (click)="toasts.dismiss(t.id)" aria-label="Dismiss">
             <lucide-icon name="x" class="size-4" />
           </button>
@@ -33,5 +40,8 @@ const STYLE: Record<ToastKind, { icon: string; box: string; badge: string }> = {
 })
 export class ToastHost {
   protected readonly toasts = inject(ToastService);
+  private readonly tenant = inject(TenantService);
+  protected readonly brandLogo = computed(() => this.tenant.tenant()?.logo_url || environment.brand.logo);
+  protected readonly brandName = computed(() => this.tenant.tenant()?.name || `${environment.brand.name} ${environment.brand.product}`);
   protected readonly style = STYLE;
 }

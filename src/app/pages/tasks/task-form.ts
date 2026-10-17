@@ -6,6 +6,7 @@ import { Task, TaskInput, TaskPriority, TaskService, TaskStatus } from '../../co
 import { ToastService } from '../../core/toast.service';
 import { FormField } from '../../shared/form-field';
 import { Modal } from '../../shared/modal';
+import { DialogService } from '../../core/dialog.service';
 
 type Field = 'title' | 'description' | 'assignee' | 'date' | 'time' | 'token';
 
@@ -146,6 +147,7 @@ export class TaskForm implements OnInit {
   protected readonly tasks = inject(TaskService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   protected readonly priorities = PRIORITIES;
   protected readonly statuses = STATUSES;
@@ -278,7 +280,15 @@ export class TaskForm implements OnInit {
 
   async remove() {
     const t = this.task();
-    if (!t || !confirm(`Delete “${t.title}”?`)) return;
+    if (!t) return;
+    const ok = await this.dialog.confirm({
+      title: 'Delete this task?',
+      message: `“${t.title}” will be removed for everyone on the team.`,
+      confirmText: 'Delete task',
+      tone: 'danger',
+      icon: 'trash-2',
+    });
+    if (!ok) return;
     this.saving.set(true);
     try {
       await this.tasks.remove(t);

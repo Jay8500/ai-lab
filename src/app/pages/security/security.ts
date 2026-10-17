@@ -3,6 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { describeDevice, DeviceSession, SessionService } from '../../core/session.service';
 import { ToastService } from '../../core/toast.service';
+import { DialogService } from '../../core/dialog.service';
 
 /** Where am I signed in? — list and remove device sessions. */
 @Component({
@@ -81,6 +82,7 @@ import { ToastService } from '../../core/toast.service';
 export class SecurityPage implements OnInit {
   private readonly sessionsSvc = inject(SessionService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
 
   protected readonly sessions = signal<DeviceSession[]>([]);
   protected readonly loading = signal(false);
@@ -117,7 +119,14 @@ export class SecurityPage implements OnInit {
 
   async remove(s: DeviceSession) {
     const d = describeDevice(s.user_agent);
-    if (!confirm(`Sign out ${d.browser} on ${d.os}?`)) return;
+    const ok = await this.dialog.confirm({
+      title: `Sign out ${d.browser} on ${d.os}?`,
+      message: `That device (${s.ip || 'unknown IP'}) will be signed out within seconds and will need the password to get back in.`,
+      confirmText: 'Sign out device',
+      tone: 'danger',
+      icon: d.mobile ? 'smartphone' : 'monitor',
+    });
+    if (!ok) return;
     this.busy.set(s.id);
     try {
       await this.sessionsSvc.revoke(s.id);
@@ -132,7 +141,14 @@ export class SecurityPage implements OnInit {
 
   async removeOthers() {
     if (!this.others()) return this.toast.info('No other devices are signed in.');
-    if (!confirm(`Sign out ${this.others()} other device(s)?`)) return;
+    const ok = await this.dialog.confirm({
+      title: `Sign out ${this.others()} other device${this.others() === 1 ? '' : 's'}?`,
+      message: 'Every device except this one will be signed out within seconds. You stay signed in here.',
+      confirmText: 'Sign out others',
+      tone: 'danger',
+      icon: 'shield-check',
+    });
+    if (!ok) return;
     this.busy.set('all');
     try {
       const n = await this.sessionsSvc.revokeOthers();

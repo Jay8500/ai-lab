@@ -7,6 +7,7 @@ import { LabService } from '../../core/lab.service';
 import { Visit } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { StatusPill } from '../../shared/status-pill';
+import { DialogService } from '../../core/dialog.service';
 
 @Component({
   selector: 'app-lab-reports',
@@ -96,6 +97,7 @@ export class LabReports implements OnInit {
   protected readonly lab = inject(LabService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly dialog = inject(DialogService);
   protected q = '';
   protected readonly rows = signal<Visit[]>([]);
   protected readonly busy = signal(false);
@@ -125,7 +127,14 @@ export class LabReports implements OnInit {
   }
 
   async remove(v: Visit) {
-    if (!confirm(`Delete visit ${v.token} for ${v.patient_name}? This also deletes the report PDF.`)) return;
+    const ok = await this.dialog.confirm({
+      title: `Delete visit ${v.token}?`,
+      message: `The visit for ${v.patient_name} and its report PDF will be deleted. The patient’s tracking link will stop working.`,
+      confirmText: 'Delete visit',
+      tone: 'danger',
+      icon: 'trash-2',
+    });
+    if (!ok) return;
     try {
       await this.lab.remove(v);
       this.rows.update((r) => r.filter((x) => x.id !== v.id));
