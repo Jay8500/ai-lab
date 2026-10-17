@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AdminService, NewUser, UserScope } from '../core/admin.service';
 
+type LoginField = 'name' | 'email' | 'password';
+
 interface UsernameStatus {
   state: 'auto' | 'checking' | 'ok' | 'taken' | 'invalid';
   username?: string;
@@ -13,6 +15,7 @@ import { AuthService } from '../core/auth.service';
 import { Profile, realEmail, Role, ROLE_LABELS, STAFF_TITLES } from '../core/models';
 import { ToastService } from '../core/toast.service';
 import { Avatar } from './avatar';
+import { FormField } from './form-field';
 
 /**
  * List + create + edit logins for one scope:
@@ -22,7 +25,7 @@ import { Avatar } from './avatar';
  */
 @Component({
   selector: 'app-team-manager',
-  imports: [FormsModule, LucideAngularModule, DatePipe, Avatar],
+  imports: [FormsModule, LucideAngularModule, DatePipe, Avatar, FormField],
   template: `
     <div class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div class="card p-5 sm:p-6">
@@ -63,11 +66,16 @@ import { Avatar } from './avatar';
         </ul>
       </div>
 
-      <form class="card space-y-3 p-5 sm:p-6" (ngSubmit)="create()">
-        <h3 class="section-title">Create login</h3>
-        <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="form.full_name" (ngModelChange)="queueCheck()" /></div>
+      <form class="card space-y-3 p-5 sm:p-6" (ngSubmit)="create()" novalidate>
         <div>
-          <label class="label">Username <span class="font-normal text-slate-400">(optional)</span></label>
+          <h3 class="section-title">Create login</h3>
+          <p class="text-xs text-slate-400">Fields marked <span class="text-rose-500">*</span> are required.</p>
+        </div>
+        <app-field label="Full name" for="tm-name" required [error]="show('name')" hint="Shown to the team; the username is built from it.">
+          <input id="tm-name" class="input" name="n" [(ngModel)]="form.full_name" (ngModelChange)="queueCheck()" (blur)="touch('name')" maxlength="80" placeholder="e.g. Ravi Kumar" />
+        </app-field>
+        <div>
+          <label class="label">Username <span class="font-normal text-slate-400">(optional — auto-created)</span></label>
           <div class="relative">
             <input class="input pr-10! font-mono" name="un" [(ngModel)]="form.username" (ngModelChange)="queueCheck()" autocomplete="off"
                    autocapitalize="none" spellcheck="false" maxlength="31"
@@ -98,20 +106,18 @@ import { Avatar } from './avatar';
             }
           </p>
         </div>
-        <div>
-          <label class="label">Email <span class="font-normal text-slate-400">(optional)</span></label>
-          <input class="input" name="e" type="email" [(ngModel)]="form.email" autocomplete="off" placeholder="Leave empty for username-only sign-in" />
-        </div>
-        <div>
-          <label class="label">Password</label>
+        <app-field label="Email" for="tm-email" optional [error]="show('email')" hint="Needed only for “Forgot password”. Leave empty for username-only sign-in.">
+          <input id="tm-email" class="input" name="e" type="email" [(ngModel)]="form.email" (blur)="touch('email')" autocomplete="off" placeholder="name@example.com" />
+        </app-field>
+        <app-field label="Temporary password" for="tm-pw" required [error]="show('password')" hint="At least 8 characters with a letter and a number. Tap ↻ to generate one.">
           <div class="flex gap-2">
-            <input class="input font-mono" name="p" [(ngModel)]="form.password" required minlength="8" autocomplete="new-password" />
-            <button type="button" class="btn-ghost px-3!" (click)="generate()" title="Generate"><lucide-icon name="refresh-cw" class="size-4" /></button>
+            <input id="tm-pw" class="input font-mono" name="p" [(ngModel)]="form.password" (blur)="touch('password')" autocomplete="new-password" />
+            <button type="button" class="btn-ghost px-3!" (click)="generate(); touch('password')" title="Generate a strong password"><lucide-icon name="refresh-cw" class="size-4" /></button>
           </div>
-        </div>
+        </app-field>
         @if (roles().length > 1) {
           <div>
-            <label class="label">Role</label>
+            <label class="label">Role <span class="text-rose-500">*</span></label>
             <select class="input" name="r" [(ngModel)]="form.role">
               @for (r of roles(); track r) { <option [value]="r">{{ roleLabels[r] }}</option> }
             </select>
@@ -232,14 +238,39 @@ export class TeamManager {
     this.form.password = Array.from(arr, (n) => chars[n % chars.length]).join('') + '@1';
   }
 
+  protected readonly touched = signal<Record<string, boolean>>({});
+  protected readonly submitted = signal(false);
+
+  /** Field rules with messages that explain the fix. */
+  errors(): Partial<Record<LoginField, string>> {
+    const e: Partial<Record<LoginField, string>> = {};
+    const name = this.form.full_name.trim();
+    if (!name) e.name = 'Full name is required — your team sees it, and the username is built from it.';
+    else if (name.length < 2) e.name = 'Enter at least 2 letters.';
+    const em = this.form.email.trim();
+    if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) e.email = 'That email doesn’t look right — check for typos like a missing “@” or “.com”, or leave it empty.';
+    const pw = this.form.password;
+    if (!pw) e.password = 'Set a temporary password — or tap ↻ to generate a strong one.';
+    else if (pw.length < 8) e.password = `Too short — add ${8 - pw.length} more character${8 - pw.length === 1 ? '' : 's'} (minimum 8).`;
+    else if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) e.password = 'Use both letters and at least one number.';
+    return e;
+  }
+
+  show(f: LoginField): string | null {
+    return this.submitted() || this.touched()[f] ? (this.errors()[f] ?? null) : null;
+  }
+
+  touch(f: LoginField) {
+    this.touched.update((t) => ({ ...t, [f]: true }));
+  }
+
   async create() {
+    this.submitted.set(true);
     if (this.uname().state === 'checking') return this.toast.info('Checking the username…');
     if (this.uname().state === 'taken') return this.toast.warn('That username is taken — pick another.');
     if (this.uname().state === 'invalid') return this.toast.warn('Fix the username format first.');
-    const em = this.form.email.trim();
-    if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return this.toast.warn('Enter a valid email address, or leave it empty.');
-    if (!em && !this.form.full_name.trim() && !(this.form.username ?? '').trim()) return this.toast.warn('Enter a name, so a username can be created.');
-    if (this.form.password.length < 8) return this.toast.warn('Password must be at least 8 characters.');
+    const count = Object.keys(this.errors()).length;
+    if (count) return this.toast.warn(count === 1 ? 'One field needs attention.' : `${count} fields need attention.`);
     const un = (this.form.username ?? '').trim().toLowerCase();
     if (un && !/^[a-z0-9][a-z0-9._-]{2,30}$/.test(un)) return this.toast.warn('Username: 3–31 letters, numbers, dot, dash or underscore.');
     this.form.username = un || null;
@@ -247,6 +278,8 @@ export class TeamManager {
     try {
       await this.admin.createUser(this.tenantId(), this.form, this.scope());
       this.toast.success('Login created.');
+      this.submitted.set(false);
+      this.touched.set({});
       this.form = this.blank();
       this.uname.set({ state: 'auto' });
       await this.load();

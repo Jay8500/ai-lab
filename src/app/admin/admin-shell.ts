@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../environments/environment';
 import { AdminService } from '../core/admin.service';
 import { AuthService } from '../core/auth.service';
+import { TaskService } from '../core/task.service';
 import { ToastService } from '../core/toast.service';
 import { Avatar } from '../shared/avatar';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
@@ -60,10 +61,12 @@ export class AdminShell implements OnInit {
   private readonly toast = inject(ToastService);
   protected readonly brand = environment.brand;
   protected readonly sidebar = SidebarState;
+  private readonly tasks = inject(TaskService);
 
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/admin', label: 'Overview', icon: 'layout-dashboard', exact: true },
     { path: '/admin/labs', label: 'Labs (clients)', icon: 'building-2' },
+    { path: '/admin/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
     { path: '/admin/plans', label: 'Plans & pricing', icon: 'wallet' },
     { path: '/admin/billing', label: 'Billing', icon: 'receipt' },
     { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', img: 'brand/circles-logo.svg', badge: this.admin.totals().tickets || undefined },
@@ -76,6 +79,7 @@ export class AdminShell implements OnInit {
   ]);
 
   async ngOnInit() {
+    this.tasks.load().catch(() => undefined); // for the menu badge
     try {
       await this.admin.loadAll();
     } catch (e) {

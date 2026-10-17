@@ -48,6 +48,11 @@
   .input {
     @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10;
   }
+  /* <app-field> with an error: red control */
+  .field-invalid .input,
+  .field-invalid .seg {
+    @apply border-rose-300 bg-rose-50/30 focus:border-rose-400 focus:ring-rose-500/10;
+  }
   .label {
     @apply mb-1.5 block text-xs font-semibold tracking-wide text-slate-500;
   }

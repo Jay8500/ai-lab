@@ -5,6 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth.service';
 import { LabService } from '../core/lab.service';
 import { SupportService } from '../core/support.service';
+import { TaskService } from '../core/task.service';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { AddPatientModal } from '../shared/add-patient-modal';
@@ -123,10 +124,12 @@ export class LabShell implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   protected readonly sidebar = SidebarState;
+  private readonly tasks = inject(TaskService);
   private readonly router = inject(Router);
 
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
+    { path: '/lab/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
     ...(this.auth.isOwner()
       ? [
@@ -142,6 +145,7 @@ export class LabShell implements OnInit {
   }
 
   async ngOnInit() {
+    this.tasks.load().catch(() => undefined); // for the menu badge
     try {
       await this.lab.load();
     } catch (e) {

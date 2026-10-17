@@ -7,12 +7,17 @@ import { AdminService } from '../../core/admin.service';
 import { DEFAULT_TESTS, TenantStatus } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
+import { FormField } from '../../shared/form-field';
 import { Modal } from '../../shared/modal';
+import { environment } from '../../../environments/environment';
 import { LabStatusPill } from '../lab-status-pill';
+
+type LabField = 'name' | 'slug' | 'plan' | 'trial' | 'color' | 'prefix';
+const RESERVED = environment.reservedSubdomains;
 
 @Component({
   selector: 'app-admin-labs',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DecimalPipe, Modal, LabStatusPill],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DecimalPipe, Modal, LabStatusPill, FormField],
   template: `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
@@ -70,43 +75,38 @@ import { LabStatusPill } from '../lab-status-pill';
 
     @if (creating()) {
       <app-modal title="New lab" subtitle="Creates the client, its subdomain and a free trial" (closed)="creating.set(false)">
-        <form class="space-y-4" (ngSubmit)="create()">
-          <div>
-            <label class="label" for="ln">Lab name</label>
-            <input id="ln" class="input" name="name" [(ngModel)]="form.name" (ngModelChange)="autoSlug()" required placeholder="Sri Sai Diagnostics" />
-          </div>
-          <div>
-            <label class="label" for="ls">Subdomain</label>
-            <div class="flex items-center rounded-xl border border-slate-200 focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
+        <form class="space-y-4" (ngSubmit)="create()" novalidate>
+          <app-field label="Lab name" for="ln" required [error]="show('name')" hint="The name patients see on the cover page and reports.">
+            <input id="ln" class="input" name="name" [(ngModel)]="form.name" (ngModelChange)="autoSlug()" (blur)="touch('name')" maxlength="80" placeholder="Sri Sai Diagnostics" />
+          </app-field>
+          <app-field label="Subdomain" for="ls" required [error]="show('slug')" [hint]="'Their address: ' + (form.slug || 'your-lab') + '.spreadapps.in — also add it as a domain alias in Netlify.'">
+            <div class="input flex items-center p-0! focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
               <input id="ls" class="min-w-0 flex-1 rounded-xl bg-transparent px-3.5 py-2.5 font-mono text-sm outline-none" name="slug" [(ngModel)]="form.slug"
-                     (ngModelChange)="slugTouched = true" required pattern="[a-z0-9][a-z0-9-]{1,40}" />
+                     (ngModelChange)="slugTouched = true" (blur)="touch('slug')" maxlength="41" autocapitalize="none" spellcheck="false" />
               <span class="pr-3.5 text-sm text-slate-400">.spreadapps.in</span>
             </div>
-          </div>
+          </app-field>
           <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="label" for="lp">Plan</label>
-              <select id="lp" class="input" name="plan" [(ngModel)]="form.plan_id">
+            <app-field label="Plan" for="lp" required [error]="show('plan')">
+              <select id="lp" class="input" name="plan" [(ngModel)]="form.plan_id" (ngModelChange)="touch('plan')">
+                <option value="">Choose a plan…</option>
                 @for (p of admin.plans(); track p.id) { <option [value]="p.id">{{ p.name }}</option> }
               </select>
-            </div>
-            <div>
-              <label class="label" for="lt">Trial days</label>
-              <input id="lt" class="input" type="number" min="0" name="trial" [(ngModel)]="form.trial_days" />
-            </div>
+            </app-field>
+            <app-field label="Trial days" for="lt" required [error]="show('trial')" hint="0 = no free trial.">
+              <input id="lt" class="input" type="number" min="0" max="365" name="trial" [(ngModel)]="form.trial_days" (blur)="touch('trial')" />
+            </app-field>
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="label" for="lc">Brand colour</label>
+            <app-field label="Brand colour" for="lcx" required [error]="show('color')">
               <div class="flex items-center gap-2">
-                <input id="lc" type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" name="color" [(ngModel)]="form.brand_color" />
-                <input class="input font-mono" name="colorx" [(ngModel)]="form.brand_color" />
+                <input type="color" class="h-10 w-12 shrink-0 cursor-pointer rounded-lg border border-slate-200" name="color" [(ngModel)]="form.brand_color" aria-label="Pick colour" />
+                <input id="lcx" class="input font-mono" name="colorx" [(ngModel)]="form.brand_color" (blur)="touch('color')" maxlength="7" />
               </div>
-            </div>
-            <div>
-              <label class="label" for="lk">Token prefix</label>
-              <input id="lk" class="input font-mono uppercase" maxlength="5" name="prefix" [(ngModel)]="form.token_prefix" />
-            </div>
+            </app-field>
+            <app-field label="Token prefix" for="lk" required [error]="show('prefix')" [hint]="'Tokens: ' + ((form.token_prefix || 'LAB').toUpperCase()) + '-1018-001'">
+              <input id="lk" class="input font-mono uppercase" maxlength="5" name="prefix" [(ngModel)]="form.token_prefix" (blur)="touch('prefix')" />
+            </app-field>
           </div>
           <button class="btn-primary w-full" type="submit" [disabled]="busy()">
             <lucide-icon [name]="busy() ? 'loader-circle' : 'plus'" class="size-4" [class.animate-spin]="busy()" /> Create lab
@@ -148,6 +148,8 @@ export class AdminLabs implements OnInit {
     const trial = this.admin.plans().find((p) => p.code === 'trial') ?? this.admin.plans()[0];
     this.form = { name: '', slug: '', plan_id: trial?.id ?? '', trial_days: 14, brand_color: '#6366F1', token_prefix: '' };
     this.slugTouched = false;
+    this.submitted.set(false);
+    this.touched.set({});
     this.creating.set(true);
   }
 
@@ -160,12 +162,41 @@ export class AdminLabs implements OnInit {
     }
   }
 
+  protected readonly touched = signal<Record<string, boolean>>({});
+  protected readonly submitted = signal(false);
+
+  errors(): Partial<Record<LabField, string>> {
+    const e: Partial<Record<LabField, string>> = {};
+    const f = this.form;
+    if (!f.name.trim()) e.name = 'Lab name is required — it appears on the cover page and every report.';
+    else if (f.name.trim().length < 3) e.name = 'Enter the full lab name (at least 3 characters).';
+    const slug = f.slug.trim();
+    if (!slug) e.slug = 'Subdomain is required — it becomes the lab’s web address.';
+    else if (/[A-Z]/.test(slug)) e.slug = 'Use lowercase letters only, e.g. srisai-diagnostics.';
+    else if (/\s/.test(slug)) e.slug = 'Spaces aren’t allowed — use a dash instead, e.g. sri-sai.';
+    else if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) e.slug = '2–41 characters: lowercase letters, numbers and dashes, starting with a letter or number.';
+    else if (RESERVED.includes(slug)) e.slug = `“${slug}” is reserved for SpreadApps — choose another.`;
+    else if (this.admin.tenants().some((t) => t.slug === slug)) e.slug = 'Another lab already uses this subdomain.';
+    if (!f.plan_id) e.plan = 'Choose a plan — you can change it later.';
+    const days = Number(f.trial_days);
+    if (!Number.isInteger(days) || days < 0 || days > 365) e.trial = 'Enter whole days from 0 to 365.';
+    if (!/^#[0-9a-f]{6}$/i.test(f.brand_color)) e.color = 'Use a hex colour like #6366F1, or pick one from the swatch.';
+    if (!/^[A-Za-z]{1,5}$/.test(f.token_prefix.trim())) e.prefix = '1–5 letters, e.g. SRS.';
+    return e;
+  }
+
+  show(f: LabField): string | null {
+    return this.submitted() || this.touched()[f] ? (this.errors()[f] ?? null) : null;
+  }
+
+  touch(f: LabField) {
+    this.touched.update((t) => ({ ...t, [f]: true }));
+  }
+
   async create() {
-    const slug = this.form.slug.trim().toLowerCase();
-    if (!this.form.name.trim()) return this.toast.warn('Enter the lab name.');
-    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) return this.toast.warn('Subdomain: lowercase letters, numbers and dashes only.');
-    if (!(Number(this.form.trial_days) >= 0)) return this.toast.warn('Trial days must be 0 or more.');
-    if (!/^#[0-9a-f]{6}$/i.test(this.form.brand_color)) return this.toast.warn('Brand colour must look like #6366F1.');
+    this.submitted.set(true);
+    const count = Object.keys(this.errors()).length;
+    if (count) return this.toast.warn(count === 1 ? 'One field needs attention.' : `${count} fields need attention.`);
     this.busy.set(true);
     try {
       const t = await this.admin.createTenant({

@@ -5,13 +5,15 @@ import { LabService } from '../core/lab.service';
 import { DEFAULT_TESTS, TestItem, Visit } from '../core/models';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
+import { FormField } from './form-field';
 import { Modal } from './modal';
 
 type Gender = 'M' | 'F' | 'O';
+type PatientField = 'name' | 'mobile' | 'age' | 'tests';
 
 @Component({
   selector: 'app-add-patient-modal',
-  imports: [Modal, FormsModule, LucideAngularModule],
+  imports: [Modal, FormsModule, LucideAngularModule, FormField],
   template: `
     <app-modal
       [title]="created() ? 'Token generated' : 'Add new patient'"
@@ -33,22 +35,19 @@ type Gender = 'M' | 'F' | 'O';
           </div>
         </div>
       } @else {
-        <form class="space-y-4" (ngSubmit)="save()">
-          <div>
-            <label class="label" for="pn">Patient name</label>
-            <input id="pn" class="input" name="name" [(ngModel)]="name" required autocomplete="off" placeholder="e.g. Ravi Kumar" />
-          </div>
+        <form class="space-y-4" (ngSubmit)="save()" novalidate>
+          <app-field label="Patient name" for="pn" required [error]="show('name')" hint="As it should appear on the report.">
+            <input id="pn" class="input" name="name" [(ngModel)]="name" (blur)="touch('name')" autocomplete="off" placeholder="e.g. Ravi Kumar" maxlength="80" />
+          </app-field>
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-[1.4fr_.6fr_1fr]">
-            <div class="col-span-2 sm:col-span-1">
-              <label class="label" for="pm">Mobile number</label>
-              <input id="pm" class="input" name="mobile" [(ngModel)]="mobile" inputmode="tel" maxlength="13" placeholder="98765 43210" />
-            </div>
+            <app-field class="col-span-2 sm:col-span-1" label="Mobile number" for="pm" optional [error]="show('mobile')" hint="Used to share the report on WhatsApp.">
+              <input id="pm" class="input" name="mobile" [(ngModel)]="mobile" (blur)="touch('mobile')" inputmode="tel" maxlength="14" placeholder="98765 43210" />
+            </app-field>
+            <app-field label="Age" for="pa" optional [error]="show('age')">
+              <input id="pa" class="input" name="age" [(ngModel)]="age" (blur)="touch('age')" type="number" min="0" max="120" placeholder="32" />
+            </app-field>
             <div>
-              <label class="label" for="pa">Age</label>
-              <input id="pa" class="input" name="age" [(ngModel)]="age" type="number" min="0" max="120" placeholder="32" />
-            </div>
-            <div>
-              <span class="label">Gender</span>
+              <span class="label">Gender <span class="text-rose-500">*</span></span>
               <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
                 @for (g of genders; track g.v) {
                   <button
@@ -66,7 +65,7 @@ type Gender = 'M' | 'F' | 'O';
 
           <div>
             <div class="mb-1.5 flex items-center justify-between gap-2">
-              <span class="label mb-0!">Select tests</span>
+              <span class="label mb-0!">Select tests <span class="text-rose-500">*</span></span>
               <input
                 class="w-36 rounded-lg border border-slate-200 px-2.5 py-1 text-xs outline-none focus:border-brand"
                 placeholder="Filter tests…"
@@ -101,6 +100,11 @@ type Gender = 'M' | 'F' | 'O';
             </div>
           </div>
 
+          @if (show('tests'); as te) {
+            <p class="animate-fade-in -mt-2 flex items-center gap-1.5 text-xs font-medium text-rose-600" role="alert">
+              <lucide-icon name="circle-x" class="size-3.5" /> {{ te }}
+            </p>
+          }
           <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
             <div class="text-sm">
               <p class="text-slate-500">{{ selected().length }} test(s)</p>
@@ -158,12 +162,42 @@ export class AddPatientModal {
     return v.tests.map((t) => t.code).join(', ');
   }
 
-  async save() {
+  protected readonly touched = signal<Record<string, boolean>>({});
+  protected readonly submitted = signal(false);
+
+  /** Rules for each field, with a message that explains how to fix it. */
+  errors(): Partial<Record<PatientField, string>> {
+    const e: Partial<Record<PatientField, string>> = {};
+    const name = this.name.trim();
+    if (!name) e.name = 'Patient name is required — it is printed on the report.';
+    else if (name.length < 2) e.name = 'Enter the full name (at least 2 letters).';
+    else if (/[0-9@#$%^&*_=+<>{}[\]\\|~]/.test(name)) e.name = 'Names can’t contain numbers or symbols.';
+
     const mobile = this.mobile.replace(/[\s-]/g, '');
-    if (!this.name.trim()) return this.toast.warn('Enter the patient name.');
-    if (mobile && !/^(\+?91)?[6-9]\d{9}$/.test(mobile)) return this.toast.warn('Enter a valid 10-digit mobile number.');
-    if (this.age !== null && (this.age < 0 || this.age > 120)) return this.toast.warn('Age must be between 0 and 120.');
-    if (!this.selected().length) return this.toast.warn('Select at least one test.');
+    if (mobile && !/^(\+?91)?[6-9]\d{9}$/.test(mobile)) e.mobile = 'Enter a 10-digit Indian mobile number starting with 6–9, e.g. 98765 43210.';
+
+    const age = this.age as unknown;
+    if (age !== null && age !== '' && age !== undefined) {
+      const n = Number(age);
+      if (!Number.isInteger(n) || n < 0 || n > 120) e.age = 'Age must be a whole number from 0 to 120.';
+    }
+    if (!this.selected().length) e.tests = 'Select at least one test to generate a token.';
+    return e;
+  }
+
+  show(f: PatientField): string | null {
+    return this.submitted() || this.touched()[f] ? (this.errors()[f] ?? null) : null;
+  }
+
+  touch(f: PatientField) {
+    this.touched.update((t) => ({ ...t, [f]: true }));
+  }
+
+  async save() {
+    this.submitted.set(true);
+    const count = Object.keys(this.errors()).length;
+    if (count) return this.toast.warn(count === 1 ? 'One field needs attention.' : `${count} fields need attention.`);
+    const mobile = this.mobile.replace(/[\s-]/g, '');
     this.saving.set(true);
     try {
       const v = await this.lab.add({
@@ -193,5 +227,7 @@ export class AddPatientModal {
     this.age = null;
     this.selected.set([]);
     this.created.set(null);
+    this.submitted.set(false);
+    this.touched.set({});
   }
 }
