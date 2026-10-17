@@ -11,13 +11,14 @@ import { ToastService } from '../core/toast.service';
 import { AddPatientModal } from '../shared/add-patient-modal';
 import { BrandMark } from '../shared/brand-mark';
 import { CirclesLogo } from '../shared/circles-logo';
+import { AnnouncementBanner, AnnouncementReader } from '../shared/inbox-ui';
 import { CirclesSupport } from '../shared/circles-support-modal';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 import { TenantHeader } from '../shared/tenant-header';
 
 @Component({
   selector: 'app-lab-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo, AnnouncementBanner, AnnouncementReader],
   template: `
     @let mini = sidebar.compact();
     <app-sidebar [items]="nav()" heading="Workspace">
@@ -65,6 +66,7 @@ import { TenantHeader } from '../shared/tenant-header';
 
     <div class="min-h-dvh bg-slate-50/50 pb-24 transition-[padding] duration-300 md:pb-10" [class]="sidebar.collapsed() ? 'md:pl-[76px]' : 'md:pl-64'">
       <app-tenant-header (addPatient)="lab.addOpen.set(true)" />
+      <app-announcement-banner />
 
       @if (tenant.tenant(); as t) {
         @if (!t.usable) {
@@ -115,6 +117,7 @@ import { TenantHeader } from '../shared/tenant-header';
       <app-add-patient-modal (closed)="lab.addOpen.set(false)" />
     }
     <app-circles-support />
+    <app-announcement-reader />
   `,
 })
 export class LabShell implements OnInit {

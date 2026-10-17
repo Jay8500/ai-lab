@@ -6,13 +6,14 @@ import { AuthService } from '../core/auth.service';
 import { LabService } from '../core/lab.service';
 import { TenantService } from '../core/tenant.service';
 import { Avatar } from './avatar';
+import { NotificationBell } from './inbox-ui';
 import { SidebarState } from './sidebar';
 
 
 /** Top bar of the lab workspace (navigation lives in the sidebar). */
 @Component({
   selector: 'app-tenant-header',
-  imports: [LucideAngularModule, RouterLink, DatePipe, Avatar],
+  imports: [LucideAngularModule, RouterLink, DatePipe, Avatar, NotificationBell],
   template: `
     <header class="sticky top-0 z-30 border-b border-slate-100 bg-white/85 backdrop-blur-md">
       <div class="flex h-16 items-center gap-3 px-4 sm:px-6">
@@ -40,6 +41,7 @@ import { SidebarState } from './sidebar';
             <lucide-icon name="plus" class="size-4" /> New patient
           </button>
 
+          <app-notification-bell />
           <div class="relative">
             <button class="flex items-center gap-2 rounded-full p-0.5 pr-0.5 transition hover:bg-slate-100 sm:pr-3" (click)="menu.set(!menu())" aria-label="Account menu">
               <app-avatar [name]="auth.displayName()" [url]="auth.profile()?.avatar_url" [size]="36" />

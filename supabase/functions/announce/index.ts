@@ -28,6 +28,9 @@ interface Audience {
   tenant_ids?: string[];
 }
 interface Recipient {
+  user_id: string;
+  tenant_id: string;
+  /** '' when the account has no real email (in-app only) */
   email: string;
   name: string;
   lab: string;
@@ -97,35 +100,30 @@ Deno.serve(async (req) => {
   if (action === 'status') return json({ configured: !!apiKey, from, reply_to: cfg.reply_to });
 
   // ── Who would receive it ──
-  async function recipients(a: Audience): Promise<{ list: Recipient[]; skipped: number }> {
+  /** Everyone matching the audience (in-app); `email` is '' for accounts without a real address. */
+  async function recipients(a: Audience): Promise<{ people: Recipient[]; list: Recipient[]; skipped: number }> {
     const roles = a.roles?.length ? a.roles.filter((r) => ['lab_owner', 'lab_staff'].includes(r)) : ['lab_owner'];
-    let q = admin.from('profiles').select('email, full_name, username, tenant_id').in('role', roles).not('tenant_id', 'is', null);
+    let q = admin.from('profiles').select('id, email, full_name, username, tenant_id').in('role', roles).not('tenant_id', 'is', null);
     if (a.tenant_ids?.length) q = q.in('tenant_id', a.tenant_ids);
-    const [{ data: people }, { data: labs }, { data: plans }] = await Promise.all([
+    const [{ data: rows }, { data: labs }, { data: plans }] = await Promise.all([
       q,
       admin.from('tenants').select('id, name, slug, status, plan_id, trial_started_at, trial_days'),
       admin.from('plans').select('id, name'),
     ]);
     const labMap = new Map((labs ?? []).map((t) => [t.id, t]));
     const planMap = new Map((plans ?? []).map((p) => [p.id, p.name]));
-    const seen = new Set<string>();
-    let skipped = 0;
-    const list: Recipient[] = [];
-    for (const p of people ?? []) {
+    const people: Recipient[] = [];
+    for (const p of rows ?? []) {
       const t = labMap.get(p.tenant_id);
       if (!t) continue;
       const trialEnd = new Date(new Date(t.trial_started_at).getTime() + t.trial_days * 86_400_000);
       const effective = t.status === 'trial' && trialEnd.getTime() < Date.now() ? 'expired' : t.status;
       if (a.statuses?.length && !a.statuses.includes(effective)) continue;
-      const email = String(p.email ?? '').toLowerCase();
-      if (!email || email.endsWith('@' + NO_EMAIL_DOMAIN)) {
-        skipped++;
-        continue;
-      }
-      if (seen.has(email)) continue;
-      seen.add(email);
-      list.push({
-        email,
+      const raw = String(p.email ?? '').toLowerCase();
+      people.push({
+        user_id: p.id,
+        tenant_id: p.tenant_id,
+        email: raw && !raw.endsWith('@' + NO_EMAIL_DOMAIN) ? raw : '',
         name: (p.full_name || p.username || 'there').split(' ')[0],
         lab: t.name,
         slug: t.slug,
@@ -133,7 +131,9 @@ Deno.serve(async (req) => {
         trial_end: trialEnd.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
       });
     }
-    return { list, skipped };
+    const seen = new Set<string>();
+    const list = people.filter((r) => r.email && !seen.has(r.email) && seen.add(r.email));
+    return { people, list, skipped: people.filter((r) => !r.email).length };
   }
 
   async function sendBatch(items: { to: string; subject: string; html: string }[]) {
@@ -146,8 +146,8 @@ Deno.serve(async (req) => {
   }
 
   if (action === 'recipients') {
-    const { list, skipped } = await recipients(body.audience ?? {});
-    return json({ count: list.length, skipped, sample: list.slice(0, 8).map((r) => ({ name: r.name, lab: r.lab })) });
+    const { people, list, skipped } = await recipients(body.audience ?? {});
+    return json({ count: list.length, inApp: people.length, skipped, sample: people.slice(0, 8).map((r) => ({ name: r.name, lab: r.lab })) });
   }
 
   const subject = String(body.subject ?? '').trim();
@@ -155,12 +155,15 @@ Deno.serve(async (req) => {
   const category = CATEGORY[body.category] ? String(body.category) : 'general';
   if (subject.length < 3 || subject.length > 150) return json({ error: 'Subject must be 3–150 characters' }, 400);
   if (text.length < 10 || text.length > 10000) return json({ error: 'Message must be 10–10,000 characters' }, 400);
-  if (!apiKey) return json({ error: 'Email is not set up yet — add the Resend API key first' }, 400);
+  const channels: string[] = Array.isArray(body.channels) && body.channels.length ? body.channels.filter((c: string) => c === 'email' || c === 'in_app') : ['email', 'in_app'];
+  if (!channels.length) return json({ error: 'Choose Email and/or In-app' }, 400);
+  const needEmail = action === 'test' || channels.includes('email');
+  if (needEmail && !apiKey) return json({ error: 'Email is not set up yet — add the Resend API key first' }, 400);
 
   if (action === 'test') {
     const to = String(me.email ?? '');
     if (!to || to.endsWith('@' + NO_EMAIL_DOMAIN)) return json({ error: 'Your account has no email address' }, 400);
-    const sample: Recipient = { email: to, name: (me.full_name || 'there').split(' ')[0], lab: 'Sri Sai Diagnostics', slug: 'srisai-diagnostics', plan: 'Growth', trial_end: new Date().toLocaleDateString('en-IN') };
+    const sample: Recipient = { user_id: u.user.id, tenant_id: '', email: to, name: (me.full_name || 'there').split(' ')[0], lab: 'Sri Sai Diagnostics', slug: 'srisai-diagnostics', plan: 'Growth', trial_end: new Date().toLocaleDateString('en-IN') };
     try {
       await sendBatch([{ to, subject: '[Test] ' + fill(subject, sample), html: template(fill(subject, sample), fill(text, sample), category, cfg.footer) }]);
       return json({ ok: true, to });
@@ -171,20 +174,31 @@ Deno.serve(async (req) => {
 
   if (action === 'send') {
     const audience: Audience = body.audience ?? {};
-    const { list, skipped } = await recipients(audience);
-    if (!list.length) return json({ error: 'No recipients with an email address match this audience' }, 400);
+    const { people, list, skipped } = await recipients(audience);
+    const toEmail = channels.includes('email') ? list : [];
+    const toApp = channels.includes('in_app') ? people : [];
+    if (!toEmail.length && !toApp.length) return json({ error: 'Nobody matches this audience' }, 400);
+
     const { data: row, error: insErr } = await admin
       .from('announcements')
-      .insert({ category, subject, body: text, audience, recipients: list.length, skipped_no_email: skipped, created_by: u.user.id })
+      .insert({ category, subject, body: text, audience, channels, recipients: toEmail.length, in_app_count: toApp.length, skipped_no_email: channels.includes('email') ? skipped : 0, created_by: u.user.id })
       .select('id')
       .single();
     if (insErr) return json({ error: insErr.message }, 400);
 
+    // In-app: one inbox row per person (live via Realtime)
+    if (toApp.length) {
+      const { error: rErr } = await admin
+        .from('announcement_recipients')
+        .insert(toApp.map((r) => ({ announcement_id: row.id, user_id: r.user_id, tenant_id: r.tenant_id })));
+      if (rErr) return json({ error: rErr.message }, 400);
+    }
+
     let sent = 0;
     let failed = 0;
     let lastError: string | null = null;
-    for (let i = 0; i < list.length; i += 100) {
-      const chunk = list.slice(i, i + 100);
+    for (let i = 0; i < toEmail.length; i += 100) {
+      const chunk = toEmail.slice(i, i + 100);
       try {
         await sendBatch(chunk.map((r) => ({ to: r.email, subject: fill(subject, r), html: template(fill(subject, r), fill(text, r), category, cfg.footer) })));
         sent += chunk.length;
@@ -193,9 +207,9 @@ Deno.serve(async (req) => {
         lastError = (e as Error).message;
       }
     }
-    const status = failed === 0 ? 'sent' : sent === 0 ? 'failed' : 'partial';
+    const status = failed === 0 ? 'sent' : sent === 0 && !toApp.length ? 'failed' : 'partial';
     await admin.from('announcements').update({ sent, failed, status, error: lastError, sent_at: new Date().toISOString() }).eq('id', row.id);
-    return json({ ok: failed === 0, sent, failed, skipped, status, error: lastError });
+    return json({ ok: failed === 0, sent, failed, skipped, inApp: toApp.length, status, error: lastError });
   }
 
   return json({ error: 'Unknown action' }, 400);

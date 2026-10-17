@@ -18,6 +18,7 @@ interface Announcement {
   category: Category;
   subject: string;
   recipients: number;
+  in_app_count: number;
   sent: number;
   failed: number;
   skipped_no_email: number;
@@ -104,7 +105,16 @@ export class AdminAnnouncements implements OnInit {
   protected readonly toStaff = signal(false);
   protected readonly statuses = signal<string[]>([]);
   protected readonly labIds = signal<string[]>([]);
-  protected readonly audienceInfo = signal<{ count: number; skipped: number; sample: { name: string; lab: string }[] } | null>(null);
+  protected readonly audienceInfo = signal<{ count: number; inApp: number; skipped: number; sample: { name: string; lab: string }[] } | null>(null);
+  protected readonly viaEmail = signal(true);
+  protected readonly viaApp = signal(true);
+  protected readonly channels = computed(() => [...(this.viaEmail() ? ['email'] : []), ...(this.viaApp() ? ['in_app'] : [])]);
+  /** People reached by the chosen channels */
+  protected readonly reach = computed(() => {
+    const i = this.audienceInfo();
+    if (!i) return 0;
+    return this.viaApp() ? i.inApp : i.count;
+  });
   protected readonly counting = signal(false);
 
   protected readonly touched = signal<Partial<Record<Field, boolean>>>({});
@@ -129,7 +139,8 @@ export class AdminAnnouncements implements OnInit {
     else if (b.length < 10) e.body = 'The message is too short to be useful (at least 10 characters).';
     else if (b.length > 10000) e.body = 'The message is over 10,000 characters — shorten it or link to a page.';
     if (!this.toAdmins() && !this.toStaff()) e.audience = 'Choose who should receive it — lab admins, staff, or both.';
-    else if (this.audienceInfo() && this.audienceInfo()!.count === 0) e.audience = 'Nobody with an email address matches these filters.';
+    else if (!this.channels().length) e.audience = 'Choose how to deliver it — Email, In-app, or both.';
+    else if (this.audienceInfo() && this.reach() === 0) e.audience = this.viaApp() ? 'Nobody matches these filters.' : 'Nobody with an email address matches these filters — tick In-app to reach them in the app.';
     return e;
   });
   protected readonly errorCount = computed(() => Object.keys(this.errors()).length);
@@ -223,11 +234,15 @@ export class AdminAnnouncements implements OnInit {
   async send() {
     this.submitted.set(true);
     if (this.errorCount()) return this.toast.warn(this.errorCount() === 1 ? 'One field needs attention.' : `${this.errorCount()} fields need attention.`);
-    const n = this.audienceInfo()?.count ?? 0;
+    const n = this.reach();
     const go = await this.dialog.confirm({
       title: `Send to ${n} recipient${n === 1 ? '' : 's'}?`,
       message: `“${this.subject().trim()}” will be emailed now from ${this.fromLabel() || 'SpreadApps'}. Sent emails can’t be recalled.`,
-      details: [`Type: ${this.catLabel(this.category()).l}`, this.sampleText() ? `Goes to e.g. ${this.sampleText()}` : ''].filter(Boolean),
+      details: [
+        `Type: ${this.catLabel(this.category()).l}`,
+        `Delivery: ${[this.viaEmail() ? `email (${this.audienceInfo()?.count ?? 0})` : '', this.viaApp() ? `in-app (${this.audienceInfo()?.inApp ?? 0})` : ''].filter(Boolean).join(' + ')}`,
+        this.sampleText() ? `Goes to e.g. ${this.sampleText()}` : '',
+      ].filter(Boolean),
       confirmText: 'Send now',
       tone: 'primary',
       icon: 'send',
@@ -235,8 +250,8 @@ export class AdminAnnouncements implements OnInit {
     if (!go) return;
     this.sending.set('send');
     try {
-      const r = await this.call({ action: 'send', ...this.payload(), audience: this.audience() });
-      if (r.status === 'sent') this.toast.success(`Sent to ${r.sent} recipient(s).`);
+      const r = await this.call({ action: 'send', ...this.payload(), audience: this.audience(), channels: this.channels() });
+      if (r.status === 'sent') this.toast.success([r.sent ? `Emailed ${r.sent}` : '', r.inApp ? `in-app to ${r.inApp}` : ''].filter(Boolean).join(' · ') + '.');
       else this.toast.error(`Sent ${r.sent}, failed ${r.failed}. ${r.error ?? ''}`.trim());
       this.subject.set('');
       this.body.set('');

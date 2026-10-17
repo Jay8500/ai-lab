@@ -45,8 +45,15 @@
     </app-field>
 
     <app-field label="Send to" required [error]="show('audience')"
-               [hint]="counting() ? 'Counting recipients…' : audienceInfo() ? audienceInfo()!.count + ' recipient(s)' + (audienceInfo()!.skipped ? ' · ' + audienceInfo()!.skipped + ' skipped (no email)' : '') : ''">
+               [hint]="counting() ? 'Counting recipients…' : audienceInfo() ? (viaApp() ? audienceInfo()!.inApp + ' in the app' : '') + (viaApp() && viaEmail() ? ' · ' : '') + (viaEmail() ? audienceInfo()!.count + ' by email' + (audienceInfo()!.skipped ? ' (' + audienceInfo()!.skipped + ' have no email)' : '') : '') : ''">
       <div class="space-y-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+        <div>
+          <p class="mb-1.5 text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Deliver via</p>
+          <div class="flex flex-wrap gap-4 text-sm text-slate-700">
+            <label class="flex items-center gap-2"><input type="checkbox" class="size-4 accent-[var(--brand)]" name="ve" [ngModel]="viaEmail()" (ngModelChange)="viaEmail.set($event); touch('audience')" /> <lucide-icon name="mail" class="size-4 text-slate-400" /> Email</label>
+            <label class="flex items-center gap-2"><input type="checkbox" class="size-4 accent-[var(--brand)]" name="va" [ngModel]="viaApp()" (ngModelChange)="viaApp.set($event); touch('audience')" /> <lucide-icon name="bell" class="size-4 text-slate-400" /> In-app (bell{{ category() === 'payment' || category() === 'maintenance' || category() === 'trial' ? ' + banner' : '' }})</label>
+          </div>
+        </div>
         <div class="flex flex-wrap gap-4 text-sm text-slate-700">
           <label class="flex items-center gap-2"><input type="checkbox" class="size-4 accent-[var(--brand)]" name="aa" [ngModel]="toAdmins()" (ngModelChange)="toAdmins.set($event); touch('audience'); recount()" /> Lab admins</label>
           <label class="flex items-center gap-2"><input type="checkbox" class="size-4 accent-[var(--brand)]" name="as" [ngModel]="toStaff()" (ngModelChange)="toStaff.set($event); touch('audience'); recount()" /> Lab staff</label>
@@ -99,9 +106,9 @@
       <button type="button" class="btn-ghost" (click)="sendTest()" [disabled]="!!sending() || !configured()">
         <lucide-icon [name]="sending() === 'test' ? 'loader-circle' : 'mail'" class="size-4" [class.animate-spin]="sending() === 'test'" /> Send test to me
       </button>
-      <button type="submit" class="btn-primary ml-auto" [disabled]="!!sending() || !configured()">
+      <button type="submit" class="btn-primary ml-auto" [disabled]="!!sending() || (viaEmail() && !configured())">
         <lucide-icon [name]="sending() === 'send' ? 'loader-circle' : 'send'" class="size-4" [class.animate-spin]="sending() === 'send'" />
-        Send to {{ audienceInfo()?.count ?? 0 }} recipient(s)
+        Send to {{ reach() }} {{ reach() === 1 ? 'person' : 'people' }}
       </button>
     </div>
   </form>
@@ -140,7 +147,8 @@
             </div>
             <p class="mt-1 text-xs text-slate-500">
               {{ a.created_at | date: 'MMM d, h:mm a' }} ·
-              <span [class]="a.status === 'sent' ? 'text-emerald-600' : a.status === 'partial' ? 'text-amber-600' : 'text-rose-600'">{{ a.sent }}/{{ a.recipients }} delivered</span>
+              @if (a.recipients) { <span [class]="a.status === 'sent' ? 'text-emerald-600' : a.status === 'partial' ? 'text-amber-600' : 'text-rose-600'">✉ {{ a.sent }}/{{ a.recipients }} emailed</span> }
+              @if (a.in_app_count) { · <span class="text-indigo-600">🔔 {{ a.in_app_count }} in-app</span> }
               @if (a.failed) { · {{ a.failed }} failed }
               @if (a.skipped_no_email) { · {{ a.skipped_no_email }} without email }
             </p>

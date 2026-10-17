@@ -140,6 +140,8 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Write', flow: ['Template', 'Type', 'Subject *', 'Message *', '{{name}} · {{lab}}'] },
       { do: 'Choose who', flow: ['Lab admins / staff', 'Status', 'Labs', 'Recipient count'] },
+      { do: 'Deliver via', flow: ['Email', 'In-app (bell)', 'Both'] },
+      { do: 'Banner types', flow: ['Payment', 'Maintenance', 'Trial', 'Top of every page'] },
       { do: 'Check', flow: ['Preview', 'Send test to me', 'Inbox'] },
       { do: 'Send', flow: ['Send to N', 'Send now', 'Sent list'] },
     ],
@@ -260,6 +262,17 @@ export const HELP: HelpSection[] = [
       { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
       { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
       { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
+    ],
+  },
+  {
+    id: 'lab-updates',
+    title: 'Updates from SpreadApps',
+    icon: 'bell',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Read updates', flow: ['🔔 Bell', 'Pick message', 'Got it'] },
+      { do: 'Banner', flow: ['Read', 'Dismiss ✕'] },
+      { do: 'Clear count', flow: ['🔔 Bell', 'Mark all read'] },
     ],
   },
   {
