@@ -107,11 +107,23 @@ export class TenantService {
     return `${location.origin}${path}${sep}lab=${slug}`;
   }
 
-  platformUrl(path = '/'): string {
+  /** True when this browser is on the admin/platform host (not a lab subdomain or lab custom domain). */
+  isPlatformHost(): boolean {
     const host = location.hostname;
-    if (host.endsWith('.' + environment.baseDomain)) return `${location.protocol}//ailab.${environment.baseDomain}${path}`;
-    const sep = path.includes('?') ? '&' : '?';
-    return `${location.origin}${path}${sep}lab=none`;
+    return host === environment.platformHost || host === 'localhost' || host.endsWith('.netlify.app') || /^[d.]+$/.test(host);
+  }
+
+  platformUrl(path = '/'): string {
+    if (this.isPlatformHost()) {
+      const sep = path.includes('?') ? '&' : '?';
+      return `${location.origin}${path}${sep}lab=none`;
+    }
+    return `https://${environment.platformHost}${path}`;
+  }
+
+  /** Same browser origin → session carries over; different origin → user must sign in there. */
+  isSameOrigin(url: string): boolean {
+    return new URL(url, location.href).origin === location.origin;
   }
 
   private applyBranding(): void {

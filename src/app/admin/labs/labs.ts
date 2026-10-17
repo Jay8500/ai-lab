@@ -61,7 +61,6 @@ import { LabStatusPill } from '../lab-status-pill';
           <div class="mt-4 flex gap-2">
             <a [routerLink]="['/admin/labs', r.id]" class="btn-ghost flex-1 !py-2 text-xs"><lucide-icon name="pencil" class="size-3.5" /> Configure</a>
             <a [href]="tenant.labUrl(r.slug, '/')" target="_blank" rel="noopener" class="btn-ghost !px-3 !py-2" title="Open cover page"><lucide-icon name="external-link" class="size-3.5" /></a>
-            <a [href]="tenant.labUrl(r.slug, '/lab')" target="_blank" rel="noopener" class="btn-ghost !px-3 !py-2" title="Open lab dashboard"><lucide-icon name="layout-dashboard" class="size-3.5" /></a>
           </div>
         </article>
       } @empty {

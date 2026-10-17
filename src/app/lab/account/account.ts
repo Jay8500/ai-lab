@@ -111,7 +111,7 @@ export class LabAccount implements OnInit {
   protected readonly busy = signal(false);
   protected nu = { full_name: '', email: '', password: '' };
 
-  protected readonly canManage = computed(() => this.auth.isOwner() || this.auth.isSuperAdmin());
+  protected readonly canManage = computed(() => this.auth.isOwner());
   protected readonly statusTone = computed(() => {
     const s = this.tenant.tenant()?.status;
     return s === 'active' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : s === 'trial' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-rose-100 bg-rose-50 text-rose-600';

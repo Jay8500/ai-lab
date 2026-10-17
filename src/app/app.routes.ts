@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { labGuard, superAdminGuard } from './core/guards';
+import { labGuard, ownerGuard, superAdminGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.HomePage) },
@@ -13,7 +13,7 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./lab/dashboard/dashboard').then((m) => m.LabDashboard) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
-      { path: 'account', loadComponent: () => import('./lab/account/account').then((m) => m.LabAccount) },
+      { path: 'account', canActivate: [ownerGuard], loadComponent: () => import('./lab/account/account').then((m) => m.LabAccount) },
     ],
   },
   {

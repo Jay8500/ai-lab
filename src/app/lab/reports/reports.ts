@@ -57,7 +57,7 @@ import { StatusPill } from '../../shared/status-pill';
                     <a class="btn-ghost !px-2.5 !py-1.5 text-xs" [href]="url" target="_blank" rel="noopener"><lucide-icon name="eye" class="size-3.5" /> PDF</a>
                   }
                   <button class="btn-ghost !px-2.5 !py-1.5 text-xs" (click)="copy(v)" title="Copy tracking link"><lucide-icon name="link" class="size-3.5" /></button>
-                  @if (auth.isOwner() || auth.isSuperAdmin()) {
+                  @if (auth.isOwner()) {
                     <button class="btn-ghost !px-2.5 !py-1.5 text-xs hover:!text-rose-600" (click)="remove(v)" title="Delete visit"><lucide-icon name="trash-2" class="size-3.5" /></button>
                   }
                 </div>

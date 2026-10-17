@@ -72,7 +72,9 @@ import { TenantHeader } from '../shared/tenant-header';
             <div class="flex items-center gap-3 px-4 py-2 text-xs text-amber-700 sm:px-6">
               <lucide-icon name="hourglass" class="size-3.5 shrink-0" />
               <span><b>{{ tenant.trialDaysLeft() }} day(s)</b> left in your free trial (ends {{ t.trial_ends_at | date: 'MMM d' }}).</span>
-              <a routerLink="/lab/account" class="ml-auto font-semibold underline-offset-2 hover:underline">View plan</a>
+              @if (auth.isOwner()) {
+                <a routerLink="/lab/account" class="ml-auto font-semibold underline-offset-2 hover:underline">View plan</a>
+              }
             </div>
           </div>
         }
@@ -112,14 +114,14 @@ export class LabShell implements OnInit {
   protected readonly lab = inject(LabService);
   protected readonly tenant = inject(TenantService);
   protected readonly support = inject(SupportService);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   protected readonly sidebar = SidebarState;
 
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
-    { path: '/lab/account', label: this.auth.isOwner() ? 'Plan & team' : 'Lab account', icon: 'settings' },
+    ...(this.auth.isOwner() ? [{ path: '/lab/account', label: 'Plan & team', icon: 'settings' }] : []),
   ]);
 
   async ngOnInit() {

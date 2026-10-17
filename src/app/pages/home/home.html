@@ -22,8 +22,8 @@
         <div class="ml-auto flex items-center gap-2">
           @if (dashboardLink(); as link) {
             <a [routerLink]="link" class="btn-primary !py-2">Open dashboard <lucide-icon name="arrow-right" class="size-4" /></a>
-          } @else {
-            <a routerLink="/login" class="btn-ghost !py-2"><lucide-icon name="lock" class="size-4" /> Staff login</a>
+          } @else if (pages().show_track) {
+            <a routerLink="/track" class="btn-primary !py-2"><lucide-icon name="file-text" class="size-4" /> Track my report</a>
           }
         </div>
       </div>
@@ -117,9 +117,12 @@
     <footer class="border-t border-slate-100 bg-white">
       <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:px-6">
         <p>© {{ year }} {{ lab.name }}. {{ pages().footer_note || '' }}</p>
-        @if (pages().show_powered_by !== false) {
-          <app-brand-mark />
-        }
+        <div class="flex items-center gap-4">
+          <a routerLink="/login" class="inline-flex items-center gap-1 hover:text-slate-600"><lucide-icon name="lock" class="size-3" /> Lab staff</a>
+          @if (pages().show_powered_by !== false) {
+            <app-brand-mark />
+          }
+        </div>
       </div>
     </footer>
   </div>

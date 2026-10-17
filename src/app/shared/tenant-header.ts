@@ -55,10 +55,9 @@ const ROLE_LABEL = { super_admin: 'SpreadApps admin', lab_owner: 'Lab owner', la
                   <p class="truncate text-sm font-semibold text-slate-800">{{ auth.displayName() }}</p>
                   <p class="truncate text-xs text-slate-400">{{ auth.profile()?.email }}</p>
                 </div>
-                @if (auth.isSuperAdmin()) {
-                  <a [href]="tenant.platformUrl('/admin')" class="nav-link"><lucide-icon name="shield-check" class="size-4" /> SpreadApps admin</a>
+                @if (auth.isOwner()) {
+                  <a routerLink="/lab/account" (click)="menu.set(false)" class="nav-link"><lucide-icon name="settings" class="size-4" /> Plan & team</a>
                 }
-                <a routerLink="/lab/account" (click)="menu.set(false)" class="nav-link"><lucide-icon name="settings" class="size-4" /> Lab account</a>
                 <button class="nav-link w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700" (click)="signOut()">
                   <lucide-icon name="log-out" class="size-4" /> Sign out
                 </button>

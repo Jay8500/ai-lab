@@ -45,6 +45,15 @@
           <span>This lab's {{ tenant.tenant()!.status === 'trial' ? 'free trial has ended' : 'subscription is inactive' }}. You can sign in to view data; contact {{ brand.name }} to reactivate.</span>
         </div>
       }
+      @if (elsewhere(); as e) {
+        <div class="animate-fade-up mt-5 rounded-2xl border border-brand/20 bg-brand/5 p-4">
+          <p class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <lucide-icon name="info" class="size-4 text-brand" /> This account signs in somewhere else
+          </p>
+          <p class="mt-1 text-xs text-slate-500">Please sign in at the {{ e.label }}:</p>
+          <a [href]="e.url" class="btn-primary mt-3 w-full">Go to {{ e.host }} <lucide-icon name="arrow-right" class="size-4" /></a>
+        </div>
+      }
       @if (error()) {
         <div class="animate-fade-up mt-5 flex gap-2.5 rounded-xl border border-rose-100 bg-rose-50 px-3.5 py-3 text-sm text-rose-600">
           <lucide-icon name="triangle-alert" class="mt-0.5 size-4 shrink-0" /> {{ error() }}

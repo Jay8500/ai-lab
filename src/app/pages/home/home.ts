@@ -25,10 +25,10 @@ export class HomePage {
 
   protected readonly t = computed(() => this.tenant.tenant());
   protected readonly pages = this.tenant.pages;
+  /** Signed-in users get a shortcut to their own area — only where that area lives. */
   protected readonly dashboardLink = computed(() => {
-    if (this.auth.isSuperAdmin()) return this.t() ? '/lab' : '/admin';
-    if (this.auth.isLabUser() && this.t()) return '/lab';
-    return null;
+    if (this.t()) return this.auth.isLabUser() && this.auth.profile()?.tenant_id === this.t()!.id ? '/lab' : null;
+    return this.auth.isSuperAdmin() ? '/admin' : null;
   });
   protected readonly waLink = computed(() => {
     const n = (this.t()?.whatsapp_number || this.t()?.contact_phone || '').replace(/\D/g, '');
