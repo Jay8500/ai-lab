@@ -32,6 +32,7 @@ export interface TenantPages {
   show_support?: boolean;
   show_whatsapp?: boolean;
   show_powered_by?: boolean;
+  show_security?: boolean;
   ai_disclaimer?: string;
 }
 

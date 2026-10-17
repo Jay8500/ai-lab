@@ -38,6 +38,7 @@ export class TenantService {
     show_support: true,
     show_whatsapp: true,
     show_powered_by: true,
+    show_security: true,
     ...(this.tenant()?.pages ?? {}),
   }));
   readonly trialDaysLeft = computed(() => {

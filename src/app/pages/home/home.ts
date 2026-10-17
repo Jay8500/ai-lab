@@ -35,6 +35,16 @@ export class HomePage {
     return n ? `https://wa.me/${n.length === 10 ? '91' + n : n}` : null;
   });
 
+  /** Shown on every lab's cover page — what protects patients' data. */
+  protected readonly safeguards = [
+    { icon: 'lock', tone: 'bg-indigo-50 text-indigo-600', title: 'Encrypted connection', text: 'Everything between your phone and our servers travels over HTTPS — nobody on the network can read it.' },
+    { icon: 'shield-check', tone: 'bg-emerald-50 text-emerald-600', title: 'Encrypted storage', text: 'Your reports and details are stored encrypted on secure servers in India.' },
+    { icon: 'file-check', tone: 'bg-sky-50 text-sky-600', title: 'Private report links', text: 'Each report has its own unguessable link. You only need your token — no account, no password to remember.' },
+    { icon: 'users', tone: 'bg-violet-50 text-violet-600', title: 'Strict access control', text: 'Only our own authorised staff can see your visit. Other labs on the platform can never access it.' },
+    { icon: 'monitor', tone: 'bg-amber-50 text-amber-600', title: 'One active login', text: 'Staff accounts work on one device at a time. Signing in elsewhere signs the old device out instantly.' },
+    { icon: 'key-round', tone: 'bg-rose-50 text-rose-600', title: 'Protected credentials', text: 'Staff sign-ins are lab-specific, every device can be removed remotely, and service keys are kept in an encrypted vault.' },
+  ];
+
   constructor() {
     // The platform address is the admin console only — no public landing, no customer list.
     if (!this.tenant.tenant() && !this.tenant.notFound()) {
