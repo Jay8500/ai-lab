@@ -57,10 +57,11 @@
       <form class="mt-6 space-y-4" (ngSubmit)="submit()">
         @if (mode() !== 'reset') {
           <div>
-            <label class="label" for="em">Email</label>
+            <label class="label" for="em">{{ mode() === 'forgot' ? 'Email' : 'Username or email' }}</label>
             <div class="relative">
-              <lucide-icon name="mail" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
-              <input id="em" class="input !pl-10" type="email" name="email" [(ngModel)]="email" autocomplete="username" required placeholder="you@lab.com" />
+              <lucide-icon [name]="mode() === 'forgot' ? 'mail' : 'users'" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
+              <input id="em" class="input !pl-10" type="text" inputmode="email" autocapitalize="none" spellcheck="false" name="email" [(ngModel)]="email"
+                     autocomplete="username" required [placeholder]="mode() === 'forgot' ? 'you@lab.com' : 'e.g. ' + (t() ? 'abc.ravi' : 'sa.jay') + ' or you@email.com'" />
             </div>
           </div>
         }

@@ -36,7 +36,7 @@ import { KpiCard } from '../../shared/kpi-card';
         <tbody class="divide-y divide-slate-100">
           @for (b of events(); track b.id) {
             <tr class="hover:bg-slate-50/60">
-              <td class="px-5 py-3"><a [routerLink]="['/admin/labs', b.tenant_id]" class="font-semibold text-slate-700 hover:text-brand">{{ labName(b.tenant_id) }}</a></td>
+              <td class="px-5 py-3"><a [routerLink]="['/admin/labs', labSlug(b.tenant_id)]" class="font-semibold text-slate-700 hover:text-brand">{{ labName(b.tenant_id) }}</a></td>
               <td class="px-3 py-3 capitalize text-slate-600">{{ b.kind.replace('_', ' ') }}</td>
               <td class="px-3 py-3 text-slate-500">{{ b.period }}</td>
               <td class="px-3 py-3 text-right font-semibold text-slate-700">₹{{ b.amount | number }}</td>
@@ -76,6 +76,10 @@ export class AdminBilling implements OnInit {
   async ngOnInit() {
     await this.admin.ensureLoaded();
     this.events.set(await this.admin.billing());
+  }
+
+  labSlug(id: string) {
+    return this.admin.tenants().find((t) => t.id === id)?.slug ?? id;
   }
 
   labName(id: string) {

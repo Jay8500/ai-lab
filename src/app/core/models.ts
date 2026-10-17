@@ -108,6 +108,8 @@ export interface Profile {
   role: Role;
   tenant_id: string | null;
   title?: string | null;
+  username?: string | null;
+  avatar_url?: string | null;
   created_at?: string;
 }
 
@@ -155,6 +157,14 @@ export interface BillingEvent {
   note: string | null;
   paid_at: string | null;
   created_at: string;
+}
+
+/** Two-letter initials from a name, ignoring brackets, digits and symbols ("Jay (SpreadApps)" → "JS"). */
+export function initialsOf(name: string | null | undefined): string {
+  const words = (name ?? '').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return '?';
+  const two = words.length === 1 ? words[0].slice(0, 2) : words[0][0] + words[words.length - 1][0];
+  return two.toUpperCase();
 }
 
 export const VISIT_STEPS: { key: VisitStatus; label: string }[] = [

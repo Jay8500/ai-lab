@@ -13,6 +13,8 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./lab/dashboard/dashboard').then((m) => m.LabDashboard) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
+      { path: 'tests', canActivate: [ownerGuard], loadComponent: () => import('./lab/tests/tests').then((m) => m.LabTests) },
+      { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
       { path: 'account', canActivate: [ownerGuard], loadComponent: () => import('./lab/account/account').then((m) => m.LabAccount) },
     ],
   },
@@ -23,10 +25,11 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./admin/overview/overview').then((m) => m.AdminOverview) },
       { path: 'labs', loadComponent: () => import('./admin/labs/labs').then((m) => m.AdminLabs) },
-      { path: 'labs/:id', loadComponent: () => import('./admin/lab-editor/lab-editor').then((m) => m.AdminLabEditor) },
+      { path: 'labs/:ref', loadComponent: () => import('./admin/lab-editor/lab-editor').then((m) => m.AdminLabEditor) },
       { path: 'plans', loadComponent: () => import('./admin/plans/plans').then((m) => m.AdminPlans) },
       { path: 'billing', loadComponent: () => import('./admin/billing/billing').then((m) => m.AdminBilling) },
       { path: 'support', loadComponent: () => import('./admin/support/support').then((m) => m.AdminSupport) },
+      { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
       { path: 'team', canActivate: [rootGuard], loadComponent: () => import('./admin/team/team').then((m) => m.AdminTeam) },
       { path: 'settings', canActivate: [rootGuard], loadComponent: () => import('./admin/settings/settings').then((m) => m.AdminSettings) },
     ],

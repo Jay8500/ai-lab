@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
   };
 
   if (action === 'list') {
-    let q = admin.from('profiles').select('id, email, full_name, role, title, created_at').order('created_at');
+    let q = admin.from('profiles').select('id, email, username, full_name, role, title, avatar_url, created_at').order('created_at');
     q = scope === 'platform' ? q.in('role', PLATFORM_ROLES) : q.eq('tenant_id', tenantId!);
     const { data, error } = await q;
     return error ? json({ error: error.message }, 400) : json({ users: data });
@@ -76,11 +76,22 @@ Deno.serve(async (req) => {
     });
     if (error) return json({ error: error.message.includes('already') ? 'That email already has an account' : error.message }, 400);
 
+    // Unique sign-in name: custom if given and free, else <lab prefix>.<first name>[n]
+    let username = String(body.username ?? '').trim().toLowerCase();
+    if (username) {
+      const { data: taken } = await admin.from('profiles').select('id').ilike('username', username).maybeSingle();
+      if (!/^[a-z0-9][a-z0-9._-]{2,30}$/.test(username) || taken) username = '';
+    }
+    if (!username) {
+      const { data: gen } = await admin.rpc('next_username', { p_tenant: tenantId, p_name: fullName });
+      username = gen as string;
+    }
+
     await admin.from('profiles').upsert({
-      id: data.user.id, email, full_name: fullName, role, tenant_id: tenantId,
+      id: data.user.id, email, full_name: fullName, role, tenant_id: tenantId, username,
       title: body.title ? String(body.title) : null, created_by: meId,
     });
-    return json({ user: { id: data.user.id, email, role } });
+    return json({ user: { id: data.user.id, email, role, username } });
   }
 
   if (action === 'update') {

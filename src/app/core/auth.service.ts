@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Session } from '@supabase/supabase-js';
-import { Profile, ROLE_LABELS } from './models';
+import { initialsOf, Profile, ROLE_LABELS } from './models';
 import { rememberStorage, SupabaseService } from './supabase.service';
 
 const LAST_EMAIL_KEY = 'sa_last_email';
@@ -25,14 +25,7 @@ export class AuthService {
   });
   readonly isOwner = computed(() => this.profile()?.role === 'lab_owner');
   readonly displayName = computed(() => this.profile()?.full_name || this.profile()?.email?.split('@')[0] || '');
-  readonly initials = computed(() =>
-    this.displayName()
-      .split(/\s+/)
-      .map((p) => p[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase(),
-  );
+  readonly initials = computed(() => initialsOf(this.displayName()));
 
   private initPromise?: Promise<void>;
 
@@ -62,16 +55,27 @@ export class AuthService {
     return rememberStorage.remember;
   }
 
-  async signIn(email: string, password: string, remember: boolean): Promise<Profile> {
+  /**
+   * Sign in with an email or a username. A username is only looked up on the site it
+   * belongs to (labSlug = this lab, null = SpreadApps admin), so another lab's usernames
+   * don't resolve here at all.
+   */
+  async signIn(identifier: string, password: string, remember: boolean, labSlug: string | null): Promise<Profile> {
     rememberStorage.remember = remember;
     try {
-      if (remember) localStorage.setItem(LAST_EMAIL_KEY, email);
+      if (remember) localStorage.setItem(LAST_EMAIL_KEY, identifier);
       else localStorage.removeItem(LAST_EMAIL_KEY);
     } catch {
       /* storage blocked */
     }
+    let email = identifier.trim();
+    if (!email.includes('@')) {
+      const { data: found } = await this.sb.client.rpc('resolve_login', { p_username: email, p_slug: labSlug });
+      if (!found) throw new Error('Wrong username or password.');
+      email = found as string;
+    }
     const { data, error } = await this.sb.client.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(error.message === 'Invalid login credentials' ? 'Wrong email or password' : error.message);
+    if (error) throw new Error(error.message === 'Invalid login credentials' ? 'Wrong username or password.' : error.message);
     this.session.set(data.session);
     const profile = await this.loadProfile();
     if (!profile) throw new Error('No profile found for this account');
@@ -88,6 +92,23 @@ export class AuthService {
   async updatePassword(password: string): Promise<void> {
     const { error } = await this.sb.client.auth.updateUser({ password });
     if (error) throw new Error(error.message);
+  }
+
+  /** Name + photo only; role, lab and username can't be changed by the user. */
+  async updateProfile(fullName: string, avatarUrl: string | null): Promise<void> {
+    const { error } = await this.sb.client.rpc('update_my_profile', { p_full_name: fullName, p_avatar_url: avatarUrl });
+    if (error) throw error;
+    await this.loadProfile();
+  }
+
+  async uploadAvatar(file: File): Promise<string> {
+    const uid = this.profile()?.id;
+    if (!uid) throw new Error('Not signed in');
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+    const path = `${uid}/avatar-${Date.now()}.${ext}`;
+    const { error } = await this.sb.client.storage.from('avatars').upload(path, file, { contentType: file.type });
+    if (error) throw error;
+    return this.sb.publicUrl('avatars', path);
   }
 
   async signOut(): Promise<void> {

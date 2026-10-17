@@ -6,6 +6,7 @@ import { AdminService, NewUser, UserScope } from '../core/admin.service';
 import { AuthService } from '../core/auth.service';
 import { Profile, Role, ROLE_LABELS, STAFF_TITLES } from '../core/models';
 import { ToastService } from '../core/toast.service';
+import { Avatar } from './avatar';
 
 /**
  * List + create + edit logins for one scope:
@@ -15,7 +16,7 @@ import { ToastService } from '../core/toast.service';
  */
 @Component({
   selector: 'app-team-manager',
-  imports: [FormsModule, LucideAngularModule, DatePipe],
+  imports: [FormsModule, LucideAngularModule, DatePipe, Avatar],
   template: `
     <div class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div class="card p-5 sm:p-6">
@@ -26,12 +27,12 @@ import { ToastService } from '../core/toast.service';
         <ul class="mt-3 divide-y divide-slate-100">
           @for (u of users(); track u.id) {
             <li class="flex flex-wrap items-center gap-3 py-3">
-              <span class="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">{{ (u.full_name || u.email)[0].toUpperCase() }}</span>
+              <app-avatar [name]="u.full_name || u.email" [url]="u.avatar_url" [size]="36" />
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-semibold text-slate-700">
                   {{ u.full_name || u.email }} @if (u.id === me()) { <span class="text-xs font-normal text-slate-400">(you)</span> }
                 </p>
-                <p class="truncate text-xs text-slate-400">{{ u.email }} · since {{ u.created_at | date: 'MMM d, y' }}</p>
+                <p class="truncate text-xs text-slate-400"><span class="font-mono text-slate-500">{{ u.username }}</span> · {{ u.email }} · since {{ u.created_at | date: 'MMM d, y' }}</p>
               </div>
               @if (u.id === me() || u.role === 'super_admin') {
                 <span class="pill border-slate-200 bg-slate-50 text-slate-500">{{ label(u) }}</span>
@@ -58,6 +59,11 @@ import { ToastService } from '../core/toast.service';
       <form class="card space-y-3 p-5 sm:p-6" (ngSubmit)="create()">
         <h3 class="section-title">Create login</h3>
         <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="form.full_name" /></div>
+        <div>
+          <label class="label">Username <span class="font-normal text-slate-400">(optional)</span></label>
+          <input class="input font-mono" name="un" [(ngModel)]="form.username" autocomplete="off" autocapitalize="none" maxlength="31"
+                 [placeholder]="'auto, e.g. ' + (scope() === 'platform' ? 'sa' : 'lab') + '.' + ((form.full_name.split(' ')[0] || 'name').toLowerCase())" />
+        </div>
         <div><label class="label">Email</label><input class="input" name="e" type="email" [(ngModel)]="form.email" required autocomplete="off" /></div>
         <div>
           <label class="label">Password</label>
@@ -128,7 +134,7 @@ export class TeamManager {
 
   private blank(): NewUser {
     const roles = this.scope?.() === 'platform' ? ['platform_admin'] : ['lab_owner', 'lab_staff'];
-    return { full_name: '', email: '', password: '', role: roles[0], title: null };
+    return { full_name: '', email: '', password: '', role: roles[0], title: null, username: null };
   }
 
   async load() {
@@ -151,10 +157,13 @@ export class TeamManager {
   async create() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.form.email.trim())) return this.toast.warn('Enter a valid email address.');
     if (this.form.password.length < 8) return this.toast.warn('Password must be at least 8 characters.');
+    const un = (this.form.username ?? '').trim().toLowerCase();
+    if (un && !/^[a-z0-9][a-z0-9._-]{2,30}$/.test(un)) return this.toast.warn('Username: 3–31 letters, numbers, dot, dash or underscore.');
+    this.form.username = un || null;
     this.busy.set(true);
     try {
       await this.admin.createUser(this.tenantId(), this.form, this.scope());
-      this.toast.success(`Login created for ${this.form.email}`);
+      this.toast.success('Login created.');
       this.form = this.blank();
       await this.load();
     } catch (e) {

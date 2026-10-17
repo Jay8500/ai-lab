@@ -10,6 +10,7 @@ export interface NewUser {
   full_name: string;
   role: string;
   title?: string | null;
+  username?: string | null;
 }
 
 export interface TenantStats {

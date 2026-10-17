@@ -34,7 +34,7 @@ import { LabStatusPill } from '../lab-status-pill';
         </div>
         <div class="mt-5 space-y-4">
           @for (r of byRevenue(); track r.id) {
-            <a [routerLink]="['/admin/labs', r.id]" class="group block">
+            <a [routerLink]="['/admin/labs', r.slug]" class="group block">
               <div class="flex items-center justify-between text-sm">
                 <span class="flex min-w-0 items-center gap-2">
                   <span class="size-2.5 shrink-0 rounded-full" [style.background]="r.brand_color"></span>
@@ -62,7 +62,7 @@ import { LabStatusPill } from '../lab-status-pill';
               <li class="flex items-center gap-3 py-2.5">
                 <span class="grid size-9 place-items-center rounded-xl text-xs font-bold text-white" [style.background]="r.brand_color">{{ r.name[0] }}</span>
                 <div class="min-w-0 flex-1">
-                  <a [routerLink]="['/admin/labs', r.id]" class="block truncate text-sm font-semibold text-slate-700 hover:text-brand">{{ r.name }}</a>
+                  <a [routerLink]="['/admin/labs', r.slug]" class="block truncate text-sm font-semibold text-slate-700 hover:text-brand">{{ r.name }}</a>
                   <p class="text-xs text-slate-400">Ends {{ r.trialEndsAt | date: 'MMM d' }}</p>
                 </div>
                 <span class="pill" [class]="(r.daysLeft ?? 0) <= 3 ? 'border-rose-100 bg-rose-50 text-rose-600' : 'border-amber-100 bg-amber-50 text-amber-600'">

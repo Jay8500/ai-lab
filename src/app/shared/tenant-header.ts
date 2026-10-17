@@ -5,13 +5,14 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth.service';
 import { LabService } from '../core/lab.service';
 import { TenantService } from '../core/tenant.service';
+import { Avatar } from './avatar';
 import { SidebarState } from './sidebar';
 
 
 /** Top bar of the lab workspace (navigation lives in the sidebar). */
 @Component({
   selector: 'app-tenant-header',
-  imports: [LucideAngularModule, RouterLink, DatePipe],
+  imports: [LucideAngularModule, RouterLink, DatePipe, Avatar],
   template: `
     <header class="sticky top-0 z-30 border-b border-slate-100 bg-white/85 backdrop-blur-md">
       <div class="flex h-16 items-center gap-3 px-4 sm:px-6">
@@ -41,7 +42,7 @@ import { SidebarState } from './sidebar';
 
           <div class="relative">
             <button class="flex items-center gap-2 rounded-full p-0.5 pr-0.5 transition hover:bg-slate-100 sm:pr-3" (click)="menu.set(!menu())" aria-label="Account menu">
-              <span class="grid size-9 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">{{ auth.initials() || 'U' }}</span>
+              <app-avatar [name]="auth.displayName()" [url]="auth.profile()?.avatar_url" [size]="36" />
               <span class="hidden text-left leading-tight sm:block">
                 <span class="block max-w-32 truncate text-sm font-semibold text-slate-700">{{ auth.displayName() }}</span>
                 <span class="block text-[11px] text-slate-400">{{ roleLabel() }}</span>
@@ -54,6 +55,7 @@ import { SidebarState } from './sidebar';
                   <p class="truncate text-sm font-semibold text-slate-800">{{ auth.displayName() }}</p>
                   <p class="truncate text-xs text-slate-400">{{ auth.profile()?.email }}</p>
                 </div>
+                <a routerLink="/lab/profile" (click)="menu.set(false)" class="nav-link"><lucide-icon name="users" class="size-4" /> My profile</a>
                 @if (auth.isOwner()) {
                   <a routerLink="/lab/account" (click)="menu.set(false)" class="nav-link"><lucide-icon name="settings" class="size-4" /> Plan & team</a>
                 }

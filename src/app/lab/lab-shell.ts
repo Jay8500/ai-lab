@@ -122,7 +122,12 @@ export class LabShell implements OnInit {
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
-    ...(this.auth.isOwner() ? [{ path: '/lab/account', label: 'Plan & team', icon: 'settings' }] : []),
+    ...(this.auth.isOwner()
+      ? [
+          { path: '/lab/tests', label: 'Tests & prices', icon: 'test-tube' },
+          { path: '/lab/account', label: 'Plan & team', icon: 'settings' },
+        ]
+      : []),
   ]);
 
   async ngOnInit() {

@@ -5,11 +5,12 @@ import { environment } from '../../environments/environment';
 import { AdminService } from '../core/admin.service';
 import { AuthService } from '../core/auth.service';
 import { ToastService } from '../core/toast.service';
+import { Avatar } from '../shared/avatar';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 
 @Component({
   selector: 'app-admin-shell',
-  imports: [RouterOutlet, RouterLink, LucideAngularModule, Sidebar],
+  imports: [RouterOutlet, RouterLink, LucideAngularModule, Sidebar, Avatar],
   template: `
     @let mini = sidebar.collapsed();
     <app-sidebar [items]="nav()" heading="Console">
@@ -24,11 +25,13 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 
       <div sidebar-footer>
         <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:justify-center': mini }">
-          <span class="grid size-9 shrink-0 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">{{ auth.initials() }}</span>
-          <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }">
-            <p class="truncate text-sm font-semibold text-slate-700">{{ auth.displayName() }}</p>
-            <p class="truncate text-[11px] text-slate-400">{{ auth.roleLabel() }}</p>
-          </div>
+          <a routerLink="/admin/profile" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl transition hover:opacity-80" [class]="{ 'md:justify-center': mini }" title="My profile">
+            <app-avatar [name]="auth.displayName()" [url]="auth.profile()?.avatar_url" [size]="36" />
+            <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }">
+              <p class="truncate text-sm font-semibold text-slate-700">{{ auth.displayName() }}</p>
+              <p class="truncate text-[11px] text-slate-400">{{ auth.profile()?.username || auth.roleLabel() }}</p>
+            </div>
+          </a>
           <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" [class]="{ 'md:hidden': mini }" (click)="signOut()" title="Sign out">
             <lucide-icon name="log-out" class="size-4" />
           </button>

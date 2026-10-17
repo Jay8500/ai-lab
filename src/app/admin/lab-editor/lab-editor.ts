@@ -27,7 +27,10 @@ interface SecretField {
   templateUrl: './lab-editor.html',
 })
 export class AdminLabEditor implements OnInit {
-  readonly id = input.required<string>();
+  /** Route param: the lab's subdomain (old links with the internal id still work) */
+  readonly ref = input.required<string>();
+  private readonly tenantId = signal('');
+  protected id = this.tenantId.asReadonly();
   protected readonly admin = inject(AdminService);
   protected readonly tenantSvc = inject(TenantService);
   private readonly toast = inject(ToastService);
@@ -112,12 +115,14 @@ export class AdminLabEditor implements OnInit {
 
   async ngOnInit() {
     await this.admin.ensureLoaded();
-    const t = this.admin.tenants().find((x) => x.id === this.id());
+    const ref = this.ref().toLowerCase();
+    const t = this.admin.tenants().find((x) => x.slug === ref || x.id === ref);
     if (!t) {
       this.toast.error('Lab not found');
       this.router.navigateByUrl('/admin/labs');
       return;
     }
+    this.tenantId.set(t.id);
     this.load(t);
     this.secrets = await this.admin.getSecrets(t.id);
     this.cdr.markForCheck();
@@ -159,7 +164,8 @@ export class AdminLabEditor implements OnInit {
       });
       if (this.secrets) await this.admin.saveSecrets(this.secrets);
       this.load(saved);
-      this.toast.success('Saved — changes are live on the lab pages');
+      if (saved.slug !== this.ref()) this.router.navigate(['/admin/labs', saved.slug], { replaceUrl: true });
+      this.toast.success('Saved. Changes are live.');
     } catch (e) {
       this.toast.fail(e);
     } finally {

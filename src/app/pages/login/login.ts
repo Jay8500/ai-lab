@@ -57,9 +57,11 @@ export class LoginPage implements OnInit {
   async submit() {
     this.elsewhere.set(null);
     const email = this.email.trim();
-    if (this.mode() !== 'reset' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      this.toast.warn(email ? 'Enter a valid email address.' : 'Enter your email.');
-      return;
+    if (this.mode() !== 'reset') {
+      if (!email) return this.toast.warn(this.mode() === 'forgot' ? 'Enter your email.' : 'Enter your username or email.');
+      const isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+      if (this.mode() === 'forgot' && !isEmail) return this.toast.warn('Enter the email on your account.');
+      if (email.includes('@') && !isEmail) return this.toast.warn('Enter a valid email address.');
     }
     if (this.mode() === 'login' && !this.password) {
       this.toast.warn('Enter your password.');
@@ -81,7 +83,7 @@ export class LoginPage implements OnInit {
         const p = this.auth.profile();
         if (p) await this.routeFor(p);
       } else {
-        const p = await this.auth.signIn(this.email.trim(), this.password, this.remember);
+        const p = await this.auth.signIn(this.email.trim(), this.password, this.remember, this.t()?.slug ?? null);
         await this.routeFor(p);
       }
     } catch (e) {

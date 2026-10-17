@@ -45,7 +45,7 @@ import { LabStatusPill } from '../lab-status-pill';
               <span class="grid size-11 place-items-center rounded-xl text-lg font-bold text-white" [style.background]="r.brand_color">{{ r.name[0] }}</span>
             }
             <div class="min-w-0 flex-1">
-              <a [routerLink]="['/admin/labs', r.id]" class="block truncate font-bold text-slate-800 hover:text-brand">{{ r.name }}</a>
+              <a [routerLink]="['/admin/labs', r.slug]" class="block truncate font-bold text-slate-800 hover:text-brand">{{ r.name }}</a>
               <p class="truncate font-mono text-xs text-slate-400">{{ r.custom_domain || r.slug + '.spreadapps.in' }}</p>
             </div>
             <app-lab-status-pill [status]="r.effectiveStatus" />
@@ -59,7 +59,7 @@ import { LabStatusPill } from '../lab-status-pill';
             </div>
           </dl>
           <div class="mt-4 flex gap-2">
-            <a [routerLink]="['/admin/labs', r.id]" class="btn-ghost flex-1 !py-2 text-xs"><lucide-icon name="pencil" class="size-3.5" /> Configure</a>
+            <a [routerLink]="['/admin/labs', r.slug]" class="btn-ghost flex-1 !py-2 text-xs"><lucide-icon name="pencil" class="size-3.5" /> Configure</a>
             <a [href]="tenant.labUrl(r.slug, '/')" target="_blank" rel="noopener" class="btn-ghost !px-3 !py-2" title="Open cover page"><lucide-icon name="external-link" class="size-3.5" /></a>
           </div>
         </article>
@@ -181,7 +181,7 @@ export class AdminLabs implements OnInit {
       });
       this.creating.set(false);
       this.toast.success(`${t.name} created`);
-      this.router.navigate(['/admin/labs', t.id]);
+      this.router.navigate(['/admin/labs', t.slug]);
     } catch (e) {
       this.toast.fail(e);
     } finally {
