@@ -27,8 +27,11 @@ Multi-tenant diagnostic lab management & report delivery PWA — Angular 21 (sta
 npm start                                   # http://localhost:4200/?lab=srisai-diagnostics
 supabase db push                            # apply migrations (project is linked)
 supabase functions deploy admin-users --use-api
-npm run build && netlify deploy --prod --dir dist/spreadapps-lab/browser --no-build
 ```
+
+## Deploys
+Every push to `main` on GitHub (Jay8500/ai-lab) is built and published by Netlify automatically (`netlify.toml`).
+Manual fallback: `npm run build && netlify deploy --prod --dir dist/spreadapps-lab/browser --no-build`
 
 ## Going live on spreadapps.in
 Add `ailab.spreadapps.in` and `*.spreadapps.in` as domains on the Netlify site (wildcard needs Netlify DNS for the zone),
