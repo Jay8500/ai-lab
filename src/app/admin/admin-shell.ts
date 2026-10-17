@@ -25,7 +25,7 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
       <img sidebar-mark [src]="brand.logo" alt="" class="size-8" />
 
       <div sidebar-footer>
-        <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:flex-col md:gap-2': mini }">
+        <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:flex-col': mini, 'md:gap-2': mini }">
           <a routerLink="/admin/profile" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl transition hover:opacity-80" [class]="{ 'md:justify-center': mini }" title="My profile">
             <app-avatar [name]="auth.displayName()" [url]="auth.profile()?.avatar_url" [size]="36" />
             <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }">

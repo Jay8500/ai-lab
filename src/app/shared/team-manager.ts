@@ -79,7 +79,7 @@ import { FormField } from './form-field';
           <div class="relative">
             <input class="input pr-10! font-mono" name="un" [(ngModel)]="form.username" (ngModelChange)="queueCheck()" autocomplete="off"
                    autocapitalize="none" spellcheck="false" maxlength="31"
-                   [class]="{ 'border-emerald-300! focus:ring-emerald-500/10!': uname().state === 'ok', 'border-rose-300! focus:ring-rose-500/10!': uname().state === 'taken' || uname().state === 'invalid' }"
+                   [class]="{ 'border-emerald-300!': uname().state === 'ok', 'focus:ring-emerald-500/10!': uname().state === 'ok', 'border-rose-300!': uname().state === 'taken' || uname().state === 'invalid', 'focus:ring-rose-500/10!': uname().state === 'taken' || uname().state === 'invalid' }"
                    [placeholder]="uname().state === 'auto' && uname().suggestion ? uname().suggestion! : 'Leave empty to auto-create'" />
             <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
               @switch (uname().state) {

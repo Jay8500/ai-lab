@@ -61,11 +61,11 @@ export const SidebarState = {
     }
     <aside
       class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-100 bg-white transition-[width,translate,box-shadow] duration-300 ease-out md:translate-x-0"
-      [class]="{ '-translate-x-full': !state.drawer(), 'md:w-[76px]': mini, 'md:shadow-2xl md:shadow-slate-900/10': state.peek() }"
+      [class]="{ '-translate-x-full': !state.drawer(), 'md:w-[76px]': mini, 'md:shadow-2xl': state.peek(), 'md:shadow-slate-900/10': state.peek() }"
       (mouseenter)="onEnter()"
       (mouseleave)="onLeave()"
     >
-      <div class="flex h-16 shrink-0 items-center gap-2 px-4" [class]="{ 'md:justify-center md:px-0': mini }">
+      <div class="flex h-16 shrink-0 items-center gap-2 px-4" [class]="{ 'md:justify-center': mini, 'md:px-0': mini }">
         <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }"><ng-content select="[sidebar-brand]" /></div>
         <!-- Collapsed: the logo is the expand button (shows the expand icon on hover / focus) -->
         <button type="button" class="group relative hidden size-11 place-items-center rounded-xl transition hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none"
@@ -89,7 +89,7 @@ export const SidebarState = {
         }
         @for (n of items(); track n.path) {
           <a [routerLink]="n.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!n.exact }"
-             class="nav-link relative" [class]="{ 'md:justify-center md:px-0': mini }" [title]="n.label">
+             class="nav-link relative" [class]="{ 'md:justify-center': mini, 'md:px-0': mini }" [title]="n.label">
             @if (n.img) {
               <img [src]="n.img" alt="" class="size-[18px] shrink-0" />
             } @else {
@@ -97,7 +97,7 @@ export const SidebarState = {
             }
             <span class="truncate" [class]="{ 'md:hidden': mini }">{{ n.label }}</span>
             @if (n.badge) {
-              <span class="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white" [class]="{ 'md:absolute md:top-1 md:right-2': mini }">{{ n.badge }}</span>
+              <span class="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white" [class]="{ 'md:absolute': mini, 'md:top-1': mini, 'md:right-2': mini }">{{ n.badge }}</span>
             }
           </a>
         }

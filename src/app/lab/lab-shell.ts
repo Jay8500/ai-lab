@@ -52,7 +52,7 @@ import { TenantHeader } from '../shared/tenant-header';
             </div>
           }
         }
-        <button class="nav-link w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700" [class]="{ 'md:justify-center md:px-0': mini }"
+        <button class="nav-link w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700" [class]="{ 'md:justify-center': mini, 'md:px-0': mini }"
                 (click)="signOut()" title="Sign out" aria-label="Sign out">
           <lucide-icon name="log-out" class="size-[18px] shrink-0" />
           <span [class]="{ 'md:hidden': mini }">Sign out</span>

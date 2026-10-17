@@ -7,12 +7,7 @@ import { LucideAngularModule } from 'lucide-angular';
   template: `
     <label
       class="group flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed px-3.5 py-3 transition"
-      [class]="{
-        'border-brand bg-brand/5': over(),
-        'border-slate-200 hover:border-slate-300': !over() && !fileName(),
-        'border-emerald-200 bg-emerald-50/50': !over() && !!fileName(),
-        'pointer-events-none': busy()
-      }"
+      [class]="{ 'border-brand': over(), 'bg-brand/5': over(), 'border-slate-200': !over() && !fileName(), 'hover:border-slate-300': !over() && !fileName(), 'border-emerald-200': !over() && !!fileName(), 'bg-emerald-50/50': !over() && !!fileName(), 'pointer-events-none': busy() }"
       (dragover)="$event.preventDefault(); over.set(true)"
       (dragleave)="over.set(false)"
       (drop)="onDrop($event)"
