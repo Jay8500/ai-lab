@@ -12,7 +12,7 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
   selector: 'app-admin-shell',
   imports: [RouterOutlet, RouterLink, LucideAngularModule, Sidebar, Avatar],
   template: `
-    @let mini = sidebar.collapsed();
+    @let mini = sidebar.compact();
     <app-sidebar [items]="nav()" heading="Console">
       <a sidebar-brand routerLink="/admin" class="flex items-center gap-2.5">
         <img [src]="brand.logo" alt="" class="size-8" />
@@ -24,7 +24,7 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
       <img sidebar-mark [src]="brand.logo" alt="" class="size-8" />
 
       <div sidebar-footer>
-        <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:justify-center': mini }">
+        <div class="flex items-center gap-3 rounded-xl px-1 py-1" [class]="{ 'md:flex-col md:gap-2': mini }">
           <a routerLink="/admin/profile" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl transition hover:opacity-80" [class]="{ 'md:justify-center': mini }" title="My profile">
             <app-avatar [name]="auth.displayName()" [url]="auth.profile()?.avatar_url" [size]="36" />
             <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }">
@@ -32,14 +32,14 @@ import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
               <p class="truncate text-[11px] text-slate-400">{{ auth.profile()?.username || auth.roleLabel() }}</p>
             </div>
           </a>
-          <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" [class]="{ 'md:hidden': mini }" (click)="signOut()" title="Sign out">
+          <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="signOut()" title="Sign out" aria-label="Sign out">
             <lucide-icon name="log-out" class="size-4" />
           </button>
         </div>
       </div>
     </app-sidebar>
 
-    <div class="min-h-dvh bg-slate-50/50 transition-[padding] duration-300" [class]="mini ? 'md:pl-[76px]' : 'md:pl-64'">
+    <div class="min-h-dvh bg-slate-50/50 transition-[padding] duration-300" [class]="sidebar.collapsed() ? 'md:pl-[76px]' : 'md:pl-64'">
       <!-- Mobile top bar -->
       <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-100 bg-white/90 px-4 backdrop-blur md:hidden">
         <button class="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100" (click)="sidebar.drawer.set(true)" aria-label="Menu"><lucide-icon name="menu" class="size-5" /></button>

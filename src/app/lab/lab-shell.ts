@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../core/auth.service';
 import { LabService } from '../core/lab.service';
@@ -18,7 +18,7 @@ import { TenantHeader } from '../shared/tenant-header';
   selector: 'app-lab-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo],
   template: `
-    @let mini = sidebar.collapsed();
+    @let mini = sidebar.compact();
     <app-sidebar [items]="nav()" heading="Workspace">
       <a sidebar-brand routerLink="/lab" class="flex min-w-0 items-center gap-2.5">
         <img [src]="tenant.logo()" alt="" class="size-9 shrink-0 rounded-xl bg-white object-contain ring-1 ring-slate-100" />
@@ -51,13 +51,18 @@ import { TenantHeader } from '../shared/tenant-header';
             </div>
           }
         }
+        <button class="nav-link w-full text-rose-600 hover:bg-rose-50 hover:text-rose-700" [class]="{ 'md:justify-center md:px-0': mini }"
+                (click)="signOut()" title="Sign out" aria-label="Sign out">
+          <lucide-icon name="log-out" class="size-[18px] shrink-0" />
+          <span [class]="{ 'md:hidden': mini }">Sign out</span>
+        </button>
         @if (!mini && tenant.pages().show_powered_by !== false) {
           <div class="flex justify-center pt-1"><app-brand-mark /></div>
         }
       </div>
     </app-sidebar>
 
-    <div class="min-h-dvh bg-slate-50/50 pb-24 transition-[padding] duration-300 md:pb-10" [class]="mini ? 'md:pl-[76px]' : 'md:pl-64'">
+    <div class="min-h-dvh bg-slate-50/50 pb-24 transition-[padding] duration-300 md:pb-10" [class]="sidebar.collapsed() ? 'md:pl-[76px]' : 'md:pl-64'">
       <app-tenant-header (addPatient)="lab.addOpen.set(true)" />
 
       @if (tenant.tenant(); as t) {
@@ -118,6 +123,7 @@ export class LabShell implements OnInit {
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   protected readonly sidebar = SidebarState;
+  private readonly router = inject(Router);
 
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
@@ -129,6 +135,11 @@ export class LabShell implements OnInit {
         ]
       : []),
   ]);
+
+  async signOut() {
+    await this.auth.signOut();
+    this.router.navigateByUrl('/login');
+  }
 
   async ngOnInit() {
     try {

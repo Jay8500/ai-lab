@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { filter } from 'rxjs';
@@ -24,12 +24,21 @@ function readCollapsed(): boolean {
 }
 
 /** Shared so top bars can open the drawer and shells can offset content. */
+const collapsed = signal(readCollapsed());
+const peek = signal(false);
+
 export const SidebarState = {
   drawer: signal(false),
-  collapsed: signal(readCollapsed()),
+  /** Pinned state the user chose (drives the page's left offset). */
+  collapsed,
+  /** Collapsed rail temporarily slid open by hovering it. */
+  peek,
+  /** What the rail actually shows right now: icons only? */
+  compact: computed(() => collapsed() && !peek()),
   toggleCollapsed() {
     const v = !SidebarState.collapsed();
     SidebarState.collapsed.set(v);
+    SidebarState.peek.set(false);
     try {
       localStorage.setItem(COLLAPSE_KEY, v ? '1' : '0');
     } catch {
@@ -46,13 +55,15 @@ export const SidebarState = {
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, LucideAngularModule],
   template: `
-    @let mini = state.collapsed();
+    @let mini = state.compact();
     @if (state.drawer()) {
       <div class="animate-fade-in fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-[2px] md:hidden" (click)="state.drawer.set(false)"></div>
     }
     <aside
-      class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-100 bg-white transition-all duration-300 md:translate-x-0"
-      [class]="{ '-translate-x-full': !state.drawer(), 'md:w-[76px]': mini }"
+      class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-100 bg-white transition-[width,translate,box-shadow] duration-300 ease-out md:translate-x-0"
+      [class]="{ '-translate-x-full': !state.drawer(), 'md:w-[76px]': mini, 'md:shadow-2xl md:shadow-slate-900/10': state.peek() }"
+      (mouseenter)="onEnter()"
+      (mouseleave)="onLeave()"
     >
       <div class="flex h-16 shrink-0 items-center gap-2 px-4" [class]="{ 'md:justify-center md:px-0': mini }">
         <div class="min-w-0 flex-1" [class]="{ 'md:hidden': mini }"><ng-content select="[sidebar-brand]" /></div>
@@ -64,8 +75,8 @@ export const SidebarState = {
                        class="absolute size-5 text-slate-600 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100" />
         </button>
         <button class="hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" [class]="{ 'md:block': !mini }"
-                (click)="state.toggleCollapsed()" title="Collapse menu">
-          <lucide-icon name="panel-left-close" class="size-[18px]" />
+                (click)="state.toggleCollapsed()" [title]="state.peek() ? 'Keep menu open' : 'Collapse menu'">
+          <lucide-icon [name]="state.peek() ? 'panel-left-open' : 'panel-left-close'" class="size-[18px]" />
         </button>
         <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 md:hidden" (click)="state.drawer.set(false)" aria-label="Close menu">
           <lucide-icon name="x" class="size-5" />
@@ -102,10 +113,27 @@ export class Sidebar {
   readonly items = input.required<NavItem[]>();
   readonly heading = input('');
   protected readonly state = SidebarState;
+  private peekTimer?: ReturnType<typeof setTimeout>;
+  private readonly canHover = typeof matchMedia !== 'undefined' && matchMedia('(hover: hover) and (min-width: 768px)').matches;
+
+  /** Collapsed rail: slide the full menu out over the page after a short hover. */
+  onEnter() {
+    if (!this.canHover || !SidebarState.collapsed()) return;
+    clearTimeout(this.peekTimer);
+    this.peekTimer = setTimeout(() => SidebarState.peek.set(true), 140);
+  }
+
+  onLeave() {
+    clearTimeout(this.peekTimer);
+    SidebarState.peek.set(false);
+  }
 
   constructor() {
     inject(Router)
       .events.pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe(() => SidebarState.drawer.set(false));
+      .subscribe(() => {
+        SidebarState.drawer.set(false);
+        SidebarState.peek.set(false);
+      });
   }
 }
