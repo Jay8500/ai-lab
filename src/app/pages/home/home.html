@@ -1,0 +1,181 @@
+@if (tenant.notFound()) {
+  <main class="grid min-h-dvh place-items-center bg-slate-50 p-6">
+    <div class="card max-w-md p-8 text-center">
+      <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-amber-50 text-amber-500">
+        <lucide-icon name="triangle-alert" class="size-7" />
+      </span>
+      <h1 class="mt-4 text-xl font-bold text-slate-800">Lab not found</h1>
+      <p class="mt-2 text-sm text-slate-500">
+        We couldn't find a lab at <b class="font-mono text-slate-700">{{ tenant.resolution().slug || tenant.resolution().domain }}</b>.
+        Please check the address or contact your lab.
+      </p>
+      <a [href]="tenant.platformUrl('/')" class="btn-ghost mt-6">Go to {{ brand.name }} {{ brand.product }}</a>
+    </div>
+  </main>
+} @else if (t(); as lab) {
+  <!-- ───────────── Lab cover page ───────────── -->
+  <div class="min-h-dvh bg-slate-50">
+    <header class="sticky top-0 z-30 border-b border-slate-100/80 bg-white/80 backdrop-blur-md">
+      <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <img [src]="tenant.logo()" alt="" class="size-9 rounded-xl bg-white object-contain ring-1 ring-slate-100" />
+        <p class="min-w-0 truncate font-bold text-slate-800">{{ lab.name }}</p>
+        <div class="ml-auto flex items-center gap-2">
+          @if (dashboardLink(); as link) {
+            <a [routerLink]="link" class="btn-primary !py-2">Open dashboard <lucide-icon name="arrow-right" class="size-4" /></a>
+          } @else {
+            <a routerLink="/login" class="btn-ghost !py-2"><lucide-icon name="lock" class="size-4" /> Staff login</a>
+          }
+        </div>
+      </div>
+    </header>
+
+    <section class="relative overflow-hidden">
+      @if (lab.cover_url) {
+        <img [src]="lab.cover_url" alt="" class="absolute inset-0 size-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/55 to-slate-900/10"></div>
+      } @else {
+        <div class="absolute inset-0 bg-gradient-to-br from-brand via-brand/90 to-accent"></div>
+        <div class="absolute -top-24 -right-24 size-96 rounded-full bg-white/10 blur-2xl"></div>
+        <div class="absolute -bottom-32 left-1/3 size-80 rounded-full bg-white/10 blur-3xl"></div>
+      }
+      <div class="relative mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-[1.2fr_1fr] md:py-20">
+        <div class="animate-fade-up text-white">
+          @if (lab.tagline) {
+            <span class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">
+              <lucide-icon name="badge-check" class="size-3.5" /> {{ lab.tagline }}
+            </span>
+          }
+          <h1 class="mt-4 text-3xl leading-tight font-extrabold tracking-tight sm:text-5xl">
+            {{ pages().hero_title || 'Your lab reports, right on your phone' }}
+          </h1>
+          <p class="mt-4 max-w-xl text-base text-white/85 sm:text-lg">
+            {{ pages().hero_subtitle || 'Track your sample live and download your official report the moment it is verified.' }}
+          </p>
+        </div>
+
+        @if (pages().show_track) {
+          <form class="card animate-fade-up self-center p-5 sm:p-6" (ngSubmit)="track()">
+            <div class="flex items-center gap-3">
+              <span class="grid size-10 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon name="search" class="size-5" /></span>
+              <div>
+                <h2 class="font-bold text-slate-800">Track your report</h2>
+                <p class="text-xs text-slate-400">Enter the token printed on your receipt</p>
+              </div>
+            </div>
+            <input class="input mt-4 font-mono tracking-wider uppercase" name="token" [(ngModel)]="token" placeholder="e.g. SRS-1017-004" autocomplete="off" />
+            <button class="btn-primary mt-3 w-full" type="submit" [disabled]="!token.trim()">
+              Check status <lucide-icon name="arrow-right" class="size-4" />
+            </button>
+          </form>
+        }
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <div class="grid gap-4 sm:grid-cols-3">
+        @if (lab.contact_phone) {
+          <a [href]="'tel:' + lab.contact_phone" class="card flex items-center gap-3 p-4 transition hover:shadow-md">
+            <span class="grid size-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><lucide-icon name="phone" class="size-5" /></span>
+            <div class="min-w-0"><p class="text-xs text-slate-400">Call us</p><p class="truncate font-semibold text-slate-700">{{ lab.contact_phone }}</p></div>
+          </a>
+        }
+        @if (pages().show_whatsapp && waLink()) {
+          <a [href]="waLink()" target="_blank" rel="noopener" class="card flex items-center gap-3 p-4 transition hover:shadow-md">
+            <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><lucide-icon name="message-circle" class="size-5" /></span>
+            <div class="min-w-0"><p class="text-xs text-slate-400">WhatsApp</p><p class="truncate font-semibold text-slate-700">Chat with the lab</p></div>
+          </a>
+        }
+        @if (lab.address) {
+          <a [href]="'https://maps.google.com/?q=' + lab.address" target="_blank" rel="noopener" class="card flex items-center gap-3 p-4 transition hover:shadow-md">
+            <span class="grid size-10 place-items-center rounded-xl bg-amber-50 text-amber-600"><lucide-icon name="map-pin" class="size-5" /></span>
+            <div class="min-w-0"><p class="text-xs text-slate-400">Visit</p><p class="truncate font-semibold text-slate-700">{{ lab.address }}</p></div>
+          </a>
+        }
+      </div>
+
+      @if (lab.test_catalog.length) {
+        <div class="card mt-6 p-5 sm:p-6">
+          <div class="flex items-center justify-between">
+            <h2 class="section-title">Tests & prices</h2>
+            <span class="text-xs text-slate-400">{{ lab.test_catalog.length }} tests</span>
+          </div>
+          <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            @for (test of lab.test_catalog; track test.code) {
+              <div class="flex items-center justify-between rounded-xl border border-slate-100 px-3.5 py-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-slate-700">{{ test.name }}</p>
+                  <p class="text-xs text-slate-400">{{ test.code }}@if (test.tat_hours) { · ~{{ test.tat_hours }}h }</p>
+                </div>
+                <span class="ml-3 text-sm font-bold text-slate-700">₹{{ test.price }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <footer class="border-t border-slate-100 bg-white">
+      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:px-6">
+        <p>© {{ year }} {{ lab.name }}. {{ pages().footer_note || '' }}</p>
+        @if (pages().show_powered_by !== false) {
+          <app-brand-mark />
+        }
+      </div>
+    </footer>
+  </div>
+} @else {
+  <!-- ───────────── SpreadApps AI-Lab landing ───────────── -->
+  <div class="min-h-dvh bg-slate-50">
+    <header class="sticky top-0 z-30 border-b border-slate-100/80 bg-white/80 backdrop-blur-md">
+      <div class="mx-auto flex h-16 max-w-6xl items-center gap-2.5 px-4 sm:px-6">
+        <img [src]="brand.logo" alt="" class="size-9" />
+        <p class="font-extrabold tracking-tight text-slate-800">{{ brand.name }} <span class="text-brand">{{ brand.product }}</span></p>
+        <div class="ml-auto">
+          @if (dashboardLink(); as link) {
+            <a [routerLink]="link" class="btn-primary !py-2">Admin console <lucide-icon name="arrow-right" class="size-4" /></a>
+          } @else {
+            <a routerLink="/login" class="btn-ghost !py-2"><lucide-icon name="lock" class="size-4" /> Sign in</a>
+          }
+        </div>
+      </div>
+    </header>
+
+    <section class="relative overflow-hidden">
+      <div class="absolute -top-40 left-1/2 size-[640px] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"></div>
+      <div class="relative mx-auto max-w-4xl px-4 pt-16 pb-12 text-center sm:px-6 sm:pt-24">
+        <span class="animate-fade-up inline-flex items-center gap-2 rounded-full border border-brand/20 bg-white px-3 py-1 text-xs font-semibold text-brand">
+          <lucide-icon name="microscope" class="size-3.5" /> Diagnostic lab management · Report delivery PWA
+        </span>
+        <h1 class="animate-fade-up mt-5 text-4xl leading-[1.1] font-extrabold tracking-tight text-slate-900 sm:text-6xl">
+          Run your lab. <span class="bg-gradient-to-r from-brand to-emerald-500 bg-clip-text text-transparent">Deliver reports instantly.</span>
+        </h1>
+        <p class="animate-fade-up mx-auto mt-5 max-w-2xl text-lg text-slate-500">
+          Tokens, sample tracking, PDF reports on WhatsApp and a branded patient portal — for every lab, on its own subdomain.
+        </p>
+        <form class="animate-fade-up mx-auto mt-8 flex max-w-md items-center gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm" (ngSubmit)="openLab()">
+          <span class="pl-3 text-slate-400"><lucide-icon name="globe" class="size-4" /></span>
+          <input class="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none" name="lab" [(ngModel)]="labSlug" placeholder="your-lab" autocomplete="off" />
+          <span class="hidden text-sm text-slate-400 sm:inline">.spreadapps.in</span>
+          <button class="btn-primary !py-2" type="submit" [disabled]="!labSlug.trim()">Go</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="mx-auto grid max-w-6xl gap-4 px-4 pb-16 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
+      @for (f of features; track f.title) {
+        <div class="card animate-fade-up p-6">
+          <span class="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon [name]="f.icon" class="size-5" /></span>
+          <h3 class="mt-4 font-bold text-slate-800">{{ f.title }}</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-slate-500">{{ f.text }}</p>
+        </div>
+      }
+    </section>
+
+    <footer class="border-t border-slate-100 bg-white">
+      <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:px-6">
+        <p>© {{ year }} {{ brand.name }}. All rights reserved.</p>
+        <a [href]="'mailto:' + brand.supportEmail" class="hover:text-slate-600">{{ brand.supportEmail }}</a>
+      </div>
+    </footer>
+  </div>
+}

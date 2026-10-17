@@ -1,0 +1,34 @@
+import { Routes } from '@angular/router';
+import { labGuard, superAdminGuard } from './core/guards';
+
+export const routes: Routes = [
+  { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.HomePage) },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginPage) },
+  { path: 'track', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },
+  { path: 'track/:token', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },
+  {
+    path: 'lab',
+    canActivate: [labGuard],
+    loadComponent: () => import('./lab/lab-shell').then((m) => m.LabShell),
+    children: [
+      { path: '', loadComponent: () => import('./lab/dashboard/dashboard').then((m) => m.LabDashboard) },
+      { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
+      { path: 'account', loadComponent: () => import('./lab/account/account').then((m) => m.LabAccount) },
+    ],
+  },
+  {
+    path: 'admin',
+    canActivate: [superAdminGuard],
+    loadComponent: () => import('./admin/admin-shell').then((m) => m.AdminShell),
+    children: [
+      { path: '', loadComponent: () => import('./admin/overview/overview').then((m) => m.AdminOverview) },
+      { path: 'labs', loadComponent: () => import('./admin/labs/labs').then((m) => m.AdminLabs) },
+      { path: 'labs/:id', loadComponent: () => import('./admin/lab-editor/lab-editor').then((m) => m.AdminLabEditor) },
+      { path: 'plans', loadComponent: () => import('./admin/plans/plans').then((m) => m.AdminPlans) },
+      { path: 'billing', loadComponent: () => import('./admin/billing/billing').then((m) => m.AdminBilling) },
+      { path: 'support', loadComponent: () => import('./admin/support/support').then((m) => m.AdminSupport) },
+      { path: 'settings', loadComponent: () => import('./admin/settings/settings').then((m) => m.AdminSettings) },
+    ],
+  },
+  { path: '**', redirectTo: '' },
+];

@@ -1,0 +1,143 @@
+<div class="min-h-dvh bg-slate-50">
+  <!-- Lab header branding -->
+  <header class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-brand via-brand/90 to-accent"></div>
+    <div class="absolute -top-24 -right-16 size-72 rounded-full bg-white/10 blur-2xl"></div>
+    <div class="relative mx-auto flex max-w-2xl items-center gap-3 px-4 pt-6 pb-20 text-white">
+      <a routerLink="/" class="flex min-w-0 items-center gap-3">
+        <img [src]="tenant.logo()" alt="" class="size-11 shrink-0 rounded-xl bg-white object-contain p-1" />
+        <div class="min-w-0">
+          <p class="truncate text-lg font-bold">{{ tenant.name() }}</p>
+          <p class="truncate text-xs text-white/75">{{ tenant.tenant()?.tagline || 'Patient report portal' }}</p>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <main class="relative mx-auto -mt-14 max-w-2xl space-y-4 px-4 pb-10">
+    @if (!tenant.tenant()) {
+      <div class="card p-6 text-center text-sm text-slate-500">Open this page from your lab's link to track a report.</div>
+    } @else {
+      <form class="card flex items-center gap-2 p-2" (ngSubmit)="search()">
+        <lucide-icon name="search" class="ml-2 size-4 shrink-0 text-slate-400" />
+        <input class="min-w-0 flex-1 bg-transparent py-2 font-mono text-sm tracking-wider uppercase outline-none" name="q" [(ngModel)]="query"
+               placeholder="Enter your token" autocomplete="off" />
+        <button class="btn-primary !py-2" type="submit" [disabled]="!query.trim()">Track</button>
+      </form>
+
+      @if (loading() && !result()) {
+        <div class="card animate-pulse p-6">
+          <div class="h-4 w-1/3 rounded bg-slate-100"></div>
+          <div class="mt-3 h-6 w-1/2 rounded bg-slate-100"></div>
+          <div class="mt-6 h-12 rounded bg-slate-100"></div>
+        </div>
+      } @else if (missing() && token()) {
+        <div class="card animate-fade-up p-6 text-center">
+          <span class="mx-auto grid size-12 place-items-center rounded-2xl bg-amber-50 text-amber-500"><lucide-icon name="search" class="size-6" /></span>
+          <h2 class="mt-3 font-bold text-slate-800">No report found for “{{ token() }}”</h2>
+          <p class="mt-1 text-sm text-slate-500">Check the token on your receipt, or contact the lab.</p>
+        </div>
+      } @else if (result(); as r) {
+        <!-- Patient + status -->
+        <section class="card animate-fade-up p-5 sm:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-mono text-xs font-bold tracking-wider text-brand">#{{ r.token }}</p>
+              <h1 class="mt-1 text-xl font-bold text-slate-800">{{ maskedName() }}</h1>
+              <p class="mt-0.5 text-xs text-slate-400">
+                {{ r.age ? r.age + ' yrs' : '' }}{{ r.gender ? ' · ' + r.gender : '' }} · Registered {{ r.created_at | date: 'MMM d, h:mm a' }}
+                @if (r.mobile_hint) { · ••{{ r.mobile_hint }} }
+              </p>
+            </div>
+            @if (isReady()) {
+              <span class="pill border-emerald-100 bg-emerald-50 text-emerald-600"><lucide-icon name="circle-check" class="size-3.5" /> Ready</span>
+            } @else {
+              <span class="pill border-amber-100 bg-amber-50 text-amber-600"><span class="size-1.5 animate-pulse rounded-full bg-current"></span> In progress</span>
+            }
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            @for (t of r.tests; track t.code) {
+              <span class="rounded-lg bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-100">{{ t.name || t.code }}</span>
+            }
+          </div>
+
+          <!-- Live progress tracker -->
+          <ol class="mt-7 grid grid-cols-4">
+            @for (s of steps; track s.key; let i = $index) {
+              <li class="relative flex flex-col items-center text-center">
+                @if (i > 0) {
+                  <span class="absolute top-4 right-1/2 -z-0 h-0.5 w-full -translate-y-1/2 transition-colors duration-500"
+                        [class]="i <= stepIndex() ? 'bg-emerald-400' : 'bg-slate-200'"></span>
+                }
+                <span class="relative z-10 grid size-8 place-items-center rounded-full border-2 text-xs font-bold transition-all duration-500"
+                      [class]="i < stepIndex() || (i === stepIndex() && isReady()) ? 'border-emerald-500 bg-emerald-500 text-white'
+                        : i === stepIndex() ? 'border-brand bg-white text-brand ring-4 ring-brand/15' : 'border-slate-200 bg-white text-slate-400'">
+                  @if (i < stepIndex() || (i === stepIndex() && isReady())) { <lucide-icon name="check" class="size-4" /> } @else { {{ i + 1 }} }
+                </span>
+                <span class="mt-2 text-[11px] font-semibold sm:text-xs" [class]="i <= stepIndex() ? 'text-slate-700' : 'text-slate-400'">{{ s.label }}</span>
+              </li>
+            }
+          </ol>
+
+          @if (isReady() && pdfUrl()) {
+            <a [href]="pdfUrl()" target="_blank" rel="noopener" download class="btn-success mt-7 w-full !py-3 text-base">
+              <lucide-icon name="download" class="size-5" /> Download Official PDF
+            </a>
+            <p class="mt-2 text-center text-xs text-slate-400">Uploaded {{ r.report_uploaded_at | date: 'MMM d, h:mm a' }}</p>
+          } @else {
+            <div class="mt-7 flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <lucide-icon name="clock" class="size-4 shrink-0 text-amber-500" />
+              Your report is being processed. This page updates automatically.
+            </div>
+          }
+        </section>
+
+        <!-- AI explanation -->
+        @if (tenant.pages().show_ai) {
+          <section class="card animate-fade-up overflow-hidden">
+            <div class="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-white px-5 py-4">
+              <span class="grid size-9 place-items-center rounded-xl bg-violet-100 text-violet-600"><lucide-icon name="sparkles" class="size-4" /></span>
+              <div>
+                <h2 class="text-sm font-bold text-slate-800">AI Report Explanation</h2>
+                <p class="text-xs text-slate-400">Your results in simple language</p>
+              </div>
+              <span class="pill ml-auto border-violet-100 bg-violet-50 text-violet-600">Beta</span>
+            </div>
+            <div class="px-5 py-4 text-sm leading-relaxed text-slate-600">
+              @if (r.ai_summary) {
+                <p class="whitespace-pre-line">{{ r.ai_summary }}</p>
+              } @else if (isReady()) {
+                <p>A plain-language summary of your report will appear here shortly.</p>
+              } @else {
+                <p>Once your report is verified, we'll explain what each value means — in simple words.</p>
+              }
+              <p class="mt-4 flex gap-2 rounded-xl bg-amber-50/70 px-3 py-2.5 text-xs text-amber-700">
+                <lucide-icon name="info" class="mt-0.5 size-3.5 shrink-0" />
+                {{ tenant.pages().ai_disclaimer || 'This explanation is generated by AI for general understanding only. It is not a diagnosis. Please consult your doctor about your results.' }}
+              </p>
+            </div>
+          </section>
+        }
+      } @else {
+        <div class="card p-6 text-center">
+          <span class="mx-auto grid size-12 place-items-center rounded-2xl bg-brand/10 text-brand"><lucide-icon name="file-text" class="size-6" /></span>
+          <h2 class="mt-3 font-bold text-slate-800">Track your lab report</h2>
+          <p class="mt-1 text-sm text-slate-500">Enter the token printed on your receipt. No login needed.</p>
+        </div>
+      }
+
+      @if (tenant.tenant()?.contact_phone) {
+        <a [href]="'tel:' + tenant.tenant()!.contact_phone" class="card flex items-center gap-3 p-4 text-sm">
+          <span class="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600"><lucide-icon name="phone" class="size-4" /></span>
+          <span class="flex-1"><b class="block text-slate-700">Questions about your report?</b><span class="text-xs text-slate-400">Call {{ tenant.tenant()!.contact_phone }}</span></span>
+          <lucide-icon name="chevron-right" class="size-4 text-slate-400" />
+        </a>
+      }
+    }
+
+    @if (tenant.pages().show_powered_by !== false) {
+      <div class="flex justify-center pt-4"><app-brand-mark /></div>
+    }
+  </main>
+</div>

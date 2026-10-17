@@ -1,0 +1,384 @@
+@if (draft; as d) {
+  <a routerLink="/admin/labs" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-slate-600">
+    <lucide-icon name="chevron-left" class="size-4" /> All labs
+  </a>
+
+  <div class="mt-3 flex flex-wrap items-center gap-4">
+    @if (d.logo_url) {
+      <img [src]="d.logo_url" alt="" class="size-14 rounded-2xl bg-white object-contain ring-1 ring-slate-100" />
+    } @else {
+      <span class="grid size-14 place-items-center rounded-2xl text-xl font-bold text-white" [style.background]="d.brand_color">{{ d.name[0] }}</span>
+    }
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center gap-2">
+        <h1 class="truncate text-2xl font-extrabold tracking-tight text-slate-900">{{ d.name }}</h1>
+        @if (row(); as r) { <app-lab-status-pill [status]="r.effectiveStatus" /> }
+      </div>
+      <p class="font-mono text-sm text-slate-400">{{ d.custom_domain || d.slug + '.' + baseDomain }}</p>
+    </div>
+    <div class="flex gap-2">
+      <a [href]="tenantSvc.labUrl(d.slug, '/')" target="_blank" rel="noopener" class="btn-ghost"><lucide-icon name="external-link" class="size-4" /> Cover page</a>
+      <a [href]="tenantSvc.labUrl(d.slug, '/lab')" target="_blank" rel="noopener" class="btn-ghost"><lucide-icon name="layout-dashboard" class="size-4" /> Dashboard</a>
+    </div>
+  </div>
+
+  <div class="mt-6 flex gap-1 overflow-x-auto border-b border-slate-200">
+    @for (t of tabs; track t.key) {
+      <button class="-mb-px flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm font-semibold whitespace-nowrap transition"
+              [class]="tab() === t.key ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'"
+              (click)="tab.set(t.key)">
+        <lucide-icon [name]="t.icon" class="size-4" /> {{ t.label }}
+      </button>
+    }
+  </div>
+
+  <div class="mt-5 pb-24">
+    @switch (tab()) {
+      <!-- ───────── Branding ───────── -->
+      @case ('branding') {
+        <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
+          <div class="card space-y-5 p-5 sm:p-6">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label">Lab name</label><input class="input" [(ngModel)]="d.name" (ngModelChange)="touch()" /></div>
+              <div><label class="label">Tagline</label><input class="input" [(ngModel)]="d.tagline" (ngModelChange)="touch()" placeholder="Accurate reports. On time." /></div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+              @for (k of ['logo', 'favicon', 'cover']; track k) {
+                @let kind = $any(k);
+                @let url = $any(d)[k + '_url'];
+                <div>
+                  <span class="label capitalize">{{ k }}</span>
+                  <label class="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400 transition hover:border-slate-300">
+                    <input type="file" accept="image/*" class="sr-only" (change)="upload(kind, $event)" />
+                    @if (uploading() === k) {
+                      <lucide-icon name="loader-circle" class="size-5 animate-spin" />
+                    } @else if (url) {
+                      <img [src]="url" alt="" class="size-full" [class]="k === 'cover' ? 'object-cover' : 'object-contain p-3'" />
+                    } @else {
+                      <lucide-icon name="image" class="size-5" /> Upload {{ k }}
+                    }
+                  </label>
+                  <input class="input mt-2 !py-1.5 text-xs" [ngModel]="url" (ngModelChange)="$any(d)[k + '_url'] = $event || null; touch()" placeholder="…or paste URL" />
+                </div>
+              }
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="label">Brand colour</label>
+                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" /></div>
+              </div>
+              <div>
+                <label class="label">Accent colour</label>
+                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" /></div>
+              </div>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label">Contact phone</label><input class="input" [(ngModel)]="d.contact_phone" (ngModelChange)="touch()" /></div>
+              <div><label class="label">WhatsApp number</label><input class="input" [(ngModel)]="d.whatsapp_number" (ngModelChange)="touch()" placeholder="91XXXXXXXXXX" /></div>
+              <div><label class="label">Contact email</label><input class="input" type="email" [(ngModel)]="d.contact_email" (ngModelChange)="touch()" /></div>
+              <div><label class="label">Address</label><input class="input" [(ngModel)]="d.address" (ngModelChange)="touch()" /></div>
+            </div>
+          </div>
+
+          <!-- Live preview -->
+          <div class="space-y-3 lg:sticky lg:top-6 lg:self-start">
+            <p class="label">Live preview</p>
+            <div class="card overflow-hidden">
+              <div class="relative h-36" [style.background]="'linear-gradient(135deg,' + d.brand_color + ',' + d.accent_color + ')'">
+                @if (d.cover_url) { <img [src]="d.cover_url" alt="" class="absolute inset-0 size-full object-cover opacity-60" /> }
+                <div class="absolute inset-x-0 bottom-0 flex items-center gap-2.5 p-3 text-white">
+                  @if (d.logo_url) { <img [src]="d.logo_url" alt="" class="size-9 rounded-lg bg-white object-contain p-0.5" /> }
+                  <div class="min-w-0"><p class="truncate text-sm font-bold">{{ d.name }}</p><p class="truncate text-[11px] opacity-80">{{ d.tagline }}</p></div>
+                </div>
+              </div>
+              <div class="space-y-2 p-4">
+                <div class="h-9 rounded-lg border border-slate-200"></div>
+                <div class="grid h-9 place-items-center rounded-lg text-xs font-semibold text-white" [style.background]="d.brand_color">Check status</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-500">
+              <img [src]="d.favicon_url || d.logo_url || 'favicon.png'" alt="" class="size-4" /> {{ d.name }} — browser tab
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ───────── Domain ───────── -->
+      @case ('domain') {
+        <div class="grid gap-5 lg:grid-cols-2">
+          <div class="card space-y-4 p-5 sm:p-6">
+            <div>
+              <label class="label">Subdomain</label>
+              <div class="flex items-center rounded-xl border border-slate-200 focus-within:border-brand">
+                <input class="min-w-0 flex-1 rounded-xl bg-transparent px-3.5 py-2.5 font-mono text-sm outline-none" [(ngModel)]="d.slug" (ngModelChange)="touch()" />
+                <span class="pr-3.5 text-sm text-slate-400">.{{ baseDomain }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="label">Custom domain (optional)</label>
+              <input class="input font-mono" [(ngModel)]="d.custom_domain" (ngModelChange)="touch()" placeholder="reports.srisailabs.com" />
+            </div>
+            <div>
+              <label class="label">Token prefix</label>
+              <input class="input font-mono uppercase" maxlength="5" [(ngModel)]="d.token_prefix" (ngModelChange)="touch()" />
+              <p class="mt-1.5 text-xs text-slate-400">Tokens look like <b class="font-mono text-slate-600">{{ d.token_prefix.toUpperCase() }}-1017-001</b></p>
+            </div>
+          </div>
+          <div class="card space-y-3 p-5 text-sm sm:p-6">
+            <h3 class="section-title">Links</h3>
+            @for (l of [
+              { label: 'Cover page', url: 'https://' + d.slug + '.' + baseDomain },
+              { label: 'Staff login', url: 'https://' + d.slug + '.' + baseDomain + '/login' },
+              { label: 'Patient portal', url: 'https://' + d.slug + '.' + baseDomain + '/track' },
+              { label: 'Preview (works now)', url: tenantSvc.labUrl(d.slug, '/') }
+            ]; track l.label) {
+              <div class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">
+                <span class="w-28 shrink-0 text-xs font-semibold text-slate-500">{{ l.label }}</span>
+                <span class="min-w-0 flex-1 truncate font-mono text-xs text-slate-700">{{ l.url }}</span>
+                <button class="text-slate-400 hover:text-slate-600" (click)="copy(l.url)"><lucide-icon name="copy" class="size-3.5" /></button>
+              </div>
+            }
+            <div class="rounded-xl border border-sky-100 bg-sky-50/60 p-3 text-xs leading-relaxed text-sky-800">
+              <b>DNS:</b> subdomains work once <span class="font-mono">*.{{ baseDomain }}</span> points to the Netlify site (wildcard CNAME).
+              For a custom domain, the lab adds a CNAME <span class="font-mono">{{ d.custom_domain || 'reports.theirlab.com' }}</span> → the Netlify site and you add it as a domain alias in Netlify.
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ───────── Pages ───────── -->
+      @case ('pages') {
+        <div class="grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div class="card space-y-4 p-5 sm:p-6">
+            <h3 class="section-title">Cover page</h3>
+            <div><label class="label">Hero title</label><input class="input" [(ngModel)]="pages.hero_title" (ngModelChange)="touch()" placeholder="Your lab reports, right on your phone" /></div>
+            <div><label class="label">Hero subtitle</label><textarea class="input min-h-20" [(ngModel)]="pages.hero_subtitle" (ngModelChange)="touch()"></textarea></div>
+            <div><label class="label">Footer note</label><input class="input" [(ngModel)]="pages.footer_note" (ngModelChange)="touch()" placeholder="NABL accredited · Open 7am–9pm" /></div>
+            <h3 class="section-title pt-2">Login page</h3>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label">Title</label><input class="input" [(ngModel)]="pages.login_title" (ngModelChange)="touch()" placeholder="Staff sign in" /></div>
+              <div><label class="label">Subtitle</label><input class="input" [(ngModel)]="pages.login_subtitle" (ngModelChange)="touch()" /></div>
+            </div>
+            <h3 class="section-title pt-2">Patient portal</h3>
+            <div><label class="label">AI disclaimer</label><textarea class="input min-h-20" [(ngModel)]="pages.ai_disclaimer" (ngModelChange)="touch()" placeholder="This explanation is generated by AI for general understanding only…"></textarea></div>
+          </div>
+          <div class="card divide-y divide-slate-100 p-2">
+            @for (tg of pageToggles; track tg.key) {
+              <label class="flex cursor-pointer items-center gap-3 px-3 py-3">
+                <span class="min-w-0 flex-1"><b class="block text-sm text-slate-700">{{ tg.label }}</b><span class="text-xs text-slate-400">{{ tg.hint }}</span></span>
+                <input type="checkbox" class="peer sr-only" [ngModel]="$any(pages)[tg.key] !== false" (ngModelChange)="$any(pages)[tg.key] = $event; touch()" />
+                <span class="relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition peer-checked:bg-brand after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ───────── Tests ───────── -->
+      @case ('tests') {
+        <div class="card p-5 sm:p-6">
+          <div class="flex items-center justify-between">
+            <div><h3 class="section-title">Test catalogue</h3><p class="text-xs text-slate-400">Shown at reception and on the cover page.</p></div>
+            <button class="btn-ghost !py-2 text-xs" (click)="addTest()"><lucide-icon name="plus" class="size-3.5" /> Add test</button>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="hidden grid-cols-[110px_1fr_110px_90px_40px] gap-2 px-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
+              <span>Code</span><span>Name</span><span>Price ₹</span><span>TAT hrs</span><span></span>
+            </div>
+            @for (t of tests; track $index; let i = $index) {
+              <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_110px_90px_40px] sm:bg-transparent sm:p-0">
+                <input class="input font-mono uppercase" [(ngModel)]="t.code" (ngModelChange)="touch()" placeholder="CBP" />
+                <input class="input col-span-2 sm:col-span-1" [(ngModel)]="t.name" (ngModelChange)="touch()" placeholder="Complete Blood Picture" />
+                <input class="input" type="number" min="0" [(ngModel)]="t.price" (ngModelChange)="touch()" />
+                <input class="input" type="number" min="0" [(ngModel)]="t.tat_hours" (ngModelChange)="touch()" />
+                <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="removeTest(i)"><lucide-icon name="trash-2" class="size-4" /></button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ───────── Integrations / API keys ───────── -->
+      @case ('integrations') {
+        @if (secrets; as s) {
+          <div class="mb-4 flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
+            <lucide-icon name="shield-check" class="mt-0.5 size-4 shrink-0 text-emerald-500" />
+            Keys are stored in a table only super admins (and server functions) can read — never sent to lab staff or patients.
+          </div>
+          <div class="grid gap-4 lg:grid-cols-2">
+            @for (g of secretGroups; track g.title) {
+              <div class="card p-5">
+                <div class="flex items-center gap-3">
+                  <span class="grid size-9 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon [name]="g.icon" class="size-4" /></span>
+                  <div><h3 class="text-sm font-bold text-slate-800">{{ g.title }}</h3><p class="text-xs text-slate-400">{{ g.hint }}</p></div>
+                </div>
+                <div class="mt-4 space-y-3">
+                  @for (f of g.fields; track f.key) {
+                    <div>
+                      <label class="label">{{ f.label }}</label>
+                      <div class="relative">
+                        <input class="input font-mono text-xs" [class.!pr-10]="f.secret" [type]="f.secret && !reveal()[f.key] ? 'password' : 'text'"
+                               [ngModel]="$any(s)[f.key]" (ngModelChange)="$any(s)[f.key] = $event || null; touch()" [placeholder]="f.placeholder || ''" autocomplete="off" />
+                        @if (f.secret) {
+                          <button type="button" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600" (click)="toggleReveal(f.key)">
+                            <lucide-icon [name]="reveal()[f.key] ? 'eye-off' : 'eye'" class="size-4" />
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- ───────── Plan & billing ───────── -->
+      @case ('plan') {
+        <div class="grid gap-5 lg:grid-cols-[1fr_1fr]">
+          <div class="card space-y-4 p-5 sm:p-6">
+            <h3 class="section-title">Subscription</h3>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="label">Plan</label>
+                <select class="input" [(ngModel)]="d.plan_id" (ngModelChange)="touch()">
+                  <option [ngValue]="null">— none —</option>
+                  @for (p of admin.plans(); track p.id) { <option [ngValue]="p.id">{{ p.name }} ({{ p.billing_model.replace('_', ' ') }})</option> }
+                </select>
+              </div>
+              <div>
+                <label class="label">Custom price ₹ (overrides plan)</label>
+                <input class="input" type="number" min="0" [(ngModel)]="d.custom_price" (ngModelChange)="touch()" placeholder="Plan price" />
+              </div>
+              <div>
+                <label class="label">Status</label>
+                <select class="input" [(ngModel)]="d.status" (ngModelChange)="touch()">
+                  <option value="trial">Trial</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="expired">Expired</option>
+                </select>
+              </div>
+              <div>
+                <label class="label">Subscription ends</label>
+                <input class="input" type="date" [ngModel]="dateInput(d.subscription_ends_at)" (ngModelChange)="setDate('subscription_ends_at', $event)" />
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn-ghost !py-2 text-xs" (click)="activate(1)"><lucide-icon name="zap" class="size-3.5" /> Activate 1 month</button>
+              <button class="btn-ghost !py-2 text-xs" (click)="activate(12)"><lucide-icon name="zap" class="size-3.5" /> Activate 1 year</button>
+            </div>
+            <div class="flex items-center justify-between rounded-xl bg-emerald-50/70 px-4 py-3">
+              <span class="text-sm text-emerald-700">Monthly value when active</span>
+              <span class="text-lg font-bold text-emerald-700">₹{{ previewMrr() | number }}</span>
+            </div>
+
+            <h3 class="section-title pt-2">Free trial</h3>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div><label class="label">Trial days</label><input class="input" type="number" min="0" [(ngModel)]="d.trial_days" (ngModelChange)="touch()" /></div>
+              <div><label class="label">Trial started</label><input class="input" type="date" [ngModel]="dateInput(d.trial_started_at)" (ngModelChange)="setDate('trial_started_at', $event)" /></div>
+            </div>
+            @if (row(); as r) {
+              <p class="text-xs text-slate-500">Trial {{ (r.daysLeft ?? 0) > 0 ? 'ends' : 'ended' }} <b>{{ r.trialEndsAt | date: 'MMM d, y' }}</b>. After it ends, the lab can sign in and view data but cannot add patients or upload reports.</p>
+            }
+            <div class="flex flex-wrap gap-2">
+              <button class="btn-ghost !py-2 text-xs" (click)="extendTrial(7)">+7 days</button>
+              <button class="btn-ghost !py-2 text-xs" (click)="extendTrial(14)">+14 days</button>
+              <button class="btn-ghost !py-2 text-xs" (click)="restartTrial()"><lucide-icon name="refresh-cw" class="size-3.5" /> Restart trial today</button>
+            </div>
+            <div><label class="label">Internal notes</label><textarea class="input min-h-20" [(ngModel)]="d.notes" (ngModelChange)="touch()" placeholder="Negotiated price, contact person…"></textarea></div>
+          </div>
+
+          <div class="card p-5 sm:p-6">
+            <h3 class="section-title">Billing ledger</h3>
+            <form class="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-[1fr_100px_110px]" (ngSubmit)="addBill()">
+              <select class="input" name="k" [(ngModel)]="nb.kind">
+                <option value="subscription">Subscription</option><option value="per_report">Per-report usage</option>
+                <option value="revenue_share">Revenue share</option><option value="setup">Setup fee</option><option value="adjustment">Adjustment</option>
+              </select>
+              <input class="input" name="a" type="number" [(ngModel)]="nb.amount" placeholder="₹" />
+              <input class="input" name="p" [(ngModel)]="nb.period" placeholder="2026-10" />
+              <input class="input col-span-2 sm:col-span-2" name="n" [(ngModel)]="nb.note" placeholder="Note" />
+              <div class="col-span-2 flex gap-2 sm:col-span-1">
+                <select class="input" name="s" [(ngModel)]="nb.status"><option value="due">Due</option><option value="paid">Paid</option></select>
+              </div>
+              <button class="btn-primary col-span-2 sm:col-span-3" type="submit" [disabled]="!nb.amount"><lucide-icon name="plus" class="size-4" /> Add entry</button>
+            </form>
+            <ul class="mt-3 divide-y divide-slate-100">
+              @for (b of bills(); track b.id) {
+                <li class="flex items-center gap-2 py-2.5 text-sm">
+                  <span class="min-w-0 flex-1 truncate text-slate-600"><b class="capitalize text-slate-700">{{ b.kind.replace('_', ' ') }}</b> · {{ b.period }} {{ b.note ? '· ' + b.note : '' }}</span>
+                  <span class="font-semibold text-slate-700">₹{{ b.amount | number }}</span>
+                  @if (b.status === 'due') {
+                    <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:bg-emerald-50 hover:text-emerald-600" (click)="markBill(b, 'paid')" title="Mark paid">Due → paid</button>
+                  } @else {
+                    <span class="pill border-emerald-100 bg-emerald-50 capitalize text-emerald-600">{{ b.status }}</span>
+                  }
+                </li>
+              } @empty {
+                <li class="py-4 text-sm text-slate-400">No billing entries yet.</li>
+              }
+            </ul>
+          </div>
+        </div>
+      }
+
+      <!-- ───────── Users ───────── -->
+      @case ('users') {
+        <div class="grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div class="card p-5 sm:p-6">
+            <h3 class="section-title">Lab logins</h3>
+            <ul class="mt-3 divide-y divide-slate-100">
+              @for (u of users(); track u.id) {
+                <li class="flex items-center gap-3 py-3">
+                  <span class="grid size-9 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">{{ (u.full_name || u.email)[0].toUpperCase() }}</span>
+                  <div class="min-w-0 flex-1"><p class="truncate text-sm font-semibold text-slate-700">{{ u.full_name }}</p><p class="truncate text-xs text-slate-400">{{ u.email }}</p></div>
+                  <span class="pill border-slate-200 bg-slate-50 text-slate-500">{{ u.role === 'lab_owner' ? 'Owner' : 'Staff' }}</span>
+                  <button class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600" (click)="resetPw(u)" title="Set password"><lucide-icon name="key-round" class="size-4" /></button>
+                  <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="removeUser(u)" title="Remove"><lucide-icon name="trash-2" class="size-4" /></button>
+                </li>
+              } @empty {
+                <li class="py-4 text-sm text-slate-400">No logins yet — create the lab owner's account.</li>
+              }
+            </ul>
+          </div>
+          <form class="card space-y-3 p-5 sm:p-6" (ngSubmit)="addUser()">
+            <h3 class="section-title">Create login</h3>
+            <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="nu.full_name" /></div>
+            <div><label class="label">Email</label><input class="input" name="e" type="email" [(ngModel)]="nu.email" required /></div>
+            <div>
+              <label class="label">Password</label>
+              <div class="flex gap-2"><input class="input font-mono" name="p" [(ngModel)]="nu.password" required minlength="8" /><button type="button" class="btn-ghost !px-3" (click)="genPassword()" title="Generate"><lucide-icon name="refresh-cw" class="size-4" /></button></div>
+            </div>
+            <div>
+              <label class="label">Role</label>
+              <select class="input" name="r" [(ngModel)]="nu.role"><option value="lab_owner">Lab owner</option><option value="lab_staff">Reception / staff</option></select>
+            </div>
+            <button class="btn-primary w-full" type="submit" [disabled]="!nu.email || nu.password.length < 8"><lucide-icon name="user-plus" class="size-4" /> Create login</button>
+            <p class="text-xs text-slate-400">Share the email + password with the lab; they sign in at <span class="font-mono">{{ d.slug }}.{{ baseDomain }}/login</span>.</p>
+          </form>
+        </div>
+        <div class="card mt-5 flex flex-wrap items-center gap-3 border-rose-100 p-5">
+          <div class="flex-1"><h3 class="text-sm font-bold text-rose-600">Delete lab</h3><p class="text-xs text-slate-500">Permanently removes the lab, all visits and its branding.</p></div>
+          <button class="btn-danger" (click)="deleteLab()"><lucide-icon name="trash-2" class="size-4" /> Delete {{ d.name }}</button>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Save bar -->
+  @if (dirty()) {
+    <div class="animate-fade-up fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur" [class]="sidebar.collapsed() ? 'md:left-[76px]' : 'md:left-64'">
+      <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8">
+        <span class="flex items-center gap-2 text-sm text-slate-500"><span class="size-2 animate-pulse rounded-full bg-amber-400"></span> Unsaved changes</span>
+        <button class="btn-ghost ml-auto" (click)="discard()">Discard</button>
+        <button class="btn-primary" (click)="save()" [disabled]="saving()">
+          <lucide-icon [name]="saving() ? 'loader-circle' : 'save'" class="size-4" [class.animate-spin]="saving()" /> Save & publish
+        </button>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="card h-64 animate-pulse"></div>
+}

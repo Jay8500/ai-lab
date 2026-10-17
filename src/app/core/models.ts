@@ -1,0 +1,161 @@
+export type Role = 'super_admin' | 'lab_owner' | 'lab_staff';
+export type TenantStatus = 'trial' | 'active' | 'suspended' | 'expired';
+export type VisitStatus = 'collected' | 'in_lab' | 'verified' | 'ready' | 'delivered';
+export type BillingModel = 'free' | 'monthly' | 'yearly' | 'per_report' | 'revenue_share' | 'hybrid';
+
+export interface TestItem {
+  code: string;
+  name: string;
+  price: number;
+  tat_hours?: number;
+}
+
+/** Copy + feature toggles the super admin controls for each lab's pages. */
+export interface TenantPages {
+  hero_title?: string;
+  hero_subtitle?: string;
+  login_title?: string;
+  login_subtitle?: string;
+  footer_note?: string;
+  show_track?: boolean;
+  show_ai?: boolean;
+  show_support?: boolean;
+  show_whatsapp?: boolean;
+  show_powered_by?: boolean;
+  ai_disclaimer?: string;
+}
+
+/** Public branding returned by resolve_tenant() — safe for anonymous visitors. */
+export interface TenantPublic {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string | null;
+  logo_url: string | null;
+  favicon_url: string | null;
+  cover_url: string | null;
+  brand_color: string;
+  accent_color: string;
+  contact_phone: string | null;
+  contact_email: string | null;
+  whatsapp_number: string | null;
+  address: string | null;
+  status: TenantStatus;
+  trial_ends_at: string;
+  usable: boolean;
+  pages: TenantPages;
+  test_catalog: TestItem[];
+}
+
+export interface Tenant extends Omit<TenantPublic, 'trial_ends_at' | 'usable'> {
+  custom_domain: string | null;
+  token_prefix: string;
+  plan_id: string | null;
+  custom_price: number | null;
+  trial_days: number;
+  trial_started_at: string;
+  subscription_ends_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantSecrets {
+  tenant_id: string;
+  whatsapp_provider: string | null;
+  whatsapp_api_key: string | null;
+  whatsapp_phone_id: string | null;
+  sms_provider: string | null;
+  sms_api_key: string | null;
+  sms_sender_id: string | null;
+  razorpay_key_id: string | null;
+  razorpay_key_secret: string | null;
+  ai_provider: string | null;
+  ai_api_key: string | null;
+  circles_project_id: string | null;
+  circles_api_key: string | null;
+  extra: Record<string, string>;
+}
+
+export interface Plan {
+  id: string;
+  code: string;
+  name: string;
+  billing_model: BillingModel;
+  price: number;
+  per_report_fee: number;
+  revenue_share_pct: number;
+  report_quota: number | null;
+  setup_fee: number;
+  features: Record<string, boolean>;
+  is_active: boolean;
+}
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: Role;
+  tenant_id: string | null;
+  created_at?: string;
+}
+
+export interface Visit {
+  id: string;
+  tenant_id: string;
+  token: string;
+  patient_name: string;
+  mobile: string | null;
+  age: number | null;
+  gender: 'M' | 'F' | 'O' | null;
+  tests: TestItem[];
+  amount: number;
+  status: VisitStatus;
+  report_path: string | null;
+  report_name: string | null;
+  report_uploaded_at: string | null;
+  notified_at: string | null;
+  delivered_at: string | null;
+  ai_summary: string | null;
+  created_at: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  tenant_id: string | null;
+  reporter_email: string | null;
+  summary: string;
+  details: string | null;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  screenshot_path: string | null;
+  page_url: string | null;
+  status: 'open' | 'synced' | 'in_progress' | 'resolved' | 'closed';
+  circles_ref: string | null;
+  created_at: string;
+}
+
+export interface BillingEvent {
+  id: string;
+  tenant_id: string;
+  kind: 'subscription' | 'per_report' | 'revenue_share' | 'setup' | 'adjustment';
+  amount: number;
+  period: string | null;
+  status: 'due' | 'paid' | 'waived';
+  note: string | null;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export const VISIT_STEPS: { key: VisitStatus; label: string }[] = [
+  { key: 'collected', label: 'Collected' },
+  { key: 'in_lab', label: 'In Lab' },
+  { key: 'verified', label: 'Verified' },
+  { key: 'ready', label: 'Ready' },
+];
+
+export const DEFAULT_TESTS: TestItem[] = [
+  { code: 'CBP', name: 'Complete Blood Picture', price: 350, tat_hours: 6 },
+  { code: 'FBS', name: 'Fasting Blood Sugar', price: 120, tat_hours: 3 },
+  { code: 'TSH', name: 'Thyroid Profile (T3,T4,TSH)', price: 600, tat_hours: 12 },
+  { code: 'LIPID', name: 'Lipid Profile', price: 650, tat_hours: 12 },
+];
