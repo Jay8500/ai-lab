@@ -143,7 +143,7 @@ export class AdminService {
   async uploadBranding(tenantId: string, kind: 'logo' | 'favicon' | 'cover', file: File): Promise<string> {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
     const path = `${tenantId}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await this.sb.client.storage.from('branding').upload(path, file, { contentType: file.type, upsert: true });
+    const { error } = await this.sb.client.storage.from('branding').upload(path, file, { contentType: file.type, upsert: false });
     if (error) throw new Error(error.message);
     return this.sb.publicUrl('branding', path);
   }

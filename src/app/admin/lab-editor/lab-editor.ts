@@ -199,15 +199,21 @@ export class AdminLabEditor implements OnInit {
   }
 
   async upload(kind: 'logo' | 'favicon' | 'cover', e: Event) {
-    const f = (e.target as HTMLInputElement).files?.[0];
+    const input = e.target as HTMLInputElement;
+    const f = input.files?.[0];
+    input.value = '';
     if (!f || !this.draft) return;
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
+    if (!allowed.includes(f.type)) return this.toast.warn('Use a PNG, JPG, WebP, SVG or ICO image.');
+    if (f.size > 5 * 1024 * 1024) return this.toast.warn('Image must be under 5 MB.');
     this.uploading.set(kind);
     try {
       const url = await this.admin.uploadBranding(this.draft.id, kind, f);
       this.draft[`${kind}_url`] = url;
       this.touch();
+      this.toast.info(`${kind[0].toUpperCase() + kind.slice(1)} uploaded — click Save & publish.`);
     } catch (err) {
-      this.toast.fail(err);
+      this.toast.fail(err, `Could not upload the ${kind}.`);
     } finally {
       this.uploading.set(null);
     }
