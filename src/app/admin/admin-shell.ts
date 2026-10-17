@@ -69,6 +69,7 @@ export class AdminShell implements OnInit {
     { path: '/admin/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
     { path: '/admin/plans', label: 'Plans & pricing', icon: 'wallet' },
     { path: '/admin/billing', label: 'Billing', icon: 'receipt' },
+    { path: '/admin/announcements', label: 'Announcements', icon: 'megaphone' },
     { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', img: 'brand/circles-logo.svg', badge: this.admin.totals().tickets || undefined },
     ...(this.auth.isRoot()
       ? [

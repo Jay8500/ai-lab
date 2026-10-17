@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Session } from '@supabase/supabase-js';
 import { initialsOf, Profile, ROLE_LABELS } from './models';
 import { rememberStorage, SupabaseService } from './supabase.service';
+import { cleanText } from './text-clean';
 
 const LAST_EMAIL_KEY = 'sa_last_email';
 
@@ -96,7 +97,7 @@ export class AuthService {
 
   /** Name + photo only; role, lab and username can't be changed by the user. */
   async updateProfile(fullName: string, avatarUrl: string | null): Promise<void> {
-    const { error } = await this.sb.client.rpc('update_my_profile', { p_full_name: fullName, p_avatar_url: avatarUrl });
+    const { error } = await this.sb.client.rpc('update_my_profile', { p_full_name: cleanText(fullName), p_avatar_url: avatarUrl?.trim() || null });
     if (error) throw error;
     await this.loadProfile();
   }

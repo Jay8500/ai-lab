@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { CirclesLogo } from '../../shared/circles-logo';
 import { AdminService } from '../../core/admin.service';
+import { FormField } from '../../shared/form-field';
 import { AuthService } from '../../core/auth.service';
 import { ToastService } from '../../core/toast.service';
 
@@ -12,6 +13,13 @@ interface CirclesSettings {
   api_url: string;
   project_id: string;
   note?: string;
+}
+
+interface EmailSettings {
+  from_name: string;
+  from_email: string;
+  reply_to: string;
+  footer: string;
 }
 
 interface BrandSettings {
@@ -23,7 +31,7 @@ interface BrandSettings {
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, LucideAngularModule, CirclesLogo],
+  imports: [FormsModule, LucideAngularModule, CirclesLogo, FormField],
   template: `
     <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Platform settings</h1>
     <p class="text-sm text-slate-500">Defaults for the whole AI-Lab platform.</p>
@@ -40,6 +48,28 @@ interface BrandSettings {
         <p class="rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-500">
           Tickets are always saved here first (Admin → Support). Per-lab Circles project/API keys live under each lab's <b>API keys</b> tab and override this default.
         </p>
+        <button class="btn-primary" type="submit"><lucide-icon name="save" class="size-4" /> Save</button>
+      </form>
+
+      <form class="card space-y-4 p-5 sm:p-6" (ngSubmit)="saveEmail()" novalidate>
+        <div class="flex items-center gap-3">
+          <span class="grid size-10 place-items-center rounded-xl bg-indigo-50 text-indigo-600"><lucide-icon name="mail" class="size-5" /></span>
+          <div><h2 class="section-title">Email sender (Resend)</h2><p class="text-xs text-slate-400">Used for announcements to your labs.</p></div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <app-field label="From name" required [error]="emailErr().from_name" hint="Shown as the sender, e.g. SpreadApps.">
+            <input class="input" name="fn" [(ngModel)]="email.from_name" maxlength="60" />
+          </app-field>
+          <app-field label="From address" required [error]="emailErr().from_email" hint="Must be on a domain verified in Resend.">
+            <input class="input" type="email" name="fe" [(ngModel)]="email.from_email" placeholder="updates@spreadapps.in" />
+          </app-field>
+          <app-field label="Reply-to" optional [error]="emailErr().reply_to" hint="Where replies go.">
+            <input class="input" type="email" name="rt" [(ngModel)]="email.reply_to" placeholder="support@spreadapps.in" />
+          </app-field>
+          <app-field label="Footer line" optional hint="Small print at the bottom of every email.">
+            <input class="input" name="ft" [(ngModel)]="email.footer" maxlength="200" />
+          </app-field>
+        </div>
         <button class="btn-primary" type="submit"><lucide-icon name="save" class="size-4" /> Save</button>
       </form>
 
@@ -75,6 +105,27 @@ export class AdminSettings implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly logo = environment.brand.logo;
   protected circles: CirclesSettings = { enabled: true, api_url: '', project_id: '' };
+  protected email: EmailSettings = { from_name: 'SpreadApps', from_email: 'updates@spreadapps.in', reply_to: '', footer: '' };
+  private emailSubmitted = false;
+
+  /** Sender rules — the address must be a real email on a verified domain. */
+  emailErr(): Partial<Record<keyof EmailSettings, string>> {
+    if (!this.emailSubmitted) return {};
+    const e: Partial<Record<keyof EmailSettings, string>> = {};
+    const ok = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
+    if (!this.email.from_name.trim()) e.from_name = 'Enter the sender name people will see in their inbox.';
+    if (!this.email.from_email.trim()) e.from_email = 'Enter the address emails are sent from.';
+    else if (!ok(this.email.from_email)) e.from_email = 'That address doesn’t look right — e.g. updates@spreadapps.in.';
+    if (this.email.reply_to.trim() && !ok(this.email.reply_to)) e.reply_to = 'Enter a valid reply-to address, or leave it empty.';
+    return e;
+  }
+
+  async saveEmail() {
+    this.emailSubmitted = true;
+    if (Object.keys(this.emailErr()).length) return this.toast.warn('Fix the highlighted email settings.');
+    await this.run(() => this.admin.saveSetting('email', this.email));
+  }
+
   protected brand: BrandSettings = { name: 'SpreadApps', product: 'AI-Lab', support_email: '', base_domain: environment.baseDomain };
   protected pw = '';
   protected readonly loaded = signal(false);
@@ -82,6 +133,7 @@ export class AdminSettings implements OnInit {
   async ngOnInit() {
     this.circles = { ...this.circles, ...((await this.admin.setting<CirclesSettings>('circles')) ?? {}) };
     this.brand = { ...this.brand, ...((await this.admin.setting<BrandSettings>('brand')) ?? {}) };
+    this.email = { ...this.email, ...((await this.admin.setting<EmailSettings>('email')) ?? {}) };
     this.loaded.set(true);
     this.cdr.markForCheck();
   }

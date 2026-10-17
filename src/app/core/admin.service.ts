@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { BillingEvent, Plan, Profile, SupportTicket, Tenant, TenantSecrets } from './models';
 import { SupabaseService } from './supabase.service';
+import { clean } from './text-clean';
 
 export type UserScope = 'lab' | 'platform';
 
@@ -108,7 +109,7 @@ export class AdminService {
 
   // ── Tenants ──
   async createTenant(input: Partial<Tenant>): Promise<Tenant> {
-    const { data, error } = await this.sb.client.from('tenants').insert(input).select().single();
+    const { data, error } = await this.sb.client.from('tenants').insert(clean(input)).select().single();
     if (error) throw new Error(error.message.includes('duplicate') ? 'That subdomain is already taken' : error.message);
     await this.sb.client.from('tenant_secrets').insert({ tenant_id: data.id });
     this.tenants.update((l) => [data as Tenant, ...l]);
@@ -116,7 +117,7 @@ export class AdminService {
   }
 
   async saveTenant(id: string, patch: Partial<Tenant>): Promise<Tenant> {
-    const { data, error } = await this.sb.client.from('tenants').update(patch).eq('id', id).select().single();
+    const { data, error } = await this.sb.client.from('tenants').update(clean(patch)).eq('id', id).select().single();
     if (error) throw new Error(error.message.includes('duplicate') ? 'Subdomain or custom domain already in use' : error.message);
     this.tenants.update((l) => l.map((t) => (t.id === id ? (data as Tenant) : t)));
     return data as Tenant;
@@ -136,7 +137,7 @@ export class AdminService {
   }
 
   async saveSecrets(s: TenantSecrets): Promise<void> {
-    const { error } = await this.sb.client.rpc('set_tenant_secrets', { p_tenant: s.tenant_id, p_values: s });
+    const { error } = await this.sb.client.rpc('set_tenant_secrets', { p_tenant: s.tenant_id, p_values: clean(s) });
     if (error) throw error;
   }
 
@@ -151,8 +152,8 @@ export class AdminService {
   // ── Plans ──
   async savePlan(plan: Partial<Plan>): Promise<void> {
     const { error } = plan.id
-      ? await this.sb.client.from('plans').update(plan).eq('id', plan.id)
-      : await this.sb.client.from('plans').insert(plan);
+      ? await this.sb.client.from('plans').update(clean(plan)).eq('id', plan.id)
+      : await this.sb.client.from('plans').insert(clean(plan));
     if (error) throw new Error(error.message);
     const { data } = await this.sb.client.from('plans').select('*').order('price');
     this.plans.set((data ?? []) as Plan[]);
@@ -173,11 +174,11 @@ export class AdminService {
   }
 
   async createUser(tenantId: string | null, u: NewUser, scope: UserScope = 'lab') {
-    await this.callUsers({ action: 'create', scope, tenant_id: tenantId, ...u });
+    await this.callUsers({ action: 'create', scope, tenant_id: tenantId, ...clean(u) });
   }
 
   async updateUser(tenantId: string | null, userId: string, patch: Partial<NewUser>, scope: UserScope = 'lab') {
-    await this.callUsers({ action: 'update', scope, tenant_id: tenantId, user_id: userId, ...patch });
+    await this.callUsers({ action: 'update', scope, tenant_id: tenantId, user_id: userId, ...clean(patch) });
   }
 
   async resetPassword(tenantId: string | null, userId: string, password: string, scope: UserScope = 'lab') {
@@ -216,7 +217,7 @@ export class AdminService {
   }
 
   async addBilling(e: Partial<BillingEvent>): Promise<void> {
-    const { error } = await this.sb.client.from('billing_events').insert(e);
+    const { error } = await this.sb.client.from('billing_events').insert(clean(e));
     if (error) throw new Error(error.message);
   }
 
@@ -253,7 +254,7 @@ export class AdminService {
   async saveSetting(key: string, value: unknown) {
     const { error } = await this.sb.client
       .from('platform_settings')
-      .upsert({ key, value, updated_at: new Date().toISOString() });
+      .upsert({ key, value: clean(value), updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
   }
 }

@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { Profile } from './models';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
+import { clean } from './text-clean';
 
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
@@ -108,14 +109,14 @@ export class TaskService {
   }
 
   async create(input: TaskInput): Promise<Task> {
-    const { data, error } = await this.sb.client.from('tasks').insert({ ...input, tenant_id: this.scope() }).select().single();
+    const { data, error } = await this.sb.client.from('tasks').insert(clean({ ...input, tenant_id: this.scope() })).select().single();
     if (error) throw error;
     this.upsertLocal(data as Task);
     return data as Task;
   }
 
   async update(id: string, patch: Partial<TaskInput>): Promise<Task> {
-    const { data, error } = await this.sb.client.from('tasks').update(patch).eq('id', id).select().single();
+    const { data, error } = await this.sb.client.from('tasks').update(clean(patch)).eq('id', id).select().single();
     if (error) throw error;
     this.upsertLocal(data as Task);
     return data as Task;

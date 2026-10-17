@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { AuthService } from './auth.service';
+import { clean } from './text-clean';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
 
@@ -40,7 +41,7 @@ export class SupportService {
 
     const { data, error } = await this.sb.client
       .from('support_tickets')
-      .insert({
+      .insert(clean({
         tenant_id: tenantId,
         created_by: uid,
         reporter_email: this.auth.profile()?.email,
@@ -49,7 +50,7 @@ export class SupportService {
         priority: input.priority,
         screenshot_path,
         page_url: location.href,
-      })
+      }))
       .select('id')
       .single();
     if (error) throw new Error(error.message);

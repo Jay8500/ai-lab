@@ -3,6 +3,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { TestItem, Visit, VisitStatus } from './models';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
+import { clean } from './text-clean';
 
 export interface NewVisit {
   patient_name: string;
@@ -78,7 +79,7 @@ export class LabService {
     const amount = v.tests.reduce((s, t) => s + Number(t.price || 0), 0);
     const { data, error } = await this.sb.client
       .from('visits')
-      .insert({ ...v, tenant_id: this.tenantId, amount, token: '' })
+      .insert(clean({ ...v, tenant_id: this.tenantId, amount, token: '' }))
       .select()
       .single();
     if (error) throw new Error(this.friendly(error.message));
@@ -143,7 +144,7 @@ export class LabService {
   }
 
   private async patch(id: string, patch: Partial<Visit>): Promise<Visit> {
-    const { data, error } = await this.sb.client.from('visits').update(patch).eq('id', id).select().single();
+    const { data, error } = await this.sb.client.from('visits').update(clean(patch)).eq('id', id).select().single();
     if (error) throw new Error(this.friendly(error.message));
     this.upsertLocal(data as Visit);
     return data as Visit;

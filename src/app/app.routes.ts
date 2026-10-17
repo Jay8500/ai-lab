@@ -31,6 +31,7 @@ export const routes: Routes = [
       { path: 'labs/:ref', loadComponent: () => import('./admin/lab-editor/lab-editor').then((m) => m.AdminLabEditor) },
       { path: 'plans', loadComponent: () => import('./admin/plans/plans').then((m) => m.AdminPlans) },
       { path: 'billing', loadComponent: () => import('./admin/billing/billing').then((m) => m.AdminBilling) },
+      { path: 'announcements', loadComponent: () => import('./admin/announcements/announcements').then((m) => m.AdminAnnouncements) },
       { path: 'support', loadComponent: () => import('./admin/support/support').then((m) => m.AdminSupport) },
       { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
       { path: 'security', loadComponent: () => import('./pages/security/security').then((m) => m.SecurityPage) },

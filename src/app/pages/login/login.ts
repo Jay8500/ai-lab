@@ -9,13 +9,12 @@ import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { describeDevice, SessionService } from '../../core/session.service';
-import { BrandMark } from '../../shared/brand-mark';
 
 type Mode = 'login' | 'forgot' | 'reset';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, LucideAngularModule, BrandMark],
+  imports: [FormsModule, RouterLink, LucideAngularModule],
   templateUrl: './login.html',
 })
 export class LoginPage implements OnInit {

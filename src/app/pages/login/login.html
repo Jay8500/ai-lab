@@ -24,7 +24,17 @@
           <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="sparkles" class="size-4" /><p class="mt-2 font-semibold">AI explained</p></div>
         </div>
       </div>
-      <p class="text-xs text-white/70">Secured by {{ brand.name }} · Data encrypted in transit</p>
+      <div class="flex items-center gap-3">
+        <a [href]="brand.website" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2.5 rounded-2xl bg-white/95 py-2 pr-4 pl-2.5 shadow-lg shadow-slate-900/10 transition hover:bg-white">
+          <img [src]="brand.logo" alt="" class="size-7" />
+          <span class="leading-tight">
+            <span class="block text-[10px] font-semibold tracking-wider text-slate-400 uppercase">{{ t() ? 'Powered by' : 'Platform' }}</span>
+            <span class="block text-sm font-extrabold tracking-tight text-slate-800">{{ brand.name }} <span class="text-brand">{{ brand.product }}</span></span>
+          </span>
+        </a>
+        <p class="flex items-center gap-1.5 text-xs text-white/80"><lucide-icon name="lock" class="size-3.5" /> Encrypted &amp; secured</p>
+      </div>
     </div>
   </aside>
 
@@ -135,8 +145,12 @@
       }
     </div>
 
-    <div class="flex justify-center">
-      <app-brand-mark [prefix]="t() ? 'Powered by' : ''" />
-    </div>
+    <a [href]="brand.website" target="_blank" rel="noopener"
+       class="mx-auto flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-500 shadow-sm transition hover:border-slate-200">
+      <img [src]="brand.logo" alt="" class="size-6" />
+      <span>{{ t() ? 'Powered by' : 'A product of' }}</span>
+      <b class="font-extrabold tracking-tight text-slate-800">{{ brand.name }} <span class="text-brand">{{ brand.product }}</span></b>
+      <span class="ml-auto inline-flex items-center gap-1 text-emerald-600"><lucide-icon name="shield-check" class="size-3.5" /> Secure</span>
+    </a>
   </main>
 </div>
