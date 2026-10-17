@@ -56,4 +56,25 @@ export class SupportService {
     if (error) throw new Error(error.message);
     return (data.id as string).slice(0, 8).toUpperCase();
   }
+
+  /** Star rating + idea / problem / praise, stored in the same support inbox. */
+  async submitFeedback(rating: number, type: 'idea' | 'problem' | 'praise', message: string): Promise<void> {
+    const uid = this.auth.profile()?.id;
+    if (!uid) throw new Error('Please sign in to send feedback');
+    const label = { idea: 'Idea', problem: 'Problem', praise: 'Praise' }[type];
+    const { error } = await this.sb.client.from('support_tickets').insert(
+      clean({
+        kind: 'feedback',
+        rating,
+        tenant_id: this.tenant.tenant()?.id ?? null,
+        created_by: uid,
+        reporter_email: this.auth.profile()?.email,
+        summary: `${label}: ${message.slice(0, 80)}`,
+        details: message,
+        priority: type === 'problem' ? 'high' : 'low',
+        page_url: location.href,
+      }),
+    );
+    if (error) throw error;
+  }
 }

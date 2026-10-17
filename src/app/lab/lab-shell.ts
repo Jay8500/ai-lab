@@ -137,6 +137,7 @@ export class LabShell implements OnInit {
           { path: '/lab/account', label: 'Plan & team', icon: 'settings' },
         ]
       : []),
+    { path: '/lab/help', label: 'Help & feedback', icon: 'book-open' },
   ]);
 
   async signOut() {

@@ -1,0 +1,276 @@
+/**
+ * Step-by-step help, one card per page. Keep each step short:
+ * `do` is the goal, `flow` the clicks in order (rendered as chips with arrows).
+ */
+export type HelpAudience = 'platform' | 'root' | 'owner' | 'staff';
+
+export interface HelpStep {
+  do: string;
+  flow: string[];
+}
+
+export interface HelpSection {
+  id: string;
+  title: string;
+  icon: string;
+  /** Page this section is about (link button), if any */
+  route?: string;
+  who: HelpAudience[];
+  steps: HelpStep[];
+}
+
+const PROFILE_SECURITY = (base: string, who: HelpAudience[]): HelpSection[] => [
+  {
+    id: 'profile',
+    title: 'My profile',
+    icon: 'users',
+    route: `${base}/profile`,
+    who,
+    steps: [
+      { do: 'Open profile', flow: ['Avatar', 'My profile'] },
+      { do: 'Change photo', flow: ['Change photo', 'Pick image', 'Save profile'] },
+      { do: 'Change name', flow: ['Full name', 'Save profile'] },
+      { do: 'Change password', flow: ['New password', 'Confirm', 'Update password'] },
+    ],
+  },
+  {
+    id: 'security',
+    title: 'Account security',
+    icon: 'shield-check',
+    route: `${base}/security`,
+    who,
+    steps: [
+      { do: 'See devices', flow: ['My profile', 'Account security'] },
+      { do: 'Remove a device', flow: ['Device', 'Remove', 'Sign out device'] },
+      { do: 'Sign out others', flow: ['Sign out all other devices', 'Confirm'] },
+      { do: 'New device sign-in', flow: ['Sign in', 'Continue here', 'Others signed out'] },
+      { do: 'Sign out here', flow: ['Sidebar', 'Red sign-out'] },
+    ],
+  },
+];
+
+const TASKS = (base: string, who: HelpAudience[]): HelpSection => ({
+  id: 'tasks',
+  title: 'Tasks',
+  icon: 'list-todo',
+  route: `${base}/tasks`,
+  who,
+  steps: [
+    { do: 'Quick add', flow: ['Type task', 'Enter', 'Due today'] },
+    { do: 'Full task', flow: ['New task', 'Title *', 'Assign to *', 'Due date', 'Priority', 'Create task'] },
+    { do: 'Complete', flow: ['Tick ○', 'Done'] },
+    { do: 'Edit / delete', flow: ['Click task', 'Change', 'Save changes'] },
+    { do: 'Filter', flow: ['My tasks', 'Assigned by me', 'All', 'Open / Done'] },
+  ],
+});
+
+export const HELP: HelpSection[] = [
+  // ───────────── SpreadApps admin console ─────────────
+  {
+    id: 'admin-start',
+    title: 'Getting started',
+    icon: 'house',
+    who: ['platform'],
+    steps: [
+      { do: 'Sign in', flow: ['spreadapps-ai-lab.netlify.app', 'Username / email', 'Password', 'Sign in'] },
+      { do: 'Stay signed in', flow: ['Tick Remember me'] },
+      { do: 'Collapse menu', flow: ['⫷ icon', 'Icons only'] },
+      { do: 'Expand menu', flow: ['Click logo'] },
+    ],
+  },
+  {
+    id: 'admin-overview',
+    title: 'Overview',
+    icon: 'layout-dashboard',
+    route: '/admin',
+    who: ['platform'],
+    steps: [
+      { do: 'See business', flow: ['Labs', 'MRR', 'Collected', 'Reports'] },
+      { do: 'Open a lab', flow: ['Revenue by lab', 'Click lab'] },
+    ],
+  },
+  {
+    id: 'admin-labs',
+    title: 'Labs (clients)',
+    icon: 'building-2',
+    route: '/admin/labs',
+    who: ['platform'],
+    steps: [
+      { do: 'Add lab', flow: ['New lab', 'Name *', 'Subdomain *', 'Plan *', 'Trial days', 'Create lab'] },
+      { do: 'Make it live', flow: ['Netlify', 'Domain management', 'Add domain alias', 'slug.spreadapps.in'] },
+      { do: 'Branding', flow: ['Configure', 'Branding', 'Logo · Favicon · Cover', 'Colours', 'Save & publish'] },
+      { do: 'Domain', flow: ['Configure', 'Domain', 'Subdomain · Token prefix', 'Save & publish'] },
+      { do: 'Cover page', flow: ['Configure', 'Pages', 'Texts · Toggles', 'Save & publish'] },
+      { do: 'Tests', flow: ['Configure', 'Tests', 'Add test', 'Code · Name · Price', 'Save & publish'] },
+      { do: 'API keys', flow: ['Configure', 'API keys', 'WhatsApp · SMS · Razorpay · AI', 'Save & publish'] },
+      { do: 'Plan / trial', flow: ['Configure', 'Plan & billing', 'Plan', '+7 days / Activate', 'Save & publish'] },
+      { do: 'First lab admin', flow: ['Configure', 'Admins & staff', 'Name', 'Lab admin', 'Password ↻', 'Create login', 'Share username'] },
+      { do: 'Delete lab', flow: ['Admins & staff', 'Delete lab', 'Type subdomain', 'Delete'] },
+    ],
+  },
+  {
+    id: 'admin-plans',
+    title: 'Plans & pricing',
+    icon: 'wallet',
+    route: '/admin/plans',
+    who: ['platform'],
+    steps: [
+      { do: 'New plan', flow: ['New plan', 'Name · Code', 'Billing model', 'Prices', 'Save plan'] },
+      { do: 'Edit plan', flow: ['Edit', 'Change', 'Save plan'] },
+    ],
+  },
+  {
+    id: 'admin-billing',
+    title: 'Billing',
+    icon: 'receipt',
+    route: '/admin/billing',
+    who: ['platform'],
+    steps: [
+      { do: 'Monthly invoices', flow: ['Generate invoices', 'One per active lab'] },
+      { do: 'Record payment', flow: ['Due', 'Mark paid'] },
+      { do: 'Manual entry', flow: ['Lab', 'Plan & billing', 'Add entry'] },
+    ],
+  },
+  {
+    id: 'admin-announce',
+    title: 'Announcements (email)',
+    icon: 'megaphone',
+    route: '/admin/announcements',
+    who: ['platform'],
+    steps: [
+      { do: 'Write', flow: ['Template', 'Type', 'Subject *', 'Message *', '{{name}} · {{lab}}'] },
+      { do: 'Choose who', flow: ['Lab admins / staff', 'Status', 'Labs', 'Recipient count'] },
+      { do: 'Check', flow: ['Preview', 'Send test to me', 'Inbox'] },
+      { do: 'Send', flow: ['Send to N', 'Send now', 'Sent list'] },
+    ],
+  },
+  TASKS('/admin', ['platform']),
+  {
+    id: 'admin-support',
+    title: 'Support · Circles',
+    icon: 'life-buoy',
+    route: '/admin/support',
+    who: ['platform'],
+    steps: [
+      { do: 'Handle ticket', flow: ['Open', 'Read', 'Screenshot', 'Status'] },
+      { do: 'Read feedback', flow: ['Feedback', '★ rating', 'Message'] },
+    ],
+  },
+  {
+    id: 'admin-team',
+    title: 'SpreadApps team',
+    icon: 'users',
+    route: '/admin/team',
+    who: ['root'],
+    steps: [
+      { do: 'Add admin', flow: ['Name *', 'Email', 'Password ↻', 'Create login'] },
+      { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
+    ],
+  },
+  {
+    id: 'admin-settings',
+    title: 'Platform settings',
+    icon: 'settings',
+    route: '/admin/settings',
+    who: ['root'],
+    steps: [
+      { do: 'Email sender', flow: ['From name', 'From address', 'Reply-to', 'Save'] },
+      { do: 'Circles', flow: ['API URL', 'Project ID', 'Save'] },
+    ],
+  },
+  ...PROFILE_SECURITY('/admin', ['platform']),
+
+  // ───────────── Lab workspace ─────────────
+  {
+    id: 'lab-start',
+    title: 'Getting started',
+    icon: 'house',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Sign in', flow: ['yourlab.spreadapps.in/login', 'Username / email', 'Password', 'Sign in'] },
+      { do: 'Forgot password', flow: ['Forgot?', 'Email', 'Reset link'] },
+      { do: 'No email?', flow: ['Ask lab admin', 'New password'] },
+      { do: 'Install app', flow: ['Browser menu', 'Install / Add to Home screen'] },
+    ],
+  },
+  {
+    id: 'lab-dashboard',
+    title: 'Dashboard · patients',
+    icon: 'layout-dashboard',
+    route: '/lab',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'New patient', flow: ['New patient', 'Name *', 'Mobile', 'Age · Gender', 'Tests *', 'Generate token'] },
+      { do: 'Share token', flow: ['Copy tracking link', 'Give to patient'] },
+      { do: 'Process sample', flow: ['Start testing', 'Mark verified'] },
+      { do: 'Upload report', flow: ['Drop PDF', 'Report Ready'] },
+      { do: 'Send report', flow: ['Notify / Share', 'WhatsApp', 'Delivered'] },
+      { do: 'Find patient', flow: ['Search', 'Name · Token · Mobile'] },
+    ],
+  },
+  {
+    id: 'lab-reports',
+    title: 'Reports',
+    icon: 'file-text',
+    route: '/lab/reports',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Find report', flow: ['Search', 'Name · Token · Mobile'] },
+      { do: 'Open / share', flow: ['PDF', 'Copy link'] },
+    ],
+  },
+  {
+    id: 'lab-reports-delete',
+    title: 'Delete a visit',
+    icon: 'trash-2',
+    route: '/lab/reports',
+    who: ['owner'],
+    steps: [{ do: 'Delete', flow: ['Reports', '🗑', 'Delete visit'] }],
+  },
+  {
+    id: 'lab-patient',
+    title: 'Patient side',
+    icon: 'smartphone',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Track', flow: ['Tracking link', 'Live status'] },
+      { do: 'Download', flow: ['Report Ready', 'Download Official PDF'] },
+      { do: 'From cover page', flow: ['Track my report', 'Token', 'Check status'] },
+    ],
+  },
+  TASKS('/lab', ['owner', 'staff']),
+  {
+    id: 'lab-tests',
+    title: 'Tests & prices',
+    icon: 'test-tube',
+    route: '/lab/tests',
+    who: ['owner'],
+    steps: [
+      { do: 'Add test', flow: ['Add test', 'Code · Name', 'Price', 'Hours', 'Save'] },
+      { do: 'Remove test', flow: ['🗑', 'Save'] },
+    ],
+  },
+  {
+    id: 'lab-team',
+    title: 'Plan & team',
+    icon: 'settings',
+    route: '/lab/account',
+    who: ['owner'],
+    steps: [
+      { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
+      { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
+      { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
+    ],
+  },
+  {
+    id: 'lab-support',
+    title: 'Support',
+    icon: 'life-buoy',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Raise ticket', flow: ['Need help?', 'Summary *', 'Details', 'Priority', 'Screenshot', 'Submit'] },
+      { do: 'Give feedback', flow: ['★ rating', 'Type', 'Message', 'Send'] },
+    ],
+  },
+  ...PROFILE_SECURITY('/lab', ['owner', 'staff']),
+];

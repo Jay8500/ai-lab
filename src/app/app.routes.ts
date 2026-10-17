@@ -13,6 +13,7 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./lab/dashboard/dashboard').then((m) => m.LabDashboard) },
       { path: 'tasks', loadComponent: () => import('./pages/tasks/tasks').then((m) => m.TasksPage) },
+      { path: 'help', loadComponent: () => import('./pages/help/help').then((m) => m.HelpPage) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
       { path: 'tests', canActivate: [ownerGuard], loadComponent: () => import('./lab/tests/tests').then((m) => m.LabTests) },
       { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
@@ -27,6 +28,7 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./admin/overview/overview').then((m) => m.AdminOverview) },
       { path: 'tasks', loadComponent: () => import('./pages/tasks/tasks').then((m) => m.TasksPage) },
+      { path: 'help', loadComponent: () => import('./pages/help/help').then((m) => m.HelpPage) },
       { path: 'labs', loadComponent: () => import('./admin/labs/labs').then((m) => m.AdminLabs) },
       { path: 'labs/:ref', loadComponent: () => import('./admin/lab-editor/lab-editor').then((m) => m.AdminLabEditor) },
       { path: 'plans', loadComponent: () => import('./admin/plans/plans').then((m) => m.AdminPlans) },
