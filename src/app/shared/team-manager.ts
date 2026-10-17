@@ -3,6 +3,12 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AdminService, NewUser, UserScope } from '../core/admin.service';
+
+interface UsernameStatus {
+  state: 'auto' | 'checking' | 'ok' | 'taken' | 'invalid';
+  username?: string;
+  suggestion?: string | null;
+}
 import { AuthService } from '../core/auth.service';
 import { Profile, realEmail, Role, ROLE_LABELS, STAFF_TITLES } from '../core/models';
 import { ToastService } from '../core/toast.service';
@@ -59,11 +65,38 @@ import { Avatar } from './avatar';
 
       <form class="card space-y-3 p-5 sm:p-6" (ngSubmit)="create()">
         <h3 class="section-title">Create login</h3>
-        <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="form.full_name" /></div>
+        <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="form.full_name" (ngModelChange)="queueCheck()" /></div>
         <div>
           <label class="label">Username <span class="font-normal text-slate-400">(optional)</span></label>
-          <input class="input font-mono" name="un" [(ngModel)]="form.username" autocomplete="off" autocapitalize="none" maxlength="31"
-                 [placeholder]="'auto, e.g. ' + (scope() === 'platform' ? 'sa' : 'lab') + '.' + ((form.full_name.split(' ')[0] || 'name').toLowerCase())" />
+          <div class="relative">
+            <input class="input pr-10! font-mono" name="un" [(ngModel)]="form.username" (ngModelChange)="queueCheck()" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" maxlength="31"
+                   [class]="{ 'border-emerald-300! focus:ring-emerald-500/10!': uname().state === 'ok', 'border-rose-300! focus:ring-rose-500/10!': uname().state === 'taken' || uname().state === 'invalid' }"
+                   [placeholder]="uname().state === 'auto' && uname().suggestion ? uname().suggestion! : 'Leave empty to auto-create'" />
+            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2">
+              @switch (uname().state) {
+                @case ('checking') { <lucide-icon name="loader-circle" class="size-4 animate-spin text-slate-400" /> }
+                @case ('ok') { <lucide-icon name="circle-check" class="size-4 text-emerald-500" /> }
+                @case ('taken') { <lucide-icon name="circle-x" class="size-4 text-rose-500" /> }
+                @case ('invalid') { <lucide-icon name="triangle-alert" class="size-4 text-amber-500" /> }
+              }
+            </span>
+          </div>
+          <p class="mt-1.5 min-h-4 text-xs">
+            @switch (uname().state) {
+              @case ('ok') { <span class="text-emerald-600"><b class="font-mono">{{ uname().username }}</b> is available</span> }
+              @case ('taken') {
+                <span class="text-rose-600"><b class="font-mono">{{ uname().username }}</b> is taken.</span>
+                @if (uname().suggestion) {
+                  <button type="button" class="ml-1 font-semibold text-brand hover:underline" (click)="useSuggestion()">Use {{ uname().suggestion }}</button>
+                }
+              }
+              @case ('invalid') { <span class="text-amber-600">3–31 characters: lowercase letters, numbers, dot, dash or underscore.</span> }
+              @case ('auto') {
+                @if (uname().suggestion) { <span class="text-slate-500">Will be created as <b class="font-mono text-slate-700">{{ uname().suggestion }}</b></span> }
+              }
+            }
+          </p>
         </div>
         <div>
           <label class="label">Email <span class="font-normal text-slate-400">(optional)</span></label>
@@ -122,12 +155,49 @@ export class TeamManager {
   protected readonly me = computed(() => this.auth.profile()?.id);
   protected readonly roles = computed<Role[]>(() => (this.scope() === 'platform' ? ['platform_admin'] : ['lab_owner', 'lab_staff']));
   protected form: NewUser = this.blank();
+  /** Live username status under the Username field */
+  protected readonly uname = signal<UsernameStatus>({ state: 'auto' });
+  private checkTimer?: ReturnType<typeof setTimeout>;
+  private checkSeq = 0;
+
+  /** Debounced: re-check whenever the name or username changes. */
+  queueCheck() {
+    clearTimeout(this.checkTimer);
+    const typed = (this.form.username ?? '').trim();
+    if (typed) this.uname.set({ state: 'checking', username: typed.toLowerCase() });
+    this.checkTimer = setTimeout(() => this.checkNow(), 350);
+  }
+
+  private async checkNow() {
+    const seq = ++this.checkSeq;
+    const typed = (this.form.username ?? '').trim().toLowerCase();
+    const name = this.form.full_name.trim();
+    if (!typed && !name) return this.uname.set({ state: 'auto' });
+    try {
+      const r = await this.admin.checkUsername(this.tenantId(), typed, name);
+      if (seq !== this.checkSeq) return; // a newer keystroke won
+      if (!typed) this.uname.set({ state: 'auto', suggestion: r.suggestion });
+      else if (!r.valid) this.uname.set({ state: 'invalid', username: typed });
+      else if (!r.available) this.uname.set({ state: 'taken', username: typed, suggestion: r.suggestion });
+      else this.uname.set({ state: 'ok', username: typed });
+    } catch {
+      if (seq === this.checkSeq) this.uname.set({ state: 'auto' });
+    }
+  }
+
+  useSuggestion() {
+    const sug = this.uname().suggestion;
+    if (!sug) return;
+    this.form.username = sug;
+    this.uname.set({ state: 'ok', username: sug });
+  }
 
   constructor() {
     effect(() => {
       this.scope();
       this.tenantId();
       this.form = this.blank();
+      this.uname.set({ state: 'auto' });
       this.load();
     });
   }
@@ -163,6 +233,9 @@ export class TeamManager {
   }
 
   async create() {
+    if (this.uname().state === 'checking') return this.toast.info('Checking the username…');
+    if (this.uname().state === 'taken') return this.toast.warn('That username is taken — pick another.');
+    if (this.uname().state === 'invalid') return this.toast.warn('Fix the username format first.');
     const em = this.form.email.trim();
     if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return this.toast.warn('Enter a valid email address, or leave it empty.');
     if (!em && !this.form.full_name.trim() && !(this.form.username ?? '').trim()) return this.toast.warn('Enter a name, so a username can be created.');
@@ -175,6 +248,7 @@ export class TeamManager {
       await this.admin.createUser(this.tenantId(), this.form, this.scope());
       this.toast.success('Login created.');
       this.form = this.blank();
+      this.uname.set({ state: 'auto' });
       await this.load();
     } catch (e) {
       this.toast.fail(e);

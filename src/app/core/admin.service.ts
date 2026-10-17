@@ -165,6 +165,13 @@ export class AdminService {
     return res.users ?? [];
   }
 
+  /** Live availability check for the Create login form (empty username → auto-generated suggestion). */
+  async checkUsername(tenantId: string | null, username: string, name: string): Promise<{ valid: boolean; available: boolean; suggestion: string | null }> {
+    const { data, error } = await this.sb.client.rpc('check_username', { p_tenant: tenantId, p_username: username, p_name: name });
+    if (error) throw error;
+    return data;
+  }
+
   async createUser(tenantId: string | null, u: NewUser, scope: UserScope = 'lab') {
     await this.callUsers({ action: 'create', scope, tenant_id: tenantId, ...u });
   }
