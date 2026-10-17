@@ -66,7 +66,7 @@ type Gender = 'M' | 'F' | 'O';
 
           <div>
             <div class="mb-1.5 flex items-center justify-between gap-2">
-              <span class="label !mb-0">Select tests</span>
+              <span class="label mb-0!">Select tests</span>
               <input
                 class="w-36 rounded-lg border border-slate-200 px-2.5 py-1 text-xs outline-none focus:border-brand"
                 placeholder="Filter tests…"

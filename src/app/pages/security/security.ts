@@ -41,7 +41,7 @@ import { ToastService } from '../../core/toast.service';
               <p class="text-xs text-slate-400">Last active {{ ago(s.last_active) }}</p>
             </div>
             @if (!s.is_current) {
-              <button class="btn-danger !py-2 text-xs" (click)="remove(s)" [disabled]="busy() === s.id">
+              <button class="btn-danger py-2! text-xs" (click)="remove(s)" [disabled]="busy() === s.id">
                 <lucide-icon [name]="busy() === s.id ? 'loader-circle' : 'log-out'" class="size-3.5" [class.animate-spin]="busy() === s.id" /> Remove
               </button>
             }

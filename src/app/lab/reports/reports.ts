@@ -22,7 +22,7 @@ import { StatusPill } from '../../shared/status-pill';
     <form class="card mt-5 flex items-center gap-2 p-2" (ngSubmit)="run()">
       <lucide-icon name="search" class="ml-2 size-4 text-slate-400" />
       <input class="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none" name="q" [(ngModel)]="q" placeholder="Name, token or mobile…" autocomplete="off" />
-      <button class="btn-primary !py-2" type="submit" [disabled]="busy()">
+      <button class="btn-primary py-2!" type="submit" [disabled]="busy()">
         <lucide-icon [name]="busy() ? 'loader-circle' : 'search'" class="size-4" [class.animate-spin]="busy()" /> Search
       </button>
     </form>
@@ -54,11 +54,11 @@ import { StatusPill } from '../../shared/status-pill';
               <td class="px-5 py-3">
                 <div class="flex justify-end gap-1.5">
                   @if (lab.reportUrl(v); as url) {
-                    <a class="btn-ghost !px-2.5 !py-1.5 text-xs" [href]="url" target="_blank" rel="noopener"><lucide-icon name="eye" class="size-3.5" /> PDF</a>
+                    <a class="btn-ghost px-2.5! py-1.5! text-xs" [href]="url" target="_blank" rel="noopener"><lucide-icon name="eye" class="size-3.5" /> PDF</a>
                   }
-                  <button class="btn-ghost !px-2.5 !py-1.5 text-xs" (click)="copy(v)" title="Copy tracking link"><lucide-icon name="link" class="size-3.5" /></button>
+                  <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="copy(v)" title="Copy tracking link"><lucide-icon name="link" class="size-3.5" /></button>
                   @if (auth.isOwner()) {
-                    <button class="btn-ghost !px-2.5 !py-1.5 text-xs hover:!text-rose-600" (click)="remove(v)" title="Delete visit"><lucide-icon name="trash-2" class="size-3.5" /></button>
+                    <button class="btn-ghost px-2.5! py-1.5! text-xs hover:text-rose-600!" (click)="remove(v)" title="Delete visit"><lucide-icon name="trash-2" class="size-3.5" /></button>
                   }
                 </div>
               </td>

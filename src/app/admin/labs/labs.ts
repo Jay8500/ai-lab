@@ -31,7 +31,7 @@ import { LabStatusPill } from '../lab-status-pill';
       </div>
       <div class="relative sm:ml-auto sm:w-64">
         <lucide-icon name="search" class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-        <input class="input !py-2 !pl-9" placeholder="Search labs" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+        <input class="input py-2! pl-9!" placeholder="Search labs" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </div>
     </div>
 
@@ -59,8 +59,8 @@ import { LabStatusPill } from '../lab-status-pill';
             </div>
           </dl>
           <div class="mt-4 flex gap-2">
-            <a [routerLink]="['/admin/labs', r.slug]" class="btn-ghost flex-1 !py-2 text-xs"><lucide-icon name="pencil" class="size-3.5" /> Configure</a>
-            <a [href]="tenant.labUrl(r.slug, '/')" target="_blank" rel="noopener" class="btn-ghost !px-3 !py-2" title="Open cover page"><lucide-icon name="external-link" class="size-3.5" /></a>
+            <a [routerLink]="['/admin/labs', r.slug]" class="btn-ghost flex-1 py-2! text-xs"><lucide-icon name="pencil" class="size-3.5" /> Configure</a>
+            <a [href]="tenant.labUrl(r.slug, '/')" target="_blank" rel="noopener" class="btn-ghost px-3! py-2!" title="Open cover page"><lucide-icon name="external-link" class="size-3.5" /></a>
           </div>
         </article>
       } @empty {

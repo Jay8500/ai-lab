@@ -39,7 +39,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
 
       <div class="mt-auto space-y-2.5 pt-4">
         @if (next(); as n) {
-          <button class="btn-ghost w-full !py-2 text-xs" (click)="advance(n.to)" [disabled]="working()">
+          <button class="btn-ghost w-full py-2! text-xs" (click)="advance(n.to)" [disabled]="working()">
             <lucide-icon name="flask-conical" class="size-3.5" /> {{ n.label }}
           </button>
         }
@@ -48,7 +48,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
 
         <div class="flex gap-2">
           <button
-            class="btn-success flex-1 !py-2 text-xs"
+            class="btn-success flex-1 py-2! text-xs"
             [disabled]="!v.report_path || working()"
             (click)="notify()"
             [title]="v.report_path ? 'Send report link on WhatsApp' : 'Upload the PDF first'"
@@ -57,11 +57,11 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
             {{ v.notified_at ? 'Sent · resend' : 'Notify / Share' }}
           </button>
           @if (v.report_path) {
-            <a class="btn-ghost !px-3 !py-2" [href]="lab.reportUrl(v)" target="_blank" rel="noopener" title="Open PDF">
+            <a class="btn-ghost px-3! py-2!" [href]="lab.reportUrl(v)" target="_blank" rel="noopener" title="Open PDF">
               <lucide-icon name="eye" class="size-3.5" />
             </a>
           }
-          <button class="btn-ghost !px-3 !py-2" (click)="copyLink()" title="Copy tracking link">
+          <button class="btn-ghost px-3! py-2!" (click)="copyLink()" title="Copy tracking link">
             <lucide-icon name="copy" class="size-3.5" />
           </button>
         </div>

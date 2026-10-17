@@ -22,7 +22,7 @@
         <lucide-icon name="search" class="ml-2 size-4 shrink-0 text-slate-400" />
         <input class="min-w-0 flex-1 bg-transparent py-2 font-mono text-sm tracking-wider uppercase outline-none" name="q" [(ngModel)]="query"
                placeholder="Enter your token" autocomplete="off" />
-        <button class="btn-primary !py-2" type="submit">Track</button>
+        <button class="btn-primary py-2!" type="submit">Track</button>
       </form>
 
       @if (loading() && !result()) {
@@ -81,7 +81,7 @@
           </ol>
 
           @if (isReady() && pdfUrl()) {
-            <a [href]="pdfUrl()" target="_blank" rel="noopener" download class="btn-success mt-7 w-full !py-3 text-base">
+            <a [href]="pdfUrl()" target="_blank" rel="noopener" download class="btn-success mt-7 w-full py-3! text-base">
               <lucide-icon name="download" class="size-5" /> Download Official PDF
             </a>
             <p class="mt-2 text-center text-xs text-slate-400">Uploaded {{ r.report_uploaded_at | date: 'MMM d, h:mm a' }}</p>

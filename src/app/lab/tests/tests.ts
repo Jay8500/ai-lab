@@ -27,7 +27,7 @@ import { ToastService } from '../../core/toast.service';
     <div class="card mt-5 p-4 sm:p-5">
       <div class="relative mb-3 sm:w-72">
         <lucide-icon name="search" class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-        <input class="input !py-2 !pl-9" placeholder="Filter tests" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+        <input class="input py-2! pl-9!" placeholder="Filter tests" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </div>
       <div class="hidden grid-cols-[110px_1fr_120px_100px_40px] gap-2 px-1 pb-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
         <span>Code</span><span>Test name</span><span>Price ₹</span><span>Report in (hrs)</span><span></span>

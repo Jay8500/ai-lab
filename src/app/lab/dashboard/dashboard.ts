@@ -52,7 +52,7 @@ const FILTERS: { key: Filter; label: string; match: (s: VisitStatus) => boolean 
           </div>
           <div class="relative sm:ml-auto sm:w-64">
             <lucide-icon name="search" class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-            <input class="input !py-2 !pl-9" placeholder="Search name, token, mobile" [ngModel]="q()" (ngModelChange)="q.set($event)" />
+            <input class="input py-2! pl-9!" placeholder="Search name, token, mobile" [ngModel]="q()" (ngModelChange)="q.set($event)" />
           </div>
         </div>
 

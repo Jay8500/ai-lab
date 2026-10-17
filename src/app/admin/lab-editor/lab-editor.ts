@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { AdminService, monthlyValue } from '../../core/admin.service';
-import { BillingEvent, Tenant, TenantPages, TenantSecrets, TestItem } from '../../core/models';
+import { BillingEvent, Profile, Tenant, TenantPages, TenantSecrets, TestItem } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { SidebarState } from '../../shared/sidebar';
@@ -61,6 +61,7 @@ export class AdminLabEditor implements OnInit {
   protected readonly reveal = signal<Record<string, boolean>>({});
 
   protected readonly bills = signal<BillingEvent[]>([]);
+  protected readonly labAdmins = signal<Profile[]>([]);
   protected nb = { kind: 'subscription' as BillingEvent['kind'], amount: 0, period: new Date().toISOString().slice(0, 7), status: 'due' as BillingEvent['status'], note: '' };
 
   protected readonly row = computed(() => this.admin.rows().find((r) => r.id === this.id()));
@@ -139,7 +140,9 @@ export class AdminLabEditor implements OnInit {
   }
 
   private async refreshSide() {
-    this.bills.set(await this.admin.billing(this.id()));
+    const [bills, users] = await Promise.all([this.admin.billing(this.id()), this.admin.users(this.id()).catch(() => [])]);
+    this.bills.set(bills);
+    this.labAdmins.set(users.filter((u) => u.role === 'lab_owner'));
   }
 
   touch() {

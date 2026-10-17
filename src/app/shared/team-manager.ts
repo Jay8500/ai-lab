@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AdminService, NewUser, UserScope } from '../core/admin.service';
 import { AuthService } from '../core/auth.service';
-import { Profile, Role, ROLE_LABELS, STAFF_TITLES } from '../core/models';
+import { Profile, realEmail, Role, ROLE_LABELS, STAFF_TITLES } from '../core/models';
 import { ToastService } from '../core/toast.service';
 import { Avatar } from './avatar';
 
@@ -27,21 +27,21 @@ import { Avatar } from './avatar';
         <ul class="mt-3 divide-y divide-slate-100">
           @for (u of users(); track u.id) {
             <li class="flex flex-wrap items-center gap-3 py-3">
-              <app-avatar [name]="u.full_name || u.email" [url]="u.avatar_url" [size]="36" />
+              <app-avatar [name]="u.full_name || u.username" [url]="u.avatar_url" [size]="36" />
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-semibold text-slate-700">
-                  {{ u.full_name || u.email }} @if (u.id === me()) { <span class="text-xs font-normal text-slate-400">(you)</span> }
+                  {{ u.full_name || u.username }} @if (u.id === me()) { <span class="text-xs font-normal text-slate-400">(you)</span> }
                 </p>
-                <p class="truncate text-xs text-slate-400"><span class="font-mono text-slate-500">{{ u.username }}</span> · {{ u.email }} · since {{ u.created_at | date: 'MMM d, y' }}</p>
+                <p class="truncate text-xs text-slate-400"><span class="font-mono text-slate-500">{{ u.username }}</span> · {{ email(u) || 'username sign-in only' }} · since {{ u.created_at | date: 'MMM d, y' }}</p>
               </div>
               @if (u.id === me() || u.role === 'super_admin') {
                 <span class="pill border-slate-200 bg-slate-50 text-slate-500">{{ label(u) }}</span>
               } @else {
-                <select class="input !w-auto !py-1.5 text-xs" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)">
+                <select class="input w-auto! py-1.5! text-xs" [ngModel]="u.role" (ngModelChange)="setRole(u, $event)">
                   @for (r of roles(); track r) { <option [value]="r">{{ roleLabels[r] }}</option> }
                 </select>
                 @if (u.role === 'lab_staff') {
-                  <select class="input !w-auto !py-1.5 text-xs" [ngModel]="u.title || ''" (ngModelChange)="setTitle(u, $event)">
+                  <select class="input w-auto! py-1.5! text-xs" [ngModel]="u.title || ''" (ngModelChange)="setTitle(u, $event)">
                     <option value="">No title</option>
                     @for (t of titles; track t) { <option [value]="t">{{ t }}</option> }
                   </select>
@@ -65,12 +65,15 @@ import { Avatar } from './avatar';
           <input class="input font-mono" name="un" [(ngModel)]="form.username" autocomplete="off" autocapitalize="none" maxlength="31"
                  [placeholder]="'auto, e.g. ' + (scope() === 'platform' ? 'sa' : 'lab') + '.' + ((form.full_name.split(' ')[0] || 'name').toLowerCase())" />
         </div>
-        <div><label class="label">Email</label><input class="input" name="e" type="email" [(ngModel)]="form.email" required autocomplete="off" /></div>
+        <div>
+          <label class="label">Email <span class="font-normal text-slate-400">(optional)</span></label>
+          <input class="input" name="e" type="email" [(ngModel)]="form.email" autocomplete="off" placeholder="Leave empty for username-only sign-in" />
+        </div>
         <div>
           <label class="label">Password</label>
           <div class="flex gap-2">
             <input class="input font-mono" name="p" [(ngModel)]="form.password" required minlength="8" autocomplete="new-password" />
-            <button type="button" class="btn-ghost !px-3" (click)="generate()" title="Generate"><lucide-icon name="refresh-cw" class="size-4" /></button>
+            <button type="button" class="btn-ghost px-3!" (click)="generate()" title="Generate"><lucide-icon name="refresh-cw" class="size-4" /></button>
           </div>
         </div>
         @if (roles().length > 1) {
@@ -129,6 +132,10 @@ export class TeamManager {
     });
   }
 
+  email(u: Profile) {
+    return realEmail(u.email);
+  }
+
   label(u: Profile) {
     return u.role === 'lab_staff' && u.title ? u.title : ROLE_LABELS[u.role];
   }
@@ -156,7 +163,9 @@ export class TeamManager {
   }
 
   async create() {
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.form.email.trim())) return this.toast.warn('Enter a valid email address.');
+    const em = this.form.email.trim();
+    if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return this.toast.warn('Enter a valid email address, or leave it empty.');
+    if (!em && !this.form.full_name.trim() && !(this.form.username ?? '').trim()) return this.toast.warn('Enter a name, so a username can be created.');
     if (this.form.password.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     const un = (this.form.username ?? '').trim().toLowerCase();
     if (un && !/^[a-z0-9][a-z0-9._-]{2,30}$/.test(un)) return this.toast.warn('Username: 3–31 letters, numbers, dot, dash or underscore.');
@@ -175,7 +184,7 @@ export class TeamManager {
   }
 
   async setRole(u: Profile, role: Role) {
-    await this.patch(u, { role }, `${u.email} is now ${ROLE_LABELS[role]}`);
+    await this.patch(u, { role }, `${u.full_name || u.username} is now ${ROLE_LABELS[role]}`);
   }
 
   async setTitle(u: Profile, title: string) {
@@ -193,7 +202,7 @@ export class TeamManager {
   }
 
   async resetPw(u: Profile) {
-    const pw = prompt(`New password for ${u.email} (8+ characters)`);
+    const pw = prompt(`New password for ${u.username} (8+ characters)`);
     if (!pw) return;
     if (pw.length < 8) return this.toast.warn('Password must be at least 8 characters.');
     try {
@@ -205,7 +214,7 @@ export class TeamManager {
   }
 
   async signOutAll(u: Profile) {
-    if (!confirm(`Sign ${u.full_name || u.email} out of every device?`)) return;
+    if (!confirm(`Sign ${u.full_name || u.username} out of every device?`)) return;
     try {
       await this.admin.signOutEverywhere(this.tenantId(), u.id, this.scope());
       this.toast.success('Signed out of all devices.');
@@ -215,7 +224,7 @@ export class TeamManager {
   }
 
   async remove(u: Profile) {
-    if (!confirm(`Remove the login for ${u.email}? They will no longer be able to sign in.`)) return;
+    if (!confirm(`Remove the login for ${u.username}? They will no longer be able to sign in.`)) return;
     try {
       await this.admin.removeUser(this.tenantId(), u.id, this.scope());
       this.users.update((l) => l.filter((x) => x.id !== u.id));

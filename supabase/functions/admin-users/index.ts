@@ -16,6 +16,8 @@ const json = (body: unknown, status = 200) =>
 
 const PLATFORM_ROLES = ['super_admin', 'platform_admin'];
 const LAB_ROLES = ['lab_owner', 'lab_staff'];
+/** Placeholder address for accounts created without an email (never receives mail). */
+const NO_EMAIL_DOMAIN = 'no-email.spreadapps.in';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
@@ -62,12 +64,26 @@ Deno.serve(async (req) => {
 
   if (action === 'create') {
     const role = allowedRoles.includes(body.role) ? body.role : allowedRoles[allowedRoles.length - 1];
-    const email = String(body.email ?? '').trim().toLowerCase();
+    let email = String(body.email ?? '').trim().toLowerCase();
     const password = String(body.password ?? '');
-    const fullName = String(body.full_name ?? '').trim() || email.split('@')[0];
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || password.length < 8) {
-      return json({ error: 'A valid email and an 8+ character password are required' }, 400);
+    const fullName = String(body.full_name ?? '').trim() || (email ? email.split('@')[0] : '');
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'Enter a valid email address' }, 400);
+    if (!email && !fullName) return json({ error: 'Enter a name or an email' }, 400);
+    if (password.length < 8) return json({ error: 'Password must be at least 8 characters' }, 400);
+
+    // Unique sign-in name: custom if given and free, else <lab prefix>.<first name>[n]
+    let username = String(body.username ?? '').trim().toLowerCase();
+    if (username) {
+      const { data: taken } = await admin.from('profiles').select('id').ilike('username', username).maybeSingle();
+      if (!/^[a-z0-9][a-z0-9._-]{2,30}$/.test(username)) return json({ error: 'Username: 3-31 letters, numbers, dot, dash or underscore' }, 400);
+      if (taken) return json({ error: 'That username is taken' }, 400);
+    } else {
+      const { data: gen } = await admin.rpc('next_username', { p_tenant: tenantId, p_name: fullName });
+      username = gen as string;
     }
+
+    // No real email? Username-only login with an internal, non-deliverable address.
+    if (!email) email = `${username}@${NO_EMAIL_DOMAIN}`;
 
     const { data, error } = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
@@ -75,17 +91,6 @@ Deno.serve(async (req) => {
       app_metadata: { role, tenant_id: tenantId ?? '' },
     });
     if (error) return json({ error: error.message.includes('already') ? 'That email already has an account' : error.message }, 400);
-
-    // Unique sign-in name: custom if given and free, else <lab prefix>.<first name>[n]
-    let username = String(body.username ?? '').trim().toLowerCase();
-    if (username) {
-      const { data: taken } = await admin.from('profiles').select('id').ilike('username', username).maybeSingle();
-      if (!/^[a-z0-9][a-z0-9._-]{2,30}$/.test(username) || taken) username = '';
-    }
-    if (!username) {
-      const { data: gen } = await admin.rpc('next_username', { p_tenant: tenantId, p_name: fullName });
-      username = gen as string;
-    }
 
     await admin.from('profiles').upsert({
       id: data.user.id, email, full_name: fullName, role, tenant_id: tenantId, username,

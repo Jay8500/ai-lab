@@ -50,9 +50,9 @@ const PRIORITY: Record<SupportTicket['priority'], string> = {
             </div>
             <div class="flex items-center gap-2">
               @if (t.screenshot_path) {
-                <button class="btn-ghost !py-2 text-xs" (click)="openShot(t)"><lucide-icon name="image" class="size-3.5" /> Screenshot</button>
+                <button class="btn-ghost py-2! text-xs" (click)="openShot(t)"><lucide-icon name="image" class="size-3.5" /> Screenshot</button>
               }
-              <select class="input !w-auto !py-2 text-xs" [ngModel]="t.status" (ngModelChange)="setStatus(t, $event)">
+              <select class="input w-auto! py-2! text-xs" [ngModel]="t.status" (ngModelChange)="setStatus(t, $event)">
                 @for (s of statuses.slice(1); track s) { <option [value]="s">{{ s.replace('_', ' ') }}</option> }
               </select>
             </div>

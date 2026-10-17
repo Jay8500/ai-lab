@@ -24,7 +24,7 @@ export class AuthService {
     return p.role === 'lab_staff' && p.title ? p.title : ROLE_LABELS[p.role];
   });
   readonly isOwner = computed(() => this.profile()?.role === 'lab_owner');
-  readonly displayName = computed(() => this.profile()?.full_name || this.profile()?.email?.split('@')[0] || '');
+  readonly displayName = computed(() => this.profile()?.full_name || this.profile()?.username || '');
   readonly initials = computed(() => initialsOf(this.displayName()));
 
   private initPromise?: Promise<void>;

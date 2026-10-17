@@ -159,6 +159,14 @@ export interface BillingEvent {
   created_at: string;
 }
 
+/** Accounts created without an email get an internal address on this domain (never shown). */
+export const NO_EMAIL_DOMAIN = 'no-email.spreadapps.in';
+
+/** The email to show for an account, or '' for username-only accounts. */
+export function realEmail(email: string | null | undefined): string {
+  return email && !email.endsWith('@' + NO_EMAIL_DOMAIN) ? email : '';
+}
+
 /** Two-letter initials from a name, ignoring brackets, digits and symbols ("Jay (SpreadApps)" → "JS"). */
 export function initialsOf(name: string | null | undefined): string {
   const words = (name ?? '').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean);

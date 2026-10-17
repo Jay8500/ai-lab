@@ -58,7 +58,7 @@ const FEATURES = [
           </ul>
           <div class="mt-auto flex items-center justify-between pt-5">
             <span class="text-xs text-slate-400">{{ labsOn(p.id) }} lab(s)</span>
-            <button class="btn-ghost !py-2 text-xs" (click)="edit(p)"><lucide-icon name="pencil" class="size-3.5" /> Edit</button>
+            <button class="btn-ghost py-2! text-xs" (click)="edit(p)"><lucide-icon name="pencil" class="size-3.5" /> Edit</button>
           </div>
         </article>
       }

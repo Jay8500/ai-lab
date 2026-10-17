@@ -60,7 +60,7 @@ interface BrandSettings {
       <form class="card space-y-4 p-5 sm:p-6" (ngSubmit)="changePw()">
         <div class="flex items-center gap-3">
           <span class="grid size-10 place-items-center rounded-xl bg-brand/10 text-brand"><lucide-icon name="lock" class="size-5" /></span>
-          <div><h2 class="section-title">Your password</h2><p class="text-xs text-slate-400">Signed in as {{ auth.profile()?.email }}</p></div>
+          <div><h2 class="section-title">Your password</h2><p class="text-xs text-slate-400">Signed in as {{ auth.profile()?.username }}</p></div>
         </div>
         <input class="input" type="password" name="pw" [(ngModel)]="pw" placeholder="New password (8+ characters)" autocomplete="new-password" minlength="8" />
         <button class="btn-primary" type="submit"><lucide-icon name="key-round" class="size-4" /> Update password</button>

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/auth.service';
+import { realEmail } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { Avatar } from '../../shared/avatar';
@@ -20,15 +21,15 @@ import { Avatar } from '../../shared/avatar';
       <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_380px]">
         <form class="card space-y-5 p-5 sm:p-6" (ngSubmit)="save()">
           <div class="flex flex-wrap items-center gap-5">
-            <app-avatar [name]="name || p.email" [url]="photo()" [size]="88" />
+            <app-avatar [name]="name || p.username" [url]="photo()" [size]="88" />
             <div class="flex flex-wrap gap-2">
-              <label class="btn-ghost cursor-pointer !py-2 text-xs">
+              <label class="btn-ghost cursor-pointer py-2! text-xs">
                 <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="pick($event)" />
                 <lucide-icon [name]="uploading() ? 'loader-circle' : 'image'" class="size-3.5" [class.animate-spin]="uploading()" />
                 {{ photo() ? 'Change photo' : 'Upload photo' }}
               </label>
               @if (photo()) {
-                <button type="button" class="btn-ghost !py-2 text-xs hover:!text-rose-600" (click)="photo.set(null)">
+                <button type="button" class="btn-ghost py-2! text-xs hover:text-rose-600!" (click)="photo.set(null)">
                   <lucide-icon name="trash-2" class="size-3.5" /> Remove
                 </button>
               }
@@ -50,7 +51,7 @@ import { Avatar } from '../../shared/avatar';
             </div>
             <div>
               <span class="label">Email</span>
-              <p class="truncate rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700">{{ p.email }}</p>
+              <p class="truncate rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700">{{ email() || 'Not set — you sign in with your username' }}</p>
             </div>
             <div>
               <span class="label">Role</span>
@@ -103,6 +104,10 @@ export class ProfilePage implements OnInit {
   protected readonly uploading = signal(false);
   protected readonly saving = signal(false);
   protected readonly savingPw = signal(false);
+
+  protected email() {
+    return realEmail(this.auth.profile()?.email);
+  }
 
   ngOnInit() {
     const p = this.auth.profile();

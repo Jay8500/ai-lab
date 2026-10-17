@@ -63,8 +63,8 @@
           </ul>
           <p class="mt-2 text-xs text-rose-700">Continue here and those devices will be signed out.</p>
           <div class="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" class="btn-ghost !py-2 text-xs" (click)="cancelHere()" [disabled]="busy()">Cancel</button>
-            <button type="button" class="btn !bg-rose-600 !py-2 text-xs text-white hover:!bg-rose-700" (click)="continueHere()" [disabled]="busy()">
+            <button type="button" class="btn-ghost py-2! text-xs" (click)="cancelHere()" [disabled]="busy()">Cancel</button>
+            <button type="button" class="btn bg-rose-600! py-2! text-xs text-white hover:bg-rose-700!" (click)="continueHere()" [disabled]="busy()">
               <lucide-icon [name]="busy() ? 'loader-circle' : 'log-out'" class="size-3.5" [class.animate-spin]="busy()" /> Continue here
             </button>
           </div>
@@ -85,7 +85,7 @@
             <label class="label" for="em">{{ mode() === 'forgot' ? 'Email' : 'Username or email' }}</label>
             <div class="relative">
               <lucide-icon [name]="mode() === 'forgot' ? 'mail' : 'users'" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
-              <input id="em" class="input !pl-10" type="text" inputmode="email" autocapitalize="none" spellcheck="false" name="email" [(ngModel)]="email"
+              <input id="em" class="input pl-10!" type="text" inputmode="email" autocapitalize="none" spellcheck="false" name="email" [(ngModel)]="email"
                      autocomplete="username" required [placeholder]="mode() === 'forgot' ? 'you@lab.com' : 'e.g. ' + (t() ? 'abc.ravi' : 'sa.jay') + ' or you@email.com'" />
             </div>
           </div>
@@ -100,7 +100,7 @@
             </div>
             <div class="relative">
               <lucide-icon name="lock" class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" />
-              <input id="pw" class="input !px-10" [type]="showPw() ? 'text' : 'password'" name="password" [(ngModel)]="password"
+              <input id="pw" class="input px-10!" [type]="showPw() ? 'text' : 'password'" name="password" [(ngModel)]="password"
                      [attr.autocomplete]="mode() === 'reset' ? 'new-password' : 'current-password'" required minlength="6" placeholder="••••••••" />
               <button type="button" class="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600" (click)="showPw.set(!showPw())"
                       [attr.aria-label]="showPw() ? 'Hide password' : 'Show password'">
@@ -115,7 +115,7 @@
             Remember me on this device
           </label>
         }
-        <button class="btn-primary w-full !py-3" type="submit" [disabled]="busy()">
+        <button class="btn-primary w-full py-3!" type="submit" [disabled]="busy()">
           @if (busy()) { <lucide-icon name="loader-circle" class="size-4 animate-spin" /> }
           {{ mode() === 'forgot' ? 'Send reset link' : mode() === 'reset' ? 'Update password' : 'Sign in' }}
         </button>

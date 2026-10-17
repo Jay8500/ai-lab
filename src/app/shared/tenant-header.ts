@@ -36,7 +36,7 @@ import { SidebarState } from './sidebar';
           <span class="hidden items-center gap-1.5 rounded-xl border border-slate-100 px-3 py-2 text-xs font-medium text-slate-600 lg:flex">
             <lucide-icon name="calendar" class="size-3.5" /> {{ today | date: 'MMMM d, y' }}
           </span>
-          <button class="btn-primary hidden !py-2 md:inline-flex" (click)="addPatient.emit()">
+          <button class="btn-primary hidden py-2! md:inline-flex" (click)="addPatient.emit()">
             <lucide-icon name="plus" class="size-4" /> New patient
           </button>
 
@@ -53,7 +53,7 @@ import { SidebarState } from './sidebar';
               <div class="animate-fade-up absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-slate-100 bg-white p-2 shadow-lg">
                 <div class="px-3 py-2">
                   <p class="truncate text-sm font-semibold text-slate-800">{{ auth.displayName() }}</p>
-                  <p class="truncate text-xs text-slate-400">{{ auth.profile()?.email }}</p>
+                  <p class="truncate font-mono text-xs text-slate-400">{{ auth.profile()?.username }}</p>
                 </div>
                 <a routerLink="/lab/profile" (click)="menu.set(false)" class="nav-link"><lucide-icon name="users" class="size-4" /> My profile</a>
                 <a routerLink="/lab/security" (click)="menu.set(false)" class="nav-link"><lucide-icon name="shield-check" class="size-4" /> Account security</a>
