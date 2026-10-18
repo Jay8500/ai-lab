@@ -307,25 +307,34 @@
 
           <div class="card p-5 sm:p-6">
             <h3 class="section-title">Billing ledger</h3>
-            <form class="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-[1fr_100px_110px]" (ngSubmit)="addBill()">
-              <select class="input" name="k" [(ngModel)]="nb.kind">
-                <option value="subscription">Subscription</option><option value="per_report">Per-report usage</option>
-                <option value="revenue_share">Revenue share</option><option value="setup">Setup fee</option><option value="adjustment">Adjustment</option>
-              </select>
-              <input class="input" name="a" type="number" [(ngModel)]="nb.amount" placeholder="₹" />
-              <input class="input" name="p" [(ngModel)]="nb.period" placeholder="2026-10" />
-              <input class="input col-span-2 sm:col-span-2" name="n" [(ngModel)]="nb.note" placeholder="Note" />
-              <div class="col-span-2 flex gap-2 sm:col-span-1">
+            <form class="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-3" (ngSubmit)="addBill()" novalidate>
+              <label class="col-span-2 sm:col-span-3"><span class="label">Charge type <span class="text-rose-500">*</span></span>
+                <select class="input" name="k" [(ngModel)]="nb.kind">
+                  @for (k of billingKinds; track k.v) { <option [value]="k.v">{{ k.l }}</option> }
+                </select>
+              </label>
+              <label><span class="label">Amount ₹ <span class="text-rose-500">*</span></span><input class="input" name="a" type="number" min="1" [(ngModel)]="nb.amount" /></label>
+              <label><span class="label">Period</span><input class="input" name="p" [(ngModel)]="nb.period" placeholder="2026-10" /></label>
+              <label class="col-span-2 sm:col-span-1"><span class="label">Due date</span><input class="input" type="date" name="dd" [(ngModel)]="nb.due_date" /></label>
+              <label class="col-span-2 sm:col-span-2"><span class="label">Note for the lab</span><input class="input" name="n" [(ngModel)]="nb.note" placeholder="e.g. Supabase Pro database, Oct" maxlength="200" /></label>
+              <label class="col-span-2 sm:col-span-1"><span class="label">Status</span>
                 <select class="input" name="s" [(ngModel)]="nb.status"><option value="due">Due</option><option value="paid">Paid</option></select>
-              </div>
-              <button class="btn-primary col-span-2 sm:col-span-3" type="submit"><lucide-icon name="plus" class="size-4" /> Add entry</button>
+              </label>
+              <label class="col-span-2 flex items-center gap-2 text-sm text-slate-600 sm:col-span-3">
+                <input type="checkbox" class="size-4 accent-[var(--brand)]" name="nl" [(ngModel)]="notifyLab" /> Notify the lab admin (email + in-app payment banner)
+              </label>
+              <button class="btn-primary col-span-2 sm:col-span-3" type="submit"><lucide-icon name="plus" class="size-4" /> Add charge</button>
             </form>
             <ul class="mt-3 divide-y divide-slate-100">
               @for (b of bills(); track b.id) {
                 <li class="flex items-center gap-2 py-2.5 text-sm">
-                  <span class="min-w-0 flex-1 truncate text-slate-600"><b class="capitalize text-slate-700">{{ b.kind.replace('_', ' ') }}</b> · {{ b.period }} {{ b.note ? '· ' + b.note : '' }}</span>
+                  <span class="min-w-0 flex-1 text-slate-600">
+                    <b class="block truncate text-slate-700">{{ billingLabel(b.kind) }}</b>
+                    <span class="block truncate text-xs text-slate-400">{{ b.period }}{{ b.due_date ? ' · due ' + (b.due_date | date: 'MMM d') : '' }}{{ b.note ? ' · ' + b.note : '' }}{{ b.notified_at ? ' · notified' : '' }}</span>
+                  </span>
                   <span class="font-semibold text-slate-700">₹{{ b.amount | number }}</span>
                   @if (b.status === 'due') {
+                    <button class="rounded-lg p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="remind(b)" title="Send payment reminder"><lucide-icon name="bell" class="size-4" /></button>
                     <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:bg-emerald-50 hover:text-emerald-600" (click)="markBill(b, 'paid')" title="Mark paid">Due → paid</button>
                   } @else {
                     <span class="pill border-emerald-100 bg-emerald-50 capitalize text-emerald-600">{{ b.status }}</span>

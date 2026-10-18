@@ -33,6 +33,8 @@ const LOOK: Record<string, { icon: string; tone: string }> = {
   'ticket:feedback': { icon: 'message-square-heart', tone: 'bg-pink-100 text-pink-600' },
   'ticket:lead': { icon: 'calendar-clock', tone: 'bg-emerald-100 text-emerald-600' },
   'lab:created': { icon: 'building-2', tone: 'bg-brand/15 text-brand' },
+  'billing:invoice': { icon: 'receipt', tone: 'bg-amber-100 text-amber-700' },
+  'billing:paid': { icon: 'circle-check', tone: 'bg-emerald-100 text-emerald-600' },
   'announcement:sent': { icon: 'megaphone', tone: 'bg-indigo-100 text-indigo-600' },
 };
 

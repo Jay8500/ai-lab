@@ -3,7 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { AdminService } from '../../core/admin.service';
-import { BillingEvent, Plan, Tenant } from '../../core/models';
+import { BillingEvent, billingLabel, Plan, Tenant } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { TeamManager } from '../../shared/team-manager';
@@ -45,14 +45,22 @@ import { TeamManager } from '../../shared/team-manager';
       </section>
 
       <section class="card p-5 lg:col-span-2">
-        <h2 class="section-title">Invoices</h2>
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="section-title">Invoices</h2>
+          @if (dueTotal()) {
+            <span class="pill border-amber-200 bg-amber-50 text-amber-700">₹{{ dueTotal().toLocaleString('en-IN') }} due</span>
+          }
+        </div>
         @if (bills().length) {
           <ul class="mt-3 divide-y divide-slate-100">
             @for (b of bills(); track b.id) {
               <li class="flex items-center gap-3 py-3 text-sm">
                 <lucide-icon name="receipt" class="size-4 text-slate-400" />
-                <span class="flex-1 text-slate-600"><b class="capitalize text-slate-700">{{ b.kind.replace('_', ' ') }}</b> {{ b.period ? '· ' + b.period : '' }} {{ b.note ? '· ' + b.note : '' }}</span>
-                <span class="font-semibold text-slate-700">₹{{ b.amount }}</span>
+                <span class="min-w-0 flex-1 text-slate-600">
+                  <b class="block text-slate-700">{{ label(b.kind) }}</b>
+                  <span class="block truncate text-xs text-slate-400">{{ b.period }}{{ b.note ? ' · ' + b.note : '' }}{{ b.status === 'due' && b.due_date ? ' · due ' + (b.due_date | date: 'MMM d, y') : '' }}</span>
+                </span>
+                <span class="font-semibold text-slate-700">₹{{ b.amount.toLocaleString('en-IN') }}</span>
                 <span class="pill capitalize" [class]="b.status === 'paid' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-amber-100 bg-amber-50 text-amber-600'">{{ b.status }}</span>
               </li>
             }
@@ -84,6 +92,8 @@ export class LabAccount implements OnInit {
     const s = this.tenant.tenant()?.status;
     return s === 'active' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : s === 'trial' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-rose-100 bg-rose-50 text-rose-600';
   });
+  protected readonly label = billingLabel;
+  protected readonly dueTotal = computed(() => this.bills().filter((b) => b.status === 'due').reduce((s, b) => s + Number(b.amount), 0));
   protected readonly priceLabel = computed(() => {
     const p = this.plan();
     if (!p) return '';

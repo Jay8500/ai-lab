@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { BillingEvent, Plan, Profile, SupportTicket, Tenant, TenantSecrets } from './models';
+import { BillingEvent, Plan, Profile, SupportTicket, Tenant, TenantSecrets, billingLabel } from './models';
 import { SupabaseService } from './supabase.service';
 import { clean } from './text-clean';
 
@@ -216,9 +216,36 @@ export class AdminService {
     return (data ?? []) as BillingEvent[];
   }
 
-  async addBilling(e: Partial<BillingEvent>): Promise<void> {
-    const { error } = await this.sb.client.from('billing_events').insert(clean(e));
+  async addBilling(e: Partial<BillingEvent>): Promise<BillingEvent> {
+    const { data, error } = await this.sb.client.from('billing_events').insert(clean(e)).select().single();
     if (error) throw new Error(error.message);
+    return data as BillingEvent;
+  }
+
+  /**
+   * Tell a lab's admins about a charge (email + in-app payment banner).
+   * kind 'new' = fresh invoice, 'reminder' = payment reminder for a due one.
+   */
+  async notifyBilling(b: BillingEvent, mode: 'new' | 'reminder'): Promise<void> {
+    const label = billingLabel(b.kind);
+    const amount = '₹' + Number(b.amount).toLocaleString('en-IN');
+    const due = b.due_date ? new Date(b.due_date + 'T00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    const subject = mode === 'new' ? `New invoice: ${amount} · ${label}` : `Payment reminder: ${amount} · ${label}`;
+    const lines = [
+      mode === 'new' ? 'Hi {{name}},\n\nA new charge has been added for **{{lab}}**:' : 'Hi {{name}},\n\nThis is a friendly reminder that a payment for **{{lab}}** is pending:',
+      [`• **${label}** — ${amount}`, b.period ? `• Period: ${b.period}` : '', due ? `• Due by: **${due}**` : '', b.note ? `• Note: ${b.note}` : ''].filter(Boolean).join('\n'),
+      'You can see all invoices in AI-Lab → Plan & team. Reply to this email if you have any questions.',
+      'Thank you for using SpreadApps AI-Lab!',
+    ];
+    const body = lines.join('\n\n');
+    const send = (channels: string[]) =>
+      this.sb.client.functions.invoke('announce', {
+        body: { action: 'send', category: 'payment', subject, body, channels, audience: { roles: ['lab_owner'], tenant_ids: [b.tenant_id] } },
+      });
+    let { data, error } = await send(['email', 'in_app']);
+    if (error || data?.error) ({ data, error } = await send(['in_app'])); // e.g. email not configured
+    if (error || data?.error) throw new Error(data?.error ?? 'Could not notify the lab');
+    await this.sb.client.from('billing_events').update({ notified_at: new Date().toISOString() }).eq('id', b.id);
   }
 
   async setBillingStatus(id: string, status: BillingEvent['status']): Promise<void> {

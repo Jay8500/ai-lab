@@ -129,7 +129,9 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Monthly invoices', flow: ['Generate invoices', 'One per active lab'] },
       { do: 'Record payment', flow: ['Due', 'Mark paid'] },
-      { do: 'Manual entry', flow: ['Lab', 'Plan & billing', 'Add entry'] },
+      { do: 'Add a charge', flow: ['Lab', 'Plan & billing', 'Charge type', 'Amount · Due date', 'Notify lab', 'Add charge'] },
+      { do: 'Charge types', flow: ['Database & hosting', 'Maintenance & support', 'Subscription', 'Setup', 'Other'] },
+      { do: 'Remind', flow: ['Due', '🔔 Remind', 'Email + in-app banner'] },
     ],
   },
   {
@@ -289,6 +291,7 @@ export const HELP: HelpSection[] = [
     who: ['owner'],
     steps: [
       { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
+      { do: 'Pay dues', flow: ['🔔 Payment notice', 'Invoices', '₹ due', 'Pay SpreadApps'] },
       { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
       { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
     ],

@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { AdminService, monthlyValue } from '../../core/admin.service';
-import { BillingEvent, Profile, Tenant, TenantPages, TenantSecrets, TestItem } from '../../core/models';
+import { BillingEvent, Profile, Tenant, TenantPages, TenantSecrets, TestItem, BILLING_KINDS, billingLabel } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { SidebarState } from '../../shared/sidebar';
@@ -64,7 +64,15 @@ export class AdminLabEditor implements OnInit {
 
   protected readonly bills = signal<BillingEvent[]>([]);
   protected readonly labAdmins = signal<Profile[]>([]);
-  protected nb = { kind: 'subscription' as BillingEvent['kind'], amount: 0, period: new Date().toISOString().slice(0, 7), status: 'due' as BillingEvent['status'], note: '' };
+  protected nb = this.blankBill();
+  protected readonly billingKinds = BILLING_KINDS;
+  protected readonly billingLabel = billingLabel;
+  protected notifyLab = true;
+
+  private blankBill() {
+    const due = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
+    return { kind: 'subscription' as BillingEvent['kind'], amount: 0, period: new Date().toISOString().slice(0, 7), status: 'due' as BillingEvent['status'], note: '', due_date: due };
+  }
 
   protected readonly row = computed(() => this.admin.rows().find((r) => r.id === this.id()));
 
@@ -282,14 +290,33 @@ export class AdminLabEditor implements OnInit {
   async addBill() {
     if (!(Number(this.nb.amount) > 0)) return this.toast.warn('Enter an amount greater than 0.');
     if (!/^\d{4}-\d{2}$/.test(this.nb.period)) return this.toast.warn('Period must look like 2026-10.');
+    if (this.nb.status === 'due' && !this.nb.due_date) return this.toast.warn('Add a due date for this charge.');
     try {
-      await this.admin.addBilling({ ...this.nb, tenant_id: this.id(), amount: Number(this.nb.amount), paid_at: this.nb.status === 'paid' ? new Date().toISOString() : null });
+      const b = await this.admin.addBilling({ ...this.nb, tenant_id: this.id(), amount: Number(this.nb.amount), due_date: this.nb.due_date || null, paid_at: this.nb.status === 'paid' ? new Date().toISOString() : null });
+      let note = 'Charge added.';
+      if (this.notifyLab && b.status === 'due') {
+        try {
+          await this.admin.notifyBilling(b, 'new');
+          note = 'Charge added and lab admin notified.';
+        } catch (e) {
+          this.toast.fail(e, 'Charge added, but the notice could not be sent.');
+        }
+      }
       this.bills.set(await this.admin.billing(this.id()));
-      this.nb.amount = 0;
-      this.nb.note = '';
-      this.toast.success('Billing entry added');
+      this.nb = this.blankBill();
+      this.toast.success(note);
     } catch (e) {
       this.toast.fail(e);
+    }
+  }
+
+  async remind(b: BillingEvent) {
+    try {
+      await this.admin.notifyBilling(b, 'reminder');
+      this.bills.set(await this.admin.billing(this.id()));
+      this.toast.success('Payment reminder sent.');
+    } catch (e) {
+      this.toast.fail(e, 'Could not send the reminder.');
     }
   }
 

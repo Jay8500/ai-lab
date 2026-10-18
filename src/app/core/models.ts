@@ -154,15 +154,32 @@ export interface SupportTicket {
   created_at: string;
 }
 
+export type BillingKind = 'subscription' | 'per_report' | 'revenue_share' | 'setup' | 'database' | 'maintenance' | 'adjustment' | 'other';
+
+/** What each charge is called on invoices and notices. */
+export const BILLING_KINDS: { v: BillingKind; l: string }[] = [
+  { v: 'subscription', l: 'Software subscription' },
+  { v: 'database', l: 'Database & hosting' },
+  { v: 'maintenance', l: 'Maintenance & support' },
+  { v: 'setup', l: 'Setup fee' },
+  { v: 'per_report', l: 'Per-report usage' },
+  { v: 'revenue_share', l: 'Revenue share' },
+  { v: 'adjustment', l: 'Adjustment' },
+  { v: 'other', l: 'Other charge' },
+];
+export const billingLabel = (k: string) => BILLING_KINDS.find((x) => x.v === k)?.l ?? k.replace('_', ' ');
+
 export interface BillingEvent {
   id: string;
   tenant_id: string;
-  kind: 'subscription' | 'per_report' | 'revenue_share' | 'setup' | 'adjustment';
+  kind: BillingKind;
   amount: number;
   period: string | null;
   status: 'due' | 'paid' | 'waived';
   note: string | null;
   paid_at: string | null;
+  due_date?: string | null;
+  notified_at?: string | null;
   created_at: string;
 }
 

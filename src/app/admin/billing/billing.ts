@@ -3,7 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AdminService } from '../../core/admin.service';
-import { BillingEvent } from '../../core/models';
+import { BillingEvent, billingLabel } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { KpiCard } from '../../shared/kpi-card';
 
@@ -14,11 +14,16 @@ import { KpiCard } from '../../shared/kpi-card';
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Billing</h1>
-        <p class="text-sm text-slate-500">Ledger across all labs. Generate the month's invoices from each lab's plan.</p>
+        <p class="text-sm text-slate-500">Ledger across all labs. Add database, maintenance or other charges from each lab’s Plan & billing tab.</p>
       </div>
-      <button class="btn-primary" (click)="generate()" [disabled]="busy()">
-        <lucide-icon [name]="busy() ? 'loader-circle' : 'receipt'" class="size-4" [class.animate-spin]="busy()" /> Generate {{ period }} invoices
-      </button>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="flex items-center gap-2 text-sm text-slate-600">
+          <input type="checkbox" class="size-4 accent-[var(--brand)]" [checked]="notify()" (change)="notify.set(!notify())" /> Notify labs
+        </label>
+        <button class="btn-primary" (click)="generate()" [disabled]="busy()">
+          <lucide-icon [name]="busy() ? 'loader-circle' : 'receipt'" class="size-4" [class.animate-spin]="busy()" /> Generate {{ period }} invoices
+        </button>
+      </div>
     </div>
 
     <section class="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -31,18 +36,21 @@ import { KpiCard } from '../../shared/kpi-card';
     <div class="card mt-5 overflow-x-auto">
       <table class="w-full min-w-[640px] text-sm">
         <thead class="border-b border-slate-100 bg-slate-50/70 text-left text-xs font-semibold text-slate-500">
-          <tr><th class="px-5 py-3">Lab</th><th class="px-3 py-3">Kind</th><th class="px-3 py-3">Period</th><th class="px-3 py-3 text-right">Amount</th><th class="px-3 py-3">Status</th><th class="px-5 py-3">Created</th></tr>
+          <tr><th class="px-5 py-3">Lab</th><th class="px-3 py-3">Charge</th><th class="px-3 py-3">Period</th><th class="px-3 py-3 text-right">Amount</th><th class="px-3 py-3">Status</th><th class="px-5 py-3">Created</th></tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
           @for (b of events(); track b.id) {
             <tr class="hover:bg-slate-50/60">
               <td class="px-5 py-3"><a [routerLink]="['/admin/labs', labSlug(b.tenant_id)]" class="font-semibold text-slate-700 hover:text-brand">{{ labName(b.tenant_id) }}</a></td>
-              <td class="px-3 py-3 capitalize text-slate-600">{{ b.kind.replace('_', ' ') }}</td>
-              <td class="px-3 py-3 text-slate-500">{{ b.period }}</td>
+              <td class="px-3 py-3 text-slate-600">{{ label(b.kind) }}@if (b.note) {<span class="block truncate text-xs text-slate-400">{{ b.note }}</span>}</td>
+              <td class="px-3 py-3 text-slate-500">{{ b.period }}@if (b.due_date) {<span class="block text-xs" [class]="b.status === 'due' && overdue(b) ? 'font-semibold text-rose-600' : 'text-slate-400'">due {{ b.due_date | date: 'MMM d' }}</span>}</td>
               <td class="px-3 py-3 text-right font-semibold text-slate-700">₹{{ b.amount | number }}</td>
               <td class="px-3 py-3">
                 @if (b.status === 'due') {
-                  <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:border-emerald-100 hover:bg-emerald-50 hover:text-emerald-600" (click)="mark(b, 'paid')">Due · mark paid</button>
+                  <span class="flex items-center gap-1">
+                    <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:border-emerald-100 hover:bg-emerald-50 hover:text-emerald-600" (click)="mark(b, 'paid')">Due · mark paid</button>
+                    <button class="rounded-lg p-1 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="remind(b)" title="Send payment reminder"><lucide-icon name="bell" class="size-4" /></button>
+                  </span>
                 } @else {
                   <span class="pill capitalize" [class]="b.status === 'paid' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-slate-200 bg-slate-50 text-slate-500'">{{ b.status }}</span>
                 }
@@ -92,25 +100,46 @@ export class AdminBilling implements OnInit {
   }
 
   /** One "due" entry per active lab for this month, skipping labs already billed for the period. */
+  protected readonly notify = signal(true);
+  protected readonly label = billingLabel;
+
+  overdue(b: BillingEvent) {
+    return !!b.due_date && b.due_date < new Date().toISOString().slice(0, 10);
+  }
+
+  async remind(b: BillingEvent) {
+    try {
+      await this.admin.notifyBilling(b, 'reminder');
+      this.toast.success(`Reminder sent to ${this.labName(b.tenant_id)}.`);
+      this.events.set(await this.admin.billing());
+    } catch (e) {
+      this.toast.fail(e, 'Could not send the reminder.');
+    }
+  }
+
   async generate() {
     this.busy.set(true);
     try {
       const billed = new Set(this.events().filter((e) => e.period === this.period && e.kind !== 'adjustment').map((e) => e.tenant_id));
+      let failedNotices = 0;
       const targets = this.admin.rows().filter((r) => r.effectiveStatus === 'active' && r.mrr > 0 && !billed.has(r.id));
       for (const r of targets) {
         const usage = r.plan?.billing_model === 'per_report';
-        await this.admin.addBilling({
+        const b = await this.admin.addBilling({
           tenant_id: r.id,
           kind: usage ? 'per_report' : 'subscription',
           amount: r.mrr,
           period: this.period,
           status: 'due',
+          due_date: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10),
           note: `${r.plan?.name}${usage ? ` · ${r.stats?.reports_month ?? 0} reports` : ''}`,
         });
+        if (this.notify()) await this.admin.notifyBilling(b, 'new').catch(() => (failedNotices += 1));
       }
       this.events.set(await this.admin.billing());
       await this.admin.loadAll();
-      this.toast.success(targets.length ? `${targets.length} invoice(s) created for ${this.period}` : 'Nothing new to bill this month');
+      this.toast.success(targets.length ? `${targets.length} invoice(s) created for ${this.period}${this.notify() ? ' and labs notified' : ''}.` : 'Nothing new to bill this month');
+      if (failedNotices) this.toast.warn(`${failedNotices} notice(s) could not be sent — use the bell to remind.`);
     } catch (e) {
       this.toast.fail(e);
     } finally {
