@@ -212,6 +212,10 @@ export class AdminLabs implements OnInit {
       });
       this.creating.set(false);
       this.toast.success(`${t.name} created`);
+      // Make <slug>.spreadapps.in live on Netlify
+      const dom = await this.admin.labDomain('add', t.slug);
+      if (dom.ok) this.toast.success(`${t.slug}.spreadapps.in is being set up (HTTPS in a few minutes).`);
+      else this.toast.warn(dom.message ?? 'Add the subdomain in Netlify manually.');
       this.router.navigate(['/admin/labs', t.slug]);
     } catch (e) {
       this.toast.fail(e);

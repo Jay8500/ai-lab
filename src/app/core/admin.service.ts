@@ -123,6 +123,26 @@ export class AdminService {
     return data as Tenant;
   }
 
+  /**
+   * Attach / detach <slug>.spreadapps.in on the Netlify site (lab-domain function).
+   * Never throws: returns a message to show when it couldn't be done automatically.
+   */
+  async labDomain(action: 'add' | 'remove' | 'status', slug: string, oldSlug?: string): Promise<{ ok: boolean; present?: boolean; configured?: boolean; message?: string }> {
+    const { data, error } = await this.sb.client.functions.invoke('lab-domain', { body: { action, slug, old_slug: oldSlug } });
+    let msg: string | undefined = data?.error;
+    let configured: boolean | undefined = data?.configured;
+    if (error) {
+      try {
+        const b = await (error as { context?: Response }).context?.json();
+        msg = b?.error ?? error.message;
+        configured = b?.configured;
+      } catch {
+        msg = error.message;
+      }
+    }
+    return msg ? { ok: false, message: msg, configured } : { ok: true, present: data?.present, configured: true };
+  }
+
   async deleteTenant(id: string): Promise<void> {
     const { error } = await this.sb.client.from('tenants').delete().eq('id', id);
     if (error) throw new Error(error.message);

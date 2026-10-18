@@ -137,6 +137,7 @@ export class AdminLabEditor implements OnInit {
     }
     this.tenantId.set(t.id);
     this.load(t);
+    this.checkDomain(t.slug);
     this.secrets = await this.admin.getSecrets(t.id);
     this.cdr.markForCheck();
     this.refreshSide();
@@ -179,7 +180,12 @@ export class AdminLabEditor implements OnInit {
       });
       if (this.secrets) await this.admin.saveSecrets(this.secrets);
       this.load(saved);
-      if (saved.slug !== this.ref()) this.router.navigate(['/admin/labs', saved.slug], { replaceUrl: true });
+      if (saved.slug !== this.ref()) {
+        const dom = await this.admin.labDomain('add', saved.slug, this.ref());
+        if (!dom.ok) this.toast.warn(dom.message ?? 'Update the subdomain in Netlify manually.');
+        this.checkDomain(saved.slug);
+        this.router.navigate(['/admin/labs', saved.slug], { replaceUrl: true });
+      }
       this.toast.success('Saved. Changes are live.');
     } catch (e) {
       this.toast.fail(e);
@@ -325,6 +331,29 @@ export class AdminLabEditor implements OnInit {
     this.bills.set(await this.admin.billing(this.id()));
   }
 
+  /** Netlify domain status for the Domain tab */
+  protected readonly domain = signal<{ state: 'checking' | 'live' | 'missing' | 'manual'; message?: string }>({ state: 'checking' });
+
+  async checkDomain(slug: string) {
+    this.domain.set({ state: 'checking' });
+    const r = await this.admin.labDomain('status', slug);
+    if (!r.ok) this.domain.set({ state: 'manual', message: r.message });
+    else this.domain.set({ state: r.present ? 'live' : 'missing' });
+  }
+
+  async attachDomain() {
+    if (!this.draft) return;
+    this.domain.set({ state: 'checking' });
+    const r = await this.admin.labDomain('add', this.draft.slug);
+    if (r.ok) {
+      this.toast.success('Subdomain attached — HTTPS is issued in a few minutes.');
+      this.domain.set({ state: 'live' });
+    } else {
+      this.toast.warn(r.message ?? 'Could not attach the subdomain.');
+      this.domain.set({ state: 'manual', message: r.message });
+    }
+  }
+
   async deleteLab() {
     if (!this.draft) return;
     const typed = await this.dialog.prompt({
@@ -341,7 +370,9 @@ export class AdminLabEditor implements OnInit {
     });
     if (typed !== this.draft.slug) return;
     try {
+      const slug = this.draft.slug;
       await this.admin.deleteTenant(this.draft.id);
+      await this.admin.labDomain('remove', slug);
       this.toast.success('Lab deleted');
       this.router.navigateByUrl('/admin/labs');
     } catch (e) {
