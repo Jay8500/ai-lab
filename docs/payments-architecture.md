@@ -92,6 +92,34 @@ Export to Excel.
 - Refunds: start from the Razorpay dashboard; webhook `refund.processed` → status `refunded`.
 - Everything writes to `activity_log` so it shows in the timelines.
 
+## Requirements from the owner (2026-10-18) — must be in the build
+
+**Payment modes everywhere (labs paying SpreadApps AND patients paying labs)**
+- All Razorpay methods (UPI, cards, netbanking, wallets, EMI/pay-later where enabled) plus offline modes:
+  cash, cash on collection / COD (e.g. home sample collection), lab UPI QR, card POS, cheque, bank transfer,
+  partial / advance, due.
+- Smooth, simple screens: pick a mode → pay or record → clear result.
+
+**Clear status ticks**
+- ✅ Paid / approved · ⏳ Pending / verifying · ❌ Failed / rejected (with reason) · ↩ Refunded.
+- Same look for lab invoices and patient bills.
+
+**Payment history**
+- Labs: full history of what they paid SpreadApps (invoices, mode, reference, status, receipts) — exists for UPI/UTR, extend to online + receipts download.
+- Patients (per lab): every payment for every visit, mode, status, receipt; visible to lab staff and on the patient's track page.
+
+**Orders, bills and reports per item**
+- A patient can have multiple orders (visits), each with multiple tests.
+- Bill summary per visit (tests, discount, total, paid, due) and per patient across all visits (lifetime total / paid / due).
+- Report status per test (pending / ready per item), one or more PDFs linked to each test, not only one PDF per visit.
+  → new `visit_items` (visit_id, test code/name, price, status, report_path) — keep `visits.tests` for old data.
+
+**Emails (Resend, sender per lab name; lab logo, address, phone in the template)**
+- Patients (only if they give an email + consent): token & tracking link at registration, "report ready" with link,
+  payment receipt, payment failed / due reminder. Add optional `visits.email` (and on the add-patient form).
+- Labs (exists for invoices/notices): add payment-received receipts, payment failed/rejected, trial ending.
+- Every email has the lab profile details and the tracking link; WhatsApp share stays as the main channel.
+
 ## Build order
 1. Flow A online payments (SpreadApps account) — removes manual UTR checking.
 2. Flow B counter payments (cash / UPI / card / due) — useful even without Razorpay.
