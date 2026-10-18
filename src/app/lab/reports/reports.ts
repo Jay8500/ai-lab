@@ -8,6 +8,7 @@ import { Visit } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { StatusPill } from '../../shared/status-pill';
 import { DialogService } from '../../core/dialog.service';
+import { ReceiptService } from '../../core/receipt.service';
 
 @Component({
   selector: 'app-lab-reports',
@@ -58,6 +59,7 @@ import { DialogService } from '../../core/dialog.service';
                     <a class="btn-ghost px-2.5! py-1.5! text-xs" [href]="url" target="_blank" rel="noopener"><lucide-icon name="eye" class="size-3.5" /> PDF</a>
                   }
                   <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="lab.historyFor.set(v)" title="Patient history"><lucide-icon name="history" class="size-3.5" /></button>
+                  <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="receipt.print(v)" title="Print receipt"><lucide-icon name="printer" class="size-3.5" /></button>
                   <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="copy(v)" title="Copy tracking link"><lucide-icon name="link" class="size-3.5" /></button>
                   @if (auth.isOwner()) {
                     <button class="btn-ghost px-2.5! py-1.5! text-xs hover:text-rose-600!" (click)="remove(v)" title="Delete visit"><lucide-icon name="trash-2" class="size-3.5" /></button>
@@ -99,6 +101,7 @@ export class LabReports implements OnInit {
   protected readonly lab = inject(LabService);
   protected readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
+  protected readonly receipt = inject(ReceiptService);
   private readonly dialog = inject(DialogService);
   protected q = '';
   protected readonly rows = signal<Visit[]>([]);

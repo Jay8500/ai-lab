@@ -7,6 +7,7 @@ import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { FormField } from './form-field';
 import { Modal } from './modal';
+import { ReceiptService } from '../core/receipt.service';
 
 type Gender = 'M' | 'F' | 'O';
 type PatientField = 'name' | 'mobile' | 'age' | 'tests';
@@ -29,9 +30,10 @@ type PatientField = 'name' | 'mobile' | 'age' | 'tests';
           <p class="mt-4 text-sm text-slate-500">Token for {{ v.patient_name }}</p>
           <p class="mt-1 font-mono text-3xl font-extrabold tracking-wider text-brand">{{ v.token }}</p>
           <p class="mt-2 text-sm text-slate-500">{{ testCodes(v) }} · ₹{{ v.amount }}</p>
-          <div class="mt-6 grid gap-2 sm:grid-cols-2">
+          <button class="btn-primary mt-6 w-full py-3!" (click)="receipt.print(v)"><lucide-icon name="printer" class="size-4" /> Print receipt</button>
+          <div class="mt-2 grid gap-2 sm:grid-cols-2">
             <button class="btn-ghost" (click)="copy(v)"><lucide-icon name="copy" class="size-4" /> Copy tracking link</button>
-            <button class="btn-primary" (click)="reset()"><lucide-icon name="user-plus" class="size-4" /> Add another</button>
+            <button class="btn-ghost" (click)="reset()"><lucide-icon name="user-plus" class="size-4" /> Add another</button>
           </div>
         </div>
       } @else {
@@ -124,6 +126,7 @@ export class AddPatientModal {
   private readonly lab = inject(LabService);
   private readonly tenant = inject(TenantService);
   private readonly toast = inject(ToastService);
+  protected readonly receipt = inject(ReceiptService);
   readonly closed = output<void>();
 
   protected readonly genders: { v: Gender; l: string }[] = [

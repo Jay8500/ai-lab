@@ -7,6 +7,7 @@ import { ToastService } from '../core/toast.service';
 import { AiStatus } from './ai-explanation';
 import { StatusPill } from './status-pill';
 import { UploadDropzone } from './upload-dropzone';
+import { ReceiptService } from '../core/receipt.service';
 
 const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
   collected: { to: 'in_lab', label: 'Start testing' },
@@ -69,6 +70,9 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
           <button class="btn-ghost px-3! py-2!" (click)="lab.historyFor.set(v)" title="Patient history">
             <lucide-icon name="history" class="size-3.5" />
           </button>
+          <button class="btn-ghost px-3! py-2!" (click)="receipt.print(v)" title="Print receipt">
+            <lucide-icon name="printer" class="size-3.5" />
+          </button>
         </div>
       </div>
     </article>
@@ -78,6 +82,7 @@ export class PatientCard {
   readonly visit = input.required<Visit>();
   protected readonly lab = inject(LabService);
   private readonly toast = inject(ToastService);
+  protected readonly receipt = inject(ReceiptService);
   protected readonly uploading = signal(false);
   protected readonly working = signal(false);
 

@@ -33,6 +33,8 @@ export interface TenantPages {
   show_whatsapp?: boolean;
   show_powered_by?: boolean;
   show_security?: boolean;
+  /** Receipt paper: thermal 80 mm (default), A5 or A4 */
+  receipt_size?: '80mm' | 'a5' | 'a4';
   ai_disclaimer?: string;
 }
 
