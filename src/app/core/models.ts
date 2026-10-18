@@ -56,11 +56,13 @@ export interface TenantPublic {
   status: TenantStatus;
   trial_ends_at: string;
   usable: boolean;
+  /** Why new work is paused: inactive | trial_ended | payment_overdue (null when usable) */
+  block_reason?: 'inactive' | 'trial_ended' | 'payment_overdue' | null;
   pages: TenantPages;
   test_catalog: TestItem[];
 }
 
-export interface Tenant extends Omit<TenantPublic, 'trial_ends_at' | 'usable'> {
+export interface Tenant extends Omit<TenantPublic, 'trial_ends_at' | 'usable' | 'block_reason'> {
   custom_domain: string | null;
   token_prefix: string;
   plan_id: string | null;
@@ -177,11 +179,17 @@ export interface BillingEvent {
   kind: BillingKind;
   amount: number;
   period: string | null;
-  status: 'due' | 'paid' | 'waived';
+  /** verifying = the lab submitted a payment reference, waiting for SpreadApps to confirm */
+  status: 'due' | 'verifying' | 'paid' | 'waived';
   note: string | null;
   paid_at: string | null;
   due_date?: string | null;
   notified_at?: string | null;
+  payment_ref?: string | null;
+  paid_via?: 'upi' | 'bank' | 'cash' | 'cheque' | 'online' | null;
+  payment_submitted_at?: string | null;
+  payment_note?: string | null;
+  reject_reason?: string | null;
   created_at: string;
 }
 

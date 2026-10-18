@@ -35,6 +35,8 @@ const LOOK: Record<string, { icon: string; tone: string }> = {
   'lab:created': { icon: 'building-2', tone: 'bg-brand/15 text-brand' },
   'billing:invoice': { icon: 'receipt', tone: 'bg-amber-100 text-amber-700' },
   'billing:paid': { icon: 'circle-check', tone: 'bg-emerald-100 text-emerald-600' },
+  'billing:submitted': { icon: 'send', tone: 'bg-sky-100 text-sky-600' },
+  'billing:rejected': { icon: 'circle-x', tone: 'bg-rose-100 text-rose-600' },
   'announcement:sent': { icon: 'megaphone', tone: 'bg-indigo-100 text-indigo-600' },
 };
 

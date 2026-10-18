@@ -75,7 +75,16 @@ import { TenantHeader } from '../shared/tenant-header';
           <div class="border-b border-rose-100 bg-rose-50">
             <div class="flex items-center gap-3 px-4 py-2.5 text-sm text-rose-700 sm:px-6">
               <lucide-icon name="lock" class="size-4 shrink-0" />
-              <span>{{ t.status === 'trial' || t.status === 'expired' ? 'Your free trial has ended' : 'Your subscription is ' + t.status }} — new patients and uploads are paused. Contact SpreadApps to continue.</span>
+              @if (t.block_reason === 'payment_overdue') {
+                <span>An invoice is overdue — new patients and uploads are paused until it’s paid.</span>
+                @if (auth.isOwner()) {
+                  <a routerLink="/lab/account" class="ml-auto shrink-0 rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-700">Pay now</a>
+                } @else {
+                  <span class="ml-auto shrink-0 text-xs">Ask your lab admin to pay.</span>
+                }
+              } @else {
+                <span>{{ t.status === 'trial' || t.status === 'expired' ? 'Your free trial has ended' : 'Your subscription is ' + t.status }} — new patients and uploads are paused. Contact SpreadApps to continue.</span>
+              }
             </div>
           </div>
         } @else if (tenant.trialDaysLeft() !== null) {

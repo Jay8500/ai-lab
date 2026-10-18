@@ -8,6 +8,7 @@ import { AdminService, monthlyValue } from '../../core/admin.service';
 import { BillingEvent, Profile, Tenant, TenantPages, TenantSecrets, TestItem, BILLING_KINDS, billingLabel } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
+import { PaymentReviewService } from '../../core/payment-review.service';
 import { SidebarState } from '../../shared/sidebar';
 import { TeamManager } from '../../shared/team-manager';
 import { LabStatusPill } from '../lab-status-pill';
@@ -324,6 +325,14 @@ export class AdminLabEditor implements OnInit {
     } catch (e) {
       this.toast.fail(e, 'Could not send the reminder.');
     }
+  }
+
+  private readonly review = inject(PaymentReviewService);
+  async verifyPay(b: BillingEvent) {
+    if (await this.review.verify(b, this.draft?.name ?? 'The lab')) this.bills.set(await this.admin.billing(this.id()));
+  }
+  async rejectPay(b: BillingEvent) {
+    if (await this.review.reject(b, this.draft?.name ?? 'The lab')) this.bills.set(await this.admin.billing(this.id()));
   }
 
   async markBill(b: BillingEvent, status: BillingEvent['status']) {

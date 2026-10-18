@@ -7,11 +7,12 @@ import { BillingEvent, billingLabel, Plan, Tenant } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { TeamManager } from '../../shared/team-manager';
+import { PayInvoiceModal } from '../../shared/pay-invoice-modal';
 
 /** Lab owner view: plan & trial, invoices, and staff logins. Everything else is set by SpreadApps. */
 @Component({
   selector: 'app-lab-account',
-  imports: [LucideAngularModule, DatePipe, TeamManager],
+  imports: [LucideAngularModule, DatePipe, TeamManager, PayInvoiceModal],
   template: `
     <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Lab account</h1>
     <p class="text-sm text-slate-500">Plan, invoices and team for {{ tenant.name() }}.</p>
@@ -51,6 +52,12 @@ import { TeamManager } from '../../shared/team-manager';
             <span class="pill border-amber-200 bg-amber-50 text-amber-700">₹{{ dueTotal().toLocaleString('en-IN') }} due</span>
           }
         </div>
+        @if (tenant.tenant()?.block_reason === 'payment_overdue') {
+          <div class="mt-3 flex gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs text-rose-700">
+            <lucide-icon name="lock" class="mt-0.5 size-4 shrink-0" />
+            <span><b class="block">New patients and uploads are paused</b>An invoice is past its due date. Pay it below — work resumes as soon as {{ brand.name }} confirms the payment.</span>
+          </div>
+        }
         @if (bills().length) {
           <ul class="mt-3 divide-y divide-slate-100">
             @for (b of bills(); track b.id) {
@@ -58,10 +65,27 @@ import { TeamManager } from '../../shared/team-manager';
                 <lucide-icon name="receipt" class="size-4 text-slate-400" />
                 <span class="min-w-0 flex-1 text-slate-600">
                   <b class="block text-slate-700">{{ label(b.kind) }}</b>
-                  <span class="block truncate text-xs text-slate-400">{{ b.period }}{{ b.note ? ' · ' + b.note : '' }}{{ b.status === 'due' && b.due_date ? ' · due ' + (b.due_date | date: 'MMM d, y') : '' }}</span>
+                  <span class="block truncate text-xs text-slate-400">{{ b.period }}{{ b.note ? ' · ' + b.note : '' }}{{ b.status === 'due' && b.due_date ? ' · due ' + (b.due_date | date: 'MMM d, y') : '' }}{{ b.status === 'verifying' ? ' · ref ' + b.payment_ref : '' }}</span>
+                  @if (b.status === 'due' && overdue(b)) {
+                    <span class="block text-xs font-semibold text-rose-600">Overdue</span>
+                  } @else if (b.status === 'due' && b.reject_reason) {
+                    <span class="block truncate text-xs text-rose-600">Payment not confirmed — {{ b.reject_reason }}</span>
+                  }
                 </span>
                 <span class="font-semibold text-slate-700">₹{{ b.amount.toLocaleString('en-IN') }}</span>
-                <span class="pill capitalize" [class]="b.status === 'paid' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-amber-100 bg-amber-50 text-amber-600'">{{ b.status }}</span>
+                @switch (b.status) {
+                  @case ('due') {
+                    <button class="btn-primary px-3! py-1.5! text-xs" [class.bg-rose-600!]="overdue(b)" (click)="paying.set(b)">
+                      <lucide-icon name="qr-code" class="size-3.5" /> {{ b.reject_reason ? 'Pay again' : 'Pay now' }}
+                    </button>
+                  }
+                  @case ('verifying') {
+                    <span class="pill border-sky-100 bg-sky-50 text-sky-600" [title]="'Ref ' + (b.payment_ref ?? '')">Verifying</span>
+                  }
+                  @default {
+                    <span class="pill capitalize" [class]="b.status === 'paid' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-slate-200 bg-slate-50 text-slate-500'">{{ b.status }}</span>
+                  }
+                }
               </li>
             }
           </ul>
@@ -69,6 +93,10 @@ import { TeamManager } from '../../shared/team-manager';
           <p class="mt-3 text-sm text-slate-400">No invoices yet.</p>
         }
       </section>
+
+      @if (paying(); as pb) {
+        <app-pay-invoice-modal [bill]="pb" (closed)="paying.set(null)" (paid)="afterPay()" />
+      }
 
       <div class="lg:col-span-3">
         <app-team-manager scope="lab" [tenantId]="tenant.tenant()!.id" heading="Your team — admins & staff"
@@ -93,6 +121,14 @@ export class LabAccount implements OnInit {
     return s === 'active' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : s === 'trial' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-rose-100 bg-rose-50 text-rose-600';
   });
   protected readonly label = billingLabel;
+  protected readonly paying = signal<BillingEvent | null>(null);
+  overdue(b: BillingEvent) {
+    return !!b.due_date && b.due_date < new Date().toISOString().slice(0, 10);
+  }
+  async afterPay() {
+    this.paying.set(null);
+    this.bills.set(await this.admin.billing(this.tenant.tenant()!.id));
+  }
   protected readonly dueTotal = computed(() => this.bills().filter((b) => b.status === 'due').reduce((s, b) => s + Number(b.amount), 0));
   protected readonly priceLabel = computed(() => {
     const p = this.plan();

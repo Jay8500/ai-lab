@@ -53,6 +53,14 @@ export function monthlyValue(t: Pick<Tenant, 'custom_price' | 'status'>, plan: P
   }
 }
 
+/** Where labs send invoice payments (platform setting 'billing'). */
+export interface BillingPayee {
+  upi_id: string;
+  payee_name: string;
+  bank_details: string;
+  grace_days: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly sb = inject(SupabaseService);
@@ -266,6 +274,42 @@ export class AdminService {
     if (error || data?.error) ({ data, error } = await send(['in_app'])); // e.g. email not configured
     if (error || data?.error) throw new Error(data?.error ?? 'Could not notify the lab');
     await this.sb.client.from('billing_events').update({ notified_at: new Date().toISOString() }).eq('id', b.id);
+  }
+
+  /** UPI / bank details labs pay to (lab admins and platform admins only). */
+  async billingPayee(): Promise<BillingPayee | null> {
+    const { data } = await this.sb.client.rpc('billing_payee');
+    return (data as BillingPayee) ?? null;
+  }
+
+  /** Lab admin: "I've paid" with the UTR / reference → invoice goes to 'verifying'. */
+  async submitPayment(id: string, ref: string, method: string, note?: string): Promise<void> {
+    const { error } = await this.sb.client.rpc('submit_payment', { p_bill: id, p_ref: ref, p_method: method, p_note: note?.trim() || null });
+    if (!error) return;
+    if (/not awaiting payment/i.test(error.message)) throw new Error('This invoice is already paid or being verified — refresh the page.');
+    if (/reference/i.test(error.message)) throw new Error('Check the payment reference — 6 to 30 letters or numbers.');
+    throw new Error(error.message);
+  }
+
+  /** Platform admin confirms (ok) or sends back a submitted payment, and tells the lab in-app + email. */
+  async reviewPayment(b: BillingEvent, ok: boolean, reason?: string): Promise<void> {
+    const patch = ok
+      ? { status: 'paid', paid_at: new Date().toISOString(), reject_reason: null }
+      : { status: 'due', reject_reason: reason ?? null };
+    const { error } = await this.sb.client.from('billing_events').update(patch).eq('id', b.id);
+    if (error) throw new Error(error.message);
+    const amount = '₹' + Number(b.amount).toLocaleString('en-IN');
+    const label = billingLabel(b.kind);
+    const subject = ok ? `Payment received: ${amount} · ${label}` : `Payment not confirmed: ${amount} · ${label}`;
+    const body = ok
+      ? `Hi {{name}},\n\nWe've received your payment of **${amount}** for **${label}**${b.period ? ' (' + b.period + ')' : ''}. Reference: ${b.payment_ref ?? '—'}.\n\nThank you!`
+      : `Hi {{name}},\n\nWe couldn't confirm your payment of **${amount}** for **${label}** (reference ${b.payment_ref ?? '—'}).\n\n${reason ?? ''}\n\nOpen AI-Lab → Plan & team → Pay now to submit the correct reference.`;
+    const send = (channels: string[]) =>
+      this.sb.client.functions.invoke('announce', {
+        body: { action: 'send', category: 'payment', subject, body, channels, audience: { roles: ['lab_owner'], tenant_ids: [b.tenant_id] } },
+      });
+    const r = await send(['email', 'in_app']);
+    if (r.error || r.data?.error) await send(['in_app']).catch(() => undefined);
   }
 
   async setBillingStatus(id: string, status: BillingEvent['status']): Promise<void> {

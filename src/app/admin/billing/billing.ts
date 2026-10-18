@@ -5,6 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { AdminService } from '../../core/admin.service';
 import { BillingEvent, billingLabel } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
+import { PaymentReviewService } from '../../core/payment-review.service';
 import { KpiCard } from '../../shared/kpi-card';
 
 @Component({
@@ -33,6 +34,26 @@ import { KpiCard } from '../../shared/kpi-card';
       <app-kpi-card label="This month billed" [value]="'₹' + (sum().month | number)" icon="receipt" />
     </section>
 
+    @if (toVerify().length) {
+      <section class="card mt-5 border-sky-100 p-5">
+        <h2 class="section-title flex items-center gap-2"><lucide-icon name="badge-check" class="size-4 text-sky-600" /> Payments to confirm ({{ toVerify().length }})</h2>
+        <p class="text-xs text-slate-400">Labs say they’ve paid. Check your bank / UPI app for the reference, then confirm.</p>
+        <ul class="mt-3 divide-y divide-slate-100">
+          @for (b of toVerify(); track b.id) {
+            <li class="flex flex-wrap items-center gap-3 py-3 text-sm">
+              <span class="min-w-0 flex-1">
+                <b class="block text-slate-700">{{ labName(b.tenant_id) }} · ₹{{ b.amount | number }}</b>
+                <span class="block text-xs text-slate-500">{{ label(b.kind) }}{{ b.period ? ' · ' + b.period : '' }} · <span class="uppercase">{{ b.paid_via }}</span> · ref <b class="font-mono">{{ b.payment_ref }}</b>{{ b.payment_submitted_at ? ' · ' + (b.payment_submitted_at | date: 'MMM d, h:mm a') : '' }}</span>
+                @if (b.payment_note) { <span class="block truncate text-xs text-slate-400">“{{ b.payment_note }}”</span> }
+              </span>
+              <button class="btn-ghost px-3! py-1.5! text-xs" (click)="reject(b)">Not received</button>
+              <button class="btn-primary bg-emerald-600! px-3! py-1.5! text-xs hover:bg-emerald-700!" (click)="verify(b)"><lucide-icon name="badge-check" class="size-3.5" /> Confirm</button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
     <div class="card mt-5 overflow-x-auto">
       <table class="w-full min-w-[640px] text-sm">
         <thead class="border-b border-slate-100 bg-slate-50/70 text-left text-xs font-semibold text-slate-500">
@@ -51,6 +72,8 @@ import { KpiCard } from '../../shared/kpi-card';
                     <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:border-emerald-100 hover:bg-emerald-50 hover:text-emerald-600" (click)="mark(b, 'paid')">Due · mark paid</button>
                     <button class="rounded-lg p-1 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="remind(b)" title="Send payment reminder"><lucide-icon name="bell" class="size-4" /></button>
                   </span>
+                } @else if (b.status === 'verifying') {
+                  <button class="pill border-sky-100 bg-sky-50 text-sky-600 hover:bg-emerald-50 hover:text-emerald-600" (click)="verify(b)" [title]="'Ref ' + b.payment_ref">Verifying · confirm</button>
                 } @else {
                   <span class="pill capitalize" [class]="b.status === 'paid' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' : 'border-slate-200 bg-slate-50 text-slate-500'">{{ b.status }}</span>
                 }
@@ -70,13 +93,23 @@ export class AdminBilling implements OnInit {
   private readonly toast = inject(ToastService);
   protected readonly events = signal<BillingEvent[]>([]);
   protected readonly busy = signal(false);
+  private readonly review = inject(PaymentReviewService);
+  protected readonly toVerify = computed(() => this.events().filter((b) => b.status === 'verifying'));
+
+  async verify(b: BillingEvent) {
+    if (await this.review.verify(b, this.labName(b.tenant_id))) this.events.set(await this.admin.billing());
+  }
+
+  async reject(b: BillingEvent) {
+    if (await this.review.reject(b, this.labName(b.tenant_id))) this.events.set(await this.admin.billing());
+  }
   protected readonly period = new Date().toISOString().slice(0, 7);
 
   protected readonly sum = computed(() => {
     const e = this.events();
     return {
       paid: e.filter((x) => x.status === 'paid').reduce((s, x) => s + Number(x.amount), 0),
-      due: e.filter((x) => x.status === 'due').reduce((s, x) => s + Number(x.amount), 0),
+      due: e.filter((x) => x.status === 'due' || x.status === 'verifying').reduce((s, x) => s + Number(x.amount), 0),
       month: e.filter((x) => x.period === this.period).reduce((s, x) => s + Number(x.amount), 0),
     };
   });

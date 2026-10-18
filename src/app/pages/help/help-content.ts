@@ -130,7 +130,9 @@ export const HELP: HelpSection[] = [
     who: ['platform'],
     steps: [
       { do: 'Monthly invoices', flow: ['Generate invoices', 'One per active lab'] },
-      { do: 'Record payment', flow: ['Due', 'Mark paid'] },
+      { do: 'Confirm payment', flow: ['Payments to confirm', 'Check UTR in bank', 'Confirm / Not received'] },
+      { do: 'Cash / cheque', flow: ['Due', 'Mark paid'] },
+      { do: 'Overdue', flow: ['Due date + grace days', 'Lab paused', 'Paid → resumes'] },
       { do: 'Add a charge', flow: ['Lab', 'Plan & billing', 'Charge type', 'Amount · Due date', 'Notify lab', 'Add charge'] },
       { do: 'Charge types', flow: ['Database & hosting', 'Maintenance & support', 'Subscription', 'Setup', 'Other'] },
       { do: 'Remind', flow: ['Due', '🔔 Remind', 'Email + in-app banner'] },
@@ -207,6 +209,7 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Email sender', flow: ['From name', 'From address', 'Reply-to', 'Save'] },
       { do: 'Circles', flow: ['API URL', 'Project ID', 'Save'] },
+      { do: 'Payments', flow: ['UPI ID', 'Payee name', 'Bank details', 'Grace days', 'Save'] },
     ],
   },
   ...PROFILE_SECURITY('/admin', ['platform']),
@@ -296,7 +299,9 @@ export const HELP: HelpSection[] = [
     who: ['owner'],
     steps: [
       { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
-      { do: 'Pay dues', flow: ['🔔 Payment notice', 'Invoices', '₹ due', 'Pay SpreadApps'] },
+      { do: 'Pay invoice', flow: ['Invoices', 'Pay now', 'Scan UPI QR', 'Enter UTR', 'Submit'] },
+      { do: 'After paying', flow: ['Verifying', 'SpreadApps confirms', 'Paid ✓'] },
+      { do: 'Overdue', flow: ['New patients paused', 'Pay now', 'Resumes when confirmed'] },
       { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
       { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
     ],

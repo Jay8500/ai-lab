@@ -368,6 +368,9 @@
                   @if (b.status === 'due') {
                     <button class="rounded-lg p-1.5 text-slate-400 hover:bg-amber-50 hover:text-amber-600" (click)="remind(b)" title="Send payment reminder"><lucide-icon name="bell" class="size-4" /></button>
                     <button class="pill border-amber-100 bg-amber-50 text-amber-600 hover:bg-emerald-50 hover:text-emerald-600" (click)="markBill(b, 'paid')" title="Mark paid">Due → paid</button>
+                  } @else if (b.status === 'verifying') {
+                    <button class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="rejectPay(b)" title="Payment not received"><lucide-icon name="circle-x" class="size-4" /></button>
+                    <button class="pill border-sky-100 bg-sky-50 text-sky-600 hover:bg-emerald-50 hover:text-emerald-600" (click)="verifyPay(b)" [title]="(b.paid_via ?? '') + ' ref ' + b.payment_ref">Verify {{ b.payment_ref }}</button>
                   } @else {
                     <span class="pill border-emerald-100 bg-emerald-50 capitalize text-emerald-600">{{ b.status }}</span>
                   }

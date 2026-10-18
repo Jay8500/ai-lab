@@ -52,7 +52,7 @@
       @if (tenant.tenant() && !tenant.tenant()!.usable) {
         <div class="mt-5 flex gap-2.5 rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-3 text-xs text-amber-700">
           <lucide-icon name="hourglass" class="mt-0.5 size-4 shrink-0" />
-          <span>This lab's {{ tenant.tenant()!.status === 'trial' ? 'free trial has ended' : 'subscription is inactive' }}. You can sign in to view data; contact {{ brand.name }} to reactivate.</span>
+          <span>{{ tenant.tenant()!.block_reason === 'payment_overdue' ? 'This lab has an overdue invoice — new work is paused. Lab admins can sign in and pay from Plan & team.' : 'This lab\'s ' + (tenant.tenant()!.status === 'trial' ? 'free trial has ended' : 'subscription is inactive') + '. You can sign in to view data; contact ' + brand.name + ' to reactivate.' }}</span>
         </div>
       }
       @if (kickedNotice()) {
