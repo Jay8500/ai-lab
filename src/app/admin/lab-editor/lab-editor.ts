@@ -93,10 +93,11 @@ export class AdminLabEditor implements OnInit {
       ],
     },
     {
-      title: 'AI report explainer', icon: 'sparkles', hint: 'Used server-side to write plain-language summaries.',
+      title: 'AI report explainer', icon: 'sparkles', hint: 'The lab’s own key. Runs automatically after each report upload. Default: Anthropic Claude Opus 5.5.',
       fields: [
-        { key: 'ai_provider', label: 'Provider', placeholder: 'anthropic | openai | gemini' },
+        { key: 'ai_provider', label: 'Provider', placeholder: 'anthropic (default) | openai | gemini' },
         { key: 'ai_api_key', label: 'API key', secret: true },
+        { key: 'ai_model', label: 'Model (optional)', placeholder: 'blank = claude-opus-5-5' },
       ],
     },
     {

@@ -3,6 +3,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { TestItem, Visit, VisitStatus } from './models';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
+import { ToastService } from './toast.service';
 import { clean } from './text-clean';
 
 export interface NewVisit {
@@ -23,6 +24,7 @@ const startOfToday = () => {
 export class LabService {
   private readonly sb = inject(SupabaseService);
   private readonly tenantSvc = inject(TenantService);
+  private readonly toast = inject(ToastService);
   private channel?: RealtimeChannel;
 
   readonly visits = signal<Visit[]>([]);
@@ -31,6 +33,8 @@ export class LabService {
   readonly addOpen = signal(false);
   /** Patient whose visit history is open (timeline modal). */
   readonly historyFor = signal<Visit | null>(null);
+  /** Visit whose AI explanation is open. */
+  readonly aiFor = signal<Visit | null>(null);
 
   readonly todays = computed(() => this.visits().filter((v) => new Date(v.created_at) >= startOfToday()));
   readonly active = computed(() => this.visits().filter((v) => v.status !== 'delivered' || new Date(v.created_at) >= startOfToday()));
@@ -106,12 +110,44 @@ export class LabService {
     });
     if (error) throw new Error(error.message);
     if (v.report_path) await this.sb.client.storage.from('reports').remove([v.report_path]);
-    return this.patch(v.id, {
+    const updated = await this.patch(v.id, {
       report_path: path,
       report_name: file.name,
       report_uploaded_at: new Date().toISOString(),
       status: 'ready',
+      ai_status: 'none',
+      ai_summary: null,
+      ai_error: null,
     });
+    // Automatic AI explanation (skipped when the lab has turned the AI card off)
+    if (this.tenantSvc.pages().show_ai !== false) void this.explain(updated);
+    return updated;
+  }
+
+  /**
+   * AI explanation of the report using the lab's own AI key. Runs automatically after an
+   * upload, and from the "Explain with AI" button — same action either way. The card shows
+   * a skeleton while it runs; the result arrives through the live visits feed.
+   */
+  async explain(v: Visit): Promise<void> {
+    if (!v.report_path) {
+      this.toast.warn('Upload the report PDF first.');
+      return;
+    }
+    this.upsertLocal({ ...v, ai_status: 'pending', ai_error: null });
+    const { data, error } = await this.sb.client.functions.invoke('explain-report', { body: { visit_id: v.id } });
+    let msg: string | null = data?.error ?? null;
+    if (error) {
+      try {
+        msg = (await (error as { context?: Response }).context?.json())?.error ?? error.message;
+      } catch {
+        msg = error.message;
+      }
+    }
+    // Refresh this visit (status / summary / error) in case the live feed is slow
+    const { data: fresh } = await this.sb.client.from('visits').select('*').eq('id', v.id).single();
+    if (fresh) this.upsertLocal(fresh as Visit);
+    if (msg) this.toast.warn(msg);
   }
 
   async markNotified(v: Visit): Promise<void> {

@@ -10,6 +10,7 @@ import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
 import { Timeline, TimelineItem } from '../../shared/timeline';
 import { lookFor, VISIT_EVENT_LABEL } from '../../core/activity.service';
+import { renderMessage } from '../../core/inbox.service';
 
 interface TrackHistory {
   events: { action: string; at: string }[];
@@ -27,6 +28,7 @@ interface TrackResult {
   report_name: string | null;
   report_uploaded_at: string | null;
   ai_summary: string | null;
+  ai_status?: string;
   created_at: string;
   mobile_hint: string;
 }
@@ -48,6 +50,7 @@ export class TrackPage implements OnDestroy {
 
   protected readonly steps = VISIT_STEPS;
   protected readonly result = signal<TrackResult | null>(null);
+  protected readonly aiHtml = computed(() => renderMessage(this.result()?.ai_summary ?? ''));
   protected readonly history = signal<TrackHistory | null>(null);
   protected readonly loading = signal(false);
   protected readonly missing = signal(false);
@@ -99,7 +102,7 @@ export class TrackPage implements OnDestroy {
     clearInterval(this.timer);
     // Keep the status live until the report is ready
     this.timer = setInterval(() => {
-      if (this.isReady()) clearInterval(this.timer);
+      if (this.isReady() && this.result()?.ai_status !== 'pending') clearInterval(this.timer);
       else this.fetch(slug, token);
     }, 20_000);
   }

@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { LabService } from '../core/lab.service';
 import { Visit, VisitStatus } from '../core/models';
 import { ToastService } from '../core/toast.service';
+import { AiStatus } from './ai-explanation';
 import { StatusPill } from './status-pill';
 import { UploadDropzone } from './upload-dropzone';
 
@@ -14,7 +15,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
 
 @Component({
   selector: 'app-patient-card',
-  imports: [LucideAngularModule, DatePipe, StatusPill, UploadDropzone],
+  imports: [LucideAngularModule, DatePipe, StatusPill, UploadDropzone, AiStatus],
   template: `
     @let v = visit();
     <article class="card animate-fade-up flex h-full flex-col p-4 transition hover:shadow-md">
@@ -45,6 +46,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
         }
 
         <app-upload-dropzone [fileName]="v.report_name" [busy]="uploading()" (file)="upload($event)" />
+        @if (v.report_path) { <app-ai-status [visit]="v" /> }
 
         <div class="flex gap-2">
           <button

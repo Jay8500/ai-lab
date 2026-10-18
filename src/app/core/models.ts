@@ -83,6 +83,7 @@ export interface TenantSecrets {
   razorpay_key_secret: string | null;
   ai_provider: string | null;
   ai_api_key: string | null;
+  ai_model?: string | null;
   circles_project_id: string | null;
   circles_api_key: string | null;
 }
@@ -130,6 +131,10 @@ export interface Visit {
   notified_at: string | null;
   delivered_at: string | null;
   ai_summary: string | null;
+  ai_status?: 'none' | 'pending' | 'done' | 'error';
+  ai_error?: string | null;
+  ai_generated_at?: string | null;
+  ai_model?: string | null;
   created_at: string;
 }
 

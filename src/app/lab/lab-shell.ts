@@ -13,13 +13,14 @@ import { BrandMark } from '../shared/brand-mark';
 import { CirclesLogo } from '../shared/circles-logo';
 import { AnnouncementBanner, AnnouncementReader } from '../shared/inbox-ui';
 import { PatientHistory } from '../shared/patient-history';
+import { AiExplanation } from '../shared/ai-explanation';
 import { CirclesSupport } from '../shared/circles-support-modal';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 import { TenantHeader } from '../shared/tenant-header';
 
 @Component({
   selector: 'app-lab-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo, AnnouncementBanner, AnnouncementReader, PatientHistory],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo, AnnouncementBanner, AnnouncementReader, PatientHistory, AiExplanation],
   template: `
     @let mini = sidebar.compact();
     <app-sidebar [items]="nav()" heading="Workspace">
@@ -120,6 +121,7 @@ import { TenantHeader } from '../shared/tenant-header';
     <app-circles-support />
     <app-announcement-reader />
     <app-patient-history />
+    <app-ai-explanation />
   `,
 })
 export class LabShell implements OnInit {

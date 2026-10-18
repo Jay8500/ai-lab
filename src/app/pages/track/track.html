@@ -106,7 +106,12 @@
             </div>
             <div class="px-5 py-4 text-sm leading-relaxed text-slate-600">
               @if (r.ai_summary) {
-                <p class="whitespace-pre-line">{{ r.ai_summary }}</p>
+                <div class="space-y-3 [&_p]:m-0" [innerHTML]="aiHtml()"></div>
+              } @else if (r.ai_status === 'pending') {
+                <p class="mb-3 flex items-center gap-1.5 text-xs font-semibold text-violet-600"><lucide-icon name="sparkles" class="size-3.5 animate-pulse" /> Writing your explanation…</p>
+                <div class="space-y-2">
+                  @for (w of ['w-11/12', 'w-9/12', 'w-10/12', 'w-7/12']; track $index) { <div class="h-3 animate-pulse rounded bg-violet-100 {{ w }}"></div> }
+                </div>
               } @else if (isReady()) {
                 <p>A plain-language summary of your report will appear here shortly.</p>
               } @else {
