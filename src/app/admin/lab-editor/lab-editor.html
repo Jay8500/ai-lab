@@ -1,4 +1,5 @@
 @if (draft; as d) {
+  @let e = errs();
   <a routerLink="/admin/labs" class="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-slate-600">
     <lucide-icon name="chevron-left" class="size-4" /> All labs
   </a>
@@ -27,6 +28,7 @@
               [class]="tab() === t.key ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-700'"
               (click)="tab.set(t.key)">
         <lucide-icon [name]="t.icon" class="size-4" /> {{ t.label }}
+        @if (tabHasError(t.key)) { <span class="size-2 rounded-full bg-rose-500" title="Has errors"></span> }
       </button>
     }
   </div>
@@ -38,15 +40,15 @@
         <div class="grid gap-5 lg:grid-cols-[1fr_340px]">
           <div class="card space-y-5 p-5 sm:p-6">
             <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="label">Lab name</label><input class="input" [(ngModel)]="d.name" (ngModelChange)="touch()" /></div>
-              <div><label class="label">Tagline</label><input class="input" [(ngModel)]="d.tagline" (ngModelChange)="touch()" placeholder="Accurate reports. On time." /></div>
+              <app-field label="Lab name" required [error]="e['name']"><input class="input" [(ngModel)]="d.name" (ngModelChange)="touch()" maxlength="80" /></app-field>
+              <app-field label="Tagline" optional [error]="e['tagline']"><input class="input" [(ngModel)]="d.tagline" (ngModelChange)="touch()" maxlength="120" placeholder="Accurate reports. On time." /></app-field>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-3">
               @for (k of ['logo', 'favicon', 'cover']; track k) {
                 @let kind = $any(k);
                 @let url = $any(d)[k + '_url'];
-                <div>
+                <div [class.field-invalid]="!!e[k + '_url']">
                   <span class="label capitalize">{{ k }}</span>
                   <label class="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 text-xs text-slate-400 transition hover:border-slate-300">
                     <input type="file" accept="image/*" class="sr-only" (change)="upload(kind, $event)" />
@@ -59,26 +61,33 @@
                     }
                   </label>
                   <input class="input mt-2 py-1.5! text-xs" [ngModel]="url" (ngModelChange)="$any(d)[k + '_url'] = $event || null; touch()" placeholder="…or paste URL" />
+                  @if (e[k + '_url']) { <p class="mt-1 text-xs font-medium text-rose-600">{{ e[k + '_url'] }}</p> }
                 </div>
               }
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label class="label">Brand colour</label>
-                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" /></div>
-              </div>
-              <div>
-                <label class="label">Accent colour</label>
-                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" /></div>
-              </div>
+              <app-field label="Brand colour" required [error]="e['brand_color']" hint="Buttons, links and header.">
+                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.brand_color" (ngModelChange)="touch()" maxlength="7" /></div>
+              </app-field>
+              <app-field label="Accent colour" required [error]="e['accent_color']" hint="Gradients and highlights.">
+                <div class="flex gap-2"><input type="color" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-200" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" /><input class="input font-mono" [(ngModel)]="d.accent_color" (ngModelChange)="touch()" maxlength="7" /></div>
+              </app-field>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="label">Contact phone</label><input class="input" [(ngModel)]="d.contact_phone" (ngModelChange)="touch()" /></div>
-              <div><label class="label">WhatsApp number</label><input class="input" [(ngModel)]="d.whatsapp_number" (ngModelChange)="touch()" placeholder="91XXXXXXXXXX" /></div>
-              <div><label class="label">Contact email</label><input class="input" type="email" [(ngModel)]="d.contact_email" (ngModelChange)="touch()" /></div>
-              <div><label class="label">Address</label><input class="input" [(ngModel)]="d.address" (ngModelChange)="touch()" /></div>
+              <app-field label="Contact phone" optional [error]="e['contact_phone']" hint="Shown to patients, e.g. +91 98765 43210.">
+                <input class="input" type="tel" inputmode="tel" [(ngModel)]="d.contact_phone" (ngModelChange)="touch()" maxlength="20" />
+              </app-field>
+              <app-field label="WhatsApp number" optional [error]="e['whatsapp_number']" hint="Digits with country code, no + or spaces.">
+                <input class="input font-mono" inputmode="numeric" [(ngModel)]="d.whatsapp_number" (ngModelChange)="touch()" placeholder="919876543210" maxlength="15" />
+              </app-field>
+              <app-field label="Contact email" optional [error]="e['contact_email']">
+                <input class="input" type="email" [(ngModel)]="d.contact_email" (ngModelChange)="touch()" placeholder="reports@lab.com" />
+              </app-field>
+              <app-field label="Address" optional [error]="e['address']">
+                <input class="input" [(ngModel)]="d.address" (ngModelChange)="touch()" maxlength="200" />
+              </app-field>
             </div>
           </div>
 
@@ -109,22 +118,19 @@
       @case ('domain') {
         <div class="grid gap-5 lg:grid-cols-2">
           <div class="card space-y-4 p-5 sm:p-6">
-            <div>
-              <label class="label">Subdomain</label>
-              <div class="flex items-center rounded-xl border border-slate-200 focus-within:border-brand">
-                <input class="min-w-0 flex-1 rounded-xl bg-transparent px-3.5 py-2.5 font-mono text-sm outline-none" [(ngModel)]="d.slug" (ngModelChange)="touch()" />
+            <app-field label="Subdomain" required [error]="e['slug']" hint="Lowercase letters, numbers and dashes. Changing it moves the lab’s address.">
+              <div class="flex items-center rounded-xl border focus-within:border-brand" [class]="e['slug'] ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'">
+                <input class="min-w-0 flex-1 rounded-xl bg-transparent px-3.5 py-2.5 font-mono text-sm lowercase outline-none" [(ngModel)]="d.slug" (ngModelChange)="touch()" maxlength="41" autocapitalize="none" spellcheck="false" />
                 <span class="pr-3.5 text-sm text-slate-400">.{{ baseDomain }}</span>
               </div>
-            </div>
-            <div>
-              <label class="label">Custom domain (optional)</label>
-              <input class="input font-mono" [(ngModel)]="d.custom_domain" (ngModelChange)="touch()" placeholder="reports.srisailabs.com" />
-            </div>
-            <div>
-              <label class="label">Token prefix</label>
+            </app-field>
+            <app-field label="Custom domain" optional [error]="e['custom_domain']" hint="The lab’s own address, e.g. reports.srisailabs.com.">
+              <input class="input font-mono lowercase" [(ngModel)]="d.custom_domain" (ngModelChange)="touch()" placeholder="reports.srisailabs.com" autocapitalize="none" spellcheck="false" />
+            </app-field>
+            <app-field label="Token prefix" required [error]="e['token_prefix']">
               <input class="input font-mono uppercase" maxlength="5" [(ngModel)]="d.token_prefix" (ngModelChange)="touch()" />
-              <p class="mt-1.5 text-xs text-slate-400">Tokens look like <b class="font-mono text-slate-600">{{ d.token_prefix.toUpperCase() }}-1017-001</b></p>
-            </div>
+            </app-field>
+            <p class="-mt-2 text-xs text-slate-400">Tokens look like <b class="font-mono text-slate-600">{{ d.token_prefix.toUpperCase() }}-1017-001</b></p>
           </div>
           <div class="card space-y-3 p-5 text-sm sm:p-6">
             <h3 class="section-title">Links</h3>
@@ -180,19 +186,25 @@
         <div class="grid gap-5 lg:grid-cols-[1fr_380px]">
           <div class="card space-y-4 p-5 sm:p-6">
             <h3 class="section-title">Cover page</h3>
-            <div><label class="label">Hero title</label><input class="input" [(ngModel)]="pages.hero_title" (ngModelChange)="touch()" placeholder="Your lab reports, right on your phone" /></div>
-            <div><label class="label">Hero subtitle</label><textarea class="input min-h-20" [(ngModel)]="pages.hero_subtitle" (ngModelChange)="touch()"></textarea></div>
-            <div><label class="label">Footer note</label><input class="input" [(ngModel)]="pages.footer_note" (ngModelChange)="touch()" placeholder="NABL accredited · Open 7am–9pm" /></div>
+            <app-field label="Hero title" optional [error]="e['hero_title']" [counter]="(pages.hero_title?.length || 0) + ' / 90'" [counterOver]="(pages.hero_title?.length || 0) > 90">
+              <input class="input" [(ngModel)]="pages.hero_title" (ngModelChange)="touch()" placeholder="Your lab reports, right on your phone" />
+            </app-field>
+            <app-field label="Hero subtitle" optional [error]="e['hero_subtitle']" [counter]="(pages.hero_subtitle?.length || 0) + ' / 240'" [counterOver]="(pages.hero_subtitle?.length || 0) > 240">
+              <textarea class="input min-h-20" [(ngModel)]="pages.hero_subtitle" (ngModelChange)="touch()"></textarea>
+            </app-field>
+            <app-field label="Footer note" optional [error]="e['footer_note']">
+              <input class="input" [(ngModel)]="pages.footer_note" (ngModelChange)="touch()" maxlength="160" placeholder="NABL accredited · Open 7am–9pm" />
+            </app-field>
             <h3 class="section-title pt-2">Login page</h3>
             <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="label">Title</label><input class="input" [(ngModel)]="pages.login_title" (ngModelChange)="touch()" placeholder="Staff sign in" /></div>
-              <div><label class="label">Subtitle</label><input class="input" [(ngModel)]="pages.login_subtitle" (ngModelChange)="touch()" /></div>
+              <app-field label="Title" optional><input class="input" [(ngModel)]="pages.login_title" (ngModelChange)="touch()" maxlength="60" placeholder="Staff sign in" /></app-field>
+              <app-field label="Subtitle" optional><input class="input" [(ngModel)]="pages.login_subtitle" (ngModelChange)="touch()" maxlength="120" /></app-field>
             </div>
             <h3 class="section-title pt-2">Privacy (DPDP Act)</h3>
             <div class="grid gap-4 sm:grid-cols-3">
-              <div><label class="label">Grievance officer</label><input class="input" [ngModel]="$any(pages).grievance_name" (ngModelChange)="$any(pages).grievance_name = $event; touch()" placeholder="Name" /></div>
-              <div><label class="label">Officer email</label><input class="input" type="email" [ngModel]="$any(pages).grievance_email" (ngModelChange)="$any(pages).grievance_email = $event; touch()" placeholder="privacy@lab.com" /></div>
-              <div><label class="label">Officer phone</label><input class="input" [ngModel]="$any(pages).grievance_phone" (ngModelChange)="$any(pages).grievance_phone = $event; touch()" /></div>
+              <app-field label="Grievance officer" optional [error]="e['grievance_name']"><input class="input" [ngModel]="$any(pages).grievance_name" (ngModelChange)="$any(pages).grievance_name = $event; touch()" placeholder="Name" maxlength="80" /></app-field>
+              <app-field label="Officer email" optional [error]="e['grievance_email']"><input class="input" type="email" [ngModel]="$any(pages).grievance_email" (ngModelChange)="$any(pages).grievance_email = $event; touch()" placeholder="privacy@lab.com" /></app-field>
+              <app-field label="Officer phone" optional [error]="e['grievance_phone']"><input class="input" type="tel" inputmode="tel" [ngModel]="$any(pages).grievance_phone" (ngModelChange)="$any(pages).grievance_phone = $event; touch()" maxlength="20" /></app-field>
             </div>
             <p class="-mt-2 text-xs text-slate-400">Shown on the lab’s Privacy notice and Terms. If empty, the lab’s contact email/phone is used.</p>
             <h3 class="section-title pt-2">Token receipt</h3>
@@ -206,7 +218,9 @@
               <p class="mt-1.5 text-xs text-slate-400">Reception prints this when generating a token. Includes a QR code to track the report.</p>
             </div>
             <h3 class="section-title pt-2">Patient portal</h3>
-            <div><label class="label">AI disclaimer</label><textarea class="input min-h-20" [(ngModel)]="pages.ai_disclaimer" (ngModelChange)="touch()" placeholder="This explanation is generated by AI for general understanding only…"></textarea></div>
+            <app-field label="AI disclaimer" optional hint="Shown under every AI explanation. Leave empty for the standard wording.">
+              <textarea class="input min-h-20" [(ngModel)]="pages.ai_disclaimer" (ngModelChange)="touch()" maxlength="400" placeholder="This explanation is generated by AI for general understanding only…"></textarea>
+            </app-field>
           </div>
           <div class="card divide-y divide-slate-100 p-2">
             @for (tg of pageToggles; track tg.key) {
@@ -229,16 +243,20 @@
           </div>
           <div class="mt-4 space-y-2">
             <div class="hidden grid-cols-[110px_1fr_110px_90px_40px] gap-2 px-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
-              <span>Code</span><span>Name</span><span>Price ₹</span><span>TAT hrs</span><span></span>
+              <span>Code <span class="text-rose-500">*</span></span><span>Name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>TAT hrs</span><span></span>
             </div>
             @for (t of tests; track $index; let i = $index) {
+              @let te = e['test' + i] || '';
               <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_110px_90px_40px] sm:bg-transparent sm:p-0">
-                <input class="input font-mono uppercase" [(ngModel)]="t.code" (ngModelChange)="touch()" placeholder="CBP" />
-                <input class="input col-span-2 sm:col-span-1" [(ngModel)]="t.name" (ngModelChange)="touch()" placeholder="Complete Blood Picture" />
-                <input class="input" type="number" min="0" [(ngModel)]="t.price" (ngModelChange)="touch()" />
-                <input class="input" type="number" min="0" [(ngModel)]="t.tat_hours" (ngModelChange)="touch()" />
-                <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="removeTest(i)"><lucide-icon name="trash-2" class="size-4" /></button>
+                <input class="input font-mono uppercase" [class.is-invalid]="te.startsWith('Code')" [(ngModel)]="t.code" (ngModelChange)="touch()" placeholder="CBP" maxlength="12" aria-label="Code" />
+                <input class="input col-span-2 sm:col-span-1" [class.is-invalid]="te.startsWith('Name')" [(ngModel)]="t.name" (ngModelChange)="touch()" placeholder="Complete Blood Picture" maxlength="80" aria-label="Name" />
+                <input class="input" type="number" min="0" [class.is-invalid]="te.startsWith('Price')" [(ngModel)]="t.price" (ngModelChange)="touch()" aria-label="Price" />
+                <input class="input" type="number" min="1" [class.is-invalid]="te.startsWith('Report')" [(ngModel)]="t.tat_hours" (ngModelChange)="touch()" aria-label="Report in hours" />
+                <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="removeTest(i)" title="Remove test"><lucide-icon name="trash-2" class="size-4" /></button>
               </div>
+              @if (te) {
+                <p class="animate-fade-in -mt-1 flex items-start gap-1.5 px-1 text-xs font-medium text-rose-600" role="alert"><lucide-icon name="circle-x" class="mt-px size-3.5 shrink-0" /> {{ te }}</p>
+              }
             }
           </div>
         </div>
@@ -264,7 +282,7 @@
                 </div>
                 <div class="mt-4 space-y-3">
                   @for (f of g.fields; track f.key) {
-                    <div>
+                    <div [class.field-invalid]="!!e[f.key]">
                       <label class="label">{{ f.label }}</label>
                       <div class="relative">
                         <input class="input font-mono text-xs" [class.!pr-10]="f.secret" [type]="f.secret && !reveal()[f.key] ? 'password' : 'text'"
@@ -275,6 +293,7 @@
                           </button>
                         }
                       </div>
+                      @if (e[f.key]) { <p class="animate-fade-in mt-1.5 flex items-start gap-1.5 text-xs font-medium text-rose-600" role="alert"><lucide-icon name="circle-x" class="mt-px size-3.5 shrink-0" /> {{ e[f.key] }}</p> }
                     </div>
                   }
                 </div>
@@ -297,20 +316,18 @@
                   @for (p of admin.plans(); track p.id) { <option [ngValue]="p.id">{{ p.name }} ({{ p.billing_model.replace('_', ' ') }})</option> }
                 </select>
               </div>
-              <div>
-                <label class="label">Custom price ₹ (overrides plan)</label>
+              <app-field label="Custom price ₹" optional [error]="e['custom_price']" hint="Overrides the plan price for this lab.">
                 <input class="input" type="number" min="0" [(ngModel)]="d.custom_price" (ngModelChange)="touch()" placeholder="Plan price" />
-              </div>
+              </app-field>
               <div>
                 <label class="label">Status</label>
                 <select class="input" [(ngModel)]="d.status" (ngModelChange)="touch()">
                   <option value="trial">Trial</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="expired">Expired</option>
                 </select>
               </div>
-              <div>
-                <label class="label">Subscription ends</label>
+              <app-field label="Subscription ends" [required]="d.status === 'active'" [error]="e['subscription_ends_at']">
                 <input class="input" type="date" [ngModel]="dateInput(d.subscription_ends_at)" (ngModelChange)="setDate('subscription_ends_at', $event)" />
-              </div>
+              </app-field>
             </div>
             <div class="flex flex-wrap gap-2">
               <button class="btn-ghost py-2! text-xs" (click)="activate(1)"><lucide-icon name="zap" class="size-3.5" /> Activate 1 month</button>
@@ -323,7 +340,7 @@
 
             <h3 class="section-title pt-2">Free trial</h3>
             <div class="grid gap-4 sm:grid-cols-2">
-              <div><label class="label">Trial days</label><input class="input" type="number" min="0" [(ngModel)]="d.trial_days" (ngModelChange)="touch()" /></div>
+              <app-field label="Trial days" required [error]="e['trial_days']"><input class="input" type="number" min="0" max="365" [(ngModel)]="d.trial_days" (ngModelChange)="touch()" /></app-field>
               <div><label class="label">Trial started</label><input class="input" type="date" [ngModel]="dateInput(d.trial_started_at)" (ngModelChange)="setDate('trial_started_at', $event)" /></div>
             </div>
             @if (row(); as r) {
@@ -339,19 +356,20 @@
 
           <div class="card p-5 sm:p-6">
             <h3 class="section-title">Billing ledger</h3>
-            <form class="mt-4 grid grid-cols-2 gap-2 rounded-2xl bg-slate-50 p-3 sm:grid-cols-3" (ngSubmit)="addBill()" novalidate>
-              <label class="col-span-2 sm:col-span-3"><span class="label">Charge type <span class="text-rose-500">*</span></span>
+            @let be = billErr();
+            <form class="mt-4 grid grid-cols-2 gap-x-2 gap-y-3 rounded-2xl bg-slate-50 p-3 sm:grid-cols-3" (ngSubmit)="addBill()" novalidate>
+              <app-field label="Charge type" required class="col-span-2 sm:col-span-3">
                 <select class="input" name="k" [(ngModel)]="nb.kind">
                   @for (k of billingKinds; track k.v) { <option [value]="k.v">{{ k.l }}</option> }
                 </select>
-              </label>
-              <label><span class="label">Amount ₹ <span class="text-rose-500">*</span></span><input class="input" name="a" type="number" min="1" [(ngModel)]="nb.amount" /></label>
-              <label><span class="label">Period</span><input class="input" name="p" [(ngModel)]="nb.period" placeholder="2026-10" /></label>
-              <label class="col-span-2 sm:col-span-1"><span class="label">Due date</span><input class="input" type="date" name="dd" [(ngModel)]="nb.due_date" /></label>
-              <label class="col-span-2 sm:col-span-2"><span class="label">Note for the lab</span><input class="input" name="n" [(ngModel)]="nb.note" placeholder="e.g. Supabase Pro database, Oct" maxlength="200" /></label>
-              <label class="col-span-2 sm:col-span-1"><span class="label">Status</span>
+              </app-field>
+              <app-field label="Amount ₹" required [error]="be.amount"><input class="input" name="a" type="number" min="1" [(ngModel)]="nb.amount" /></app-field>
+              <app-field label="Period" required [error]="be.period"><input class="input font-mono" name="p" [(ngModel)]="nb.period" placeholder="2026-10" maxlength="7" /></app-field>
+              <app-field label="Due date" [required]="nb.status === 'due'" [error]="be.due_date" class="col-span-2 sm:col-span-1"><input class="input" type="date" name="dd" [(ngModel)]="nb.due_date" /></app-field>
+              <app-field label="Note for the lab" optional class="col-span-2 sm:col-span-2"><input class="input" name="n" [(ngModel)]="nb.note" placeholder="e.g. Supabase Pro database, Oct" maxlength="200" /></app-field>
+              <app-field label="Status" required class="col-span-2 sm:col-span-1">
                 <select class="input" name="s" [(ngModel)]="nb.status"><option value="due">Due</option><option value="paid">Paid</option></select>
-              </label>
+              </app-field>
               <label class="col-span-2 flex items-center gap-2 text-sm text-slate-600 sm:col-span-3">
                 <input type="checkbox" class="size-4 accent-[var(--brand)]" name="nl" [(ngModel)]="notifyLab" /> Notify the lab admin (email + in-app payment banner)
               </label>

@@ -13,6 +13,7 @@ import { SidebarState } from '../../shared/sidebar';
 import { TeamManager } from '../../shared/team-manager';
 import { LabStatusPill } from '../lab-status-pill';
 import { DialogService } from '../../core/dialog.service';
+import { FormField } from '../../shared/form-field';
 
 type Tab = 'branding' | 'domain' | 'pages' | 'tests' | 'integrations' | 'plan' | 'users';
 
@@ -25,7 +26,7 @@ interface SecretField {
 
 @Component({
   selector: 'app-admin-lab-editor',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill, TeamManager],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill, TeamManager, FormField],
   templateUrl: './lab-editor.html',
 })
 export class AdminLabEditor implements OnInit {
@@ -162,10 +163,20 @@ export class AdminLabEditor implements OnInit {
     this.dirty.set(true);
   }
 
+  /** Errors show after the first Save attempt, then update live as fields are fixed. */
+  protected readonly submitted = signal(false);
+
   async save() {
     if (!this.draft) return;
-    const problem = this.validate();
-    if (problem) return this.toast.warn(problem);
+    this.submitted.set(true);
+    const errs = this.errs();
+    const keys = Object.keys(errs);
+    if (keys.length) {
+      const first = this.tabs.find((t) => keys.some((k) => this.tabOf(k) === t.key))!;
+      if (!keys.some((k) => this.tabOf(k) === this.tab())) this.tab.set(first.key);
+      const here = keys.filter((k) => this.tabOf(k) === this.tab()).length;
+      return this.toast.warn(`Fix ${here} highlighted field${here === 1 ? '' : 's'} on ${this.tabs.find((t) => t.key === this.tab())!.label}.`);
+    }
     this.saving.set(true);
     try {
       const d = this.draft;
@@ -195,23 +206,108 @@ export class AdminLabEditor implements OnInit {
     }
   }
 
-  /** First thing that is wrong with the form, as a short message — or null. */
-  private validate(): string | null {
-    const d = this.draft!;
+  private static readonly TAB_OF: Record<string, Tab> = {
+    name: 'branding', tagline: 'branding', logo_url: 'branding', favicon_url: 'branding', cover_url: 'branding', brand_color: 'branding', accent_color: 'branding',
+    contact_phone: 'branding', whatsapp_number: 'branding', contact_email: 'branding', address: 'branding',
+    slug: 'domain', custom_domain: 'domain', token_prefix: 'domain',
+    hero_title: 'pages', hero_subtitle: 'pages', footer_note: 'pages', grievance_name: 'pages', grievance_email: 'pages', grievance_phone: 'pages',
+    ai_provider: 'integrations', ai_api_key: 'integrations', ai_model: 'integrations', whatsapp_provider: 'integrations', sms_provider: 'integrations', sms_sender_id: 'integrations', razorpay_key_id: 'integrations',
+    custom_price: 'plan', trial_days: 'plan', subscription_ends_at: 'plan',
+  };
+  private tabOf(key: string): Tab {
+    return key.startsWith('test') ? 'tests' : AdminLabEditor.TAB_OF[key] ?? 'branding';
+  }
+  tabHasError(t: Tab) {
+    return Object.keys(this.errs()).some((k) => this.tabOf(k) === t);
+  }
+
+  /** Every problem in the form, keyed by field (tests as test0, test1…). Empty until Save is pressed. */
+  errs(): Record<string, string> {
+    if (!this.submitted() || !this.draft) return {};
+    const d = this.draft;
+    const e: Record<string, string> = {};
+    const v = (x: string | null | undefined) => (x ?? '').trim();
+    const email = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
+    const phone = (x: string) => /^\+?[\d\s()-]{8,20}$/.test(x) && x.replace(/\D/g, '').length >= 8 && x.replace(/\D/g, '').length <= 13;
+    const url = (x: string) => /^(https?:\/\/|\/|brand\/)[^\s]+$/i.test(x);
     const hex = /^#[0-9a-f]{6}$/i;
-    if (!d.name.trim()) return 'Lab name is required.';
-    if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(d.slug.trim().toLowerCase())) return 'Subdomain: lowercase letters, numbers and dashes only.';
-    if (d.custom_domain?.trim() && !/^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(d.custom_domain.trim())) return 'Custom domain looks wrong (e.g. reports.mylab.com).';
-    if (!/^[A-Z]{1,5}$/i.test(d.token_prefix.trim())) return 'Token prefix: 1–5 letters.';
-    if (!hex.test(d.brand_color) || !hex.test(d.accent_color)) return 'Colours must look like #6366F1.';
-    if (d.contact_email?.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.contact_email.trim())) return 'Contact email is not valid.';
-    if (!(Number(d.trial_days) >= 0)) return 'Trial days must be 0 or more.';
-    if (d.custom_price !== null && (d.custom_price as unknown) !== '' && Number(d.custom_price) < 0) return 'Custom price cannot be negative.';
-    const codes = this.tests.map((t) => t.code.trim().toUpperCase()).filter(Boolean);
-    if (this.tests.some((t) => t.code.trim() && !t.name.trim())) return 'Every test needs a name.';
-    if (new Set(codes).size !== codes.length) return 'Two tests have the same code.';
-    if (this.tests.some((t) => Number(t.price) < 0)) return 'Test prices cannot be negative.';
-    return null;
+
+    // Branding
+    if (!v(d.name)) e['name'] = 'Enter the lab’s name.';
+    else if (v(d.name).length < 3) e['name'] = 'Use at least 3 characters.';
+    if (v(d.tagline).length > 120) e['tagline'] = 'Keep the tagline under 120 characters.';
+    for (const k of ['logo_url', 'favicon_url', 'cover_url'] as const) if (v(d[k]) && !url(v(d[k]))) e[k] = 'Paste a full link starting with https://';
+    if (!hex.test(v(d.brand_color))) e['brand_color'] = 'Use a colour code like #6366F1.';
+    if (!hex.test(v(d.accent_color))) e['accent_color'] = 'Use a colour code like #06B6D4.';
+    if (v(d.contact_phone) && !phone(v(d.contact_phone))) e['contact_phone'] = 'Enter a valid phone number, e.g. +91 98765 43210.';
+    if (v(d.whatsapp_number) && !/^\d{10,15}$/.test(v(d.whatsapp_number))) e['whatsapp_number'] = 'Digits only with country code, e.g. 919876543210.';
+    else if (/^\d{10}$/.test(v(d.whatsapp_number))) e['whatsapp_number'] = 'Add the country code in front — 91 for India.';
+    if (v(d.contact_email) && !email.test(v(d.contact_email))) e['contact_email'] = 'That email doesn’t look right.';
+    if (v(d.address).length > 200) e['address'] = 'Keep the address under 200 characters.';
+
+    // Domain
+    const slug = v(d.slug).toLowerCase();
+    if (!slug) e['slug'] = 'Choose a subdomain.';
+    else if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug) || slug.endsWith('-')) e['slug'] = 'Lowercase letters, numbers and dashes (2–41), not starting or ending with a dash.';
+    else if (environment.reservedSubdomains.includes(slug)) e['slug'] = 'That name is reserved — pick another.';
+    else if (this.admin.tenants().some((t) => t.slug === slug && t.id !== d.id)) e['slug'] = 'Another lab already uses this subdomain.';
+    const cd = v(d.custom_domain).toLowerCase();
+    if (cd && !/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(cd)) e['custom_domain'] = 'Enter just the domain, e.g. reports.mylab.com (no https://).';
+    else if (cd && (cd === environment.baseDomain || cd.endsWith('.' + environment.baseDomain))) e['custom_domain'] = `Use the subdomain field for ${environment.baseDomain} addresses.`;
+    if (!/^[A-Z]{1,5}$/i.test(v(d.token_prefix))) e['token_prefix'] = '1 to 5 letters, e.g. SRS.';
+
+    // Pages
+    const p = this.pages as Record<string, string | undefined>;
+    if (v(p['hero_title']).length > 90) e['hero_title'] = 'Keep the title under 90 characters.';
+    if (v(p['hero_subtitle']).length > 240) e['hero_subtitle'] = 'Keep the subtitle under 240 characters.';
+    if (v(p['grievance_email']) && !email.test(v(p['grievance_email']))) e['grievance_email'] = 'That email doesn’t look right.';
+    if (v(p['grievance_phone']) && !phone(v(p['grievance_phone']))) e['grievance_phone'] = 'Enter a valid phone number.';
+    if ((v(p['grievance_email']) || v(p['grievance_phone'])) && !v(p['grievance_name'])) e['grievance_name'] = 'Add the officer’s name.';
+
+    // Tests
+    const seen = new Set<string>();
+    this.tests.forEach((t, i) => {
+      const code = v(t.code).toUpperCase();
+      const name = v(t.name);
+      if (!code && !name) return;
+      const pr = t.price as unknown;
+      const h = t.tat_hours as unknown;
+      let m = '';
+      if (!code) m = 'Code is missing — e.g. CBP.';
+      else if (!/^[A-Z0-9-]{2,12}$/.test(code)) m = 'Code: 2–12 letters, numbers or -.';
+      else if (seen.has(code)) m = `Code ${code} is used twice.`;
+      else if (!name) m = 'Name is missing.';
+      else if (pr === '' || pr === null || pr === undefined || !(Number(pr) >= 0)) m = 'Price: enter 0 or more.';
+      else if (h !== '' && h !== null && h !== undefined && (!(Number(h) >= 1) || Number(h) > 720)) m = 'Report time: 1–720 hours, or leave empty.';
+      seen.add(code);
+      if (m) e['test' + i] = m;
+    });
+
+    // API keys (only format checks; empty is fine)
+    const s = this.secrets as unknown as Record<string, string | null> | null;
+    if (s) {
+      const prov = v(s['ai_provider']).toLowerCase();
+      if (prov && !['anthropic', 'openai', 'gemini'].includes(prov)) e['ai_provider'] = 'Use anthropic, openai or gemini.';
+      const key = v(s['ai_api_key']);
+      if (key && /\s/.test(key)) e['ai_api_key'] = 'Keys have no spaces — paste it again.';
+      else if (key && (prov || 'anthropic') === 'anthropic' && !key.startsWith('sk-ant-')) e['ai_api_key'] = 'Anthropic keys start with sk-ant-.';
+      else if (key && prov === 'openai' && !key.startsWith('sk-')) e['ai_api_key'] = 'OpenAI keys start with sk-.';
+      if (v(s['ai_model']) && !/^[a-z0-9][a-z0-9.:_-]{2,80}$/i.test(v(s['ai_model']))) e['ai_model'] = 'Model names look like claude-opus-5-5.';
+      const wp = v(s['whatsapp_provider']).toLowerCase();
+      if (wp && !['meta', 'gupshup', 'interakt', 'wati'].includes(wp)) e['whatsapp_provider'] = 'Use meta, gupshup, interakt or wati.';
+      const sp = v(s['sms_provider']).toLowerCase();
+      if (sp && !['msg91', 'twilio', 'textlocal'].includes(sp)) e['sms_provider'] = 'Use msg91, twilio or textlocal.';
+      if (v(s['sms_sender_id']) && !/^[A-Za-z]{6}$/.test(v(s['sms_sender_id']))) e['sms_sender_id'] = 'DLT sender IDs are 6 letters, e.g. SRISAI.';
+      if (v(s['razorpay_key_id']) && !/^rzp_(live|test)_[A-Za-z0-9]+$/.test(v(s['razorpay_key_id']))) e['razorpay_key_id'] = 'Razorpay key IDs start with rzp_live_ or rzp_test_.';
+    }
+
+    // Plan
+    const cp = d.custom_price as unknown;
+    if (cp !== null && cp !== '' && cp !== undefined && !(Number(cp) >= 0)) e['custom_price'] = 'Can’t be negative — leave empty to use the plan price.';
+    const td = d.trial_days as unknown;
+    if (td === '' || td === null || !Number.isInteger(Number(td)) || Number(td) < 0 || Number(td) > 365) e['trial_days'] = 'A whole number of days, 0 to 365.';
+    if (d.status === 'active' && !d.subscription_ends_at) e['subscription_ends_at'] = 'Set when the paid period ends (or use Activate).';
+    return e;
   }
 
   discard() {
@@ -294,10 +390,23 @@ export class AdminLabEditor implements OnInit {
     this.touch();
   }
 
+  protected readonly billSubmitted = signal(false);
+
+  billErr(): { amount?: string; period?: string; due_date?: string } {
+    if (!this.billSubmitted()) return {};
+    const e: { amount?: string; period?: string; due_date?: string } = {};
+    const a = Number(this.nb.amount);
+    if (!(a > 0)) e.amount = 'Enter an amount above ₹0.';
+    else if (a > 10_000_000) e.amount = 'That amount looks too high — check it.';
+    else if (Math.round(a * 100) !== a * 100) e.amount = 'Use at most 2 decimals.';
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test((this.nb.period ?? '').trim())) e.period = 'Use year-month, e.g. 2026-10.';
+    if (this.nb.status === 'due' && !this.nb.due_date) e.due_date = 'When should the lab pay by?';
+    return e;
+  }
+
   async addBill() {
-    if (!(Number(this.nb.amount) > 0)) return this.toast.warn('Enter an amount greater than 0.');
-    if (!/^\d{4}-\d{2}$/.test(this.nb.period)) return this.toast.warn('Period must look like 2026-10.');
-    if (this.nb.status === 'due' && !this.nb.due_date) return this.toast.warn('Add a due date for this charge.');
+    this.billSubmitted.set(true);
+    if (Object.keys(this.billErr()).length) return this.toast.warn('Fix the highlighted charge details.');
     try {
       const b = await this.admin.addBilling({ ...this.nb, tenant_id: this.id(), amount: Number(this.nb.amount), due_date: this.nb.due_date || null, paid_at: this.nb.status === 'paid' ? new Date().toISOString() : null });
       let note = 'Charge added.';
@@ -311,6 +420,7 @@ export class AdminLabEditor implements OnInit {
       }
       this.bills.set(await this.admin.billing(this.id()));
       this.nb = this.blankBill();
+      this.billSubmitted.set(false);
       this.toast.success(note);
     } catch (e) {
       this.toast.fail(e);
