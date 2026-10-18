@@ -58,11 +58,13 @@ export interface TenantPublic {
   usable: boolean;
   /** Why new work is paused: inactive | trial_ended | payment_overdue (null when usable) */
   block_reason?: 'inactive' | 'trial_ended' | 'payment_overdue' | null;
+  /** The lab has an AI key (AI features only show when this is true) */
+  ai_ready?: boolean;
   pages: TenantPages;
   test_catalog: TestItem[];
 }
 
-export interface Tenant extends Omit<TenantPublic, 'trial_ends_at' | 'usable' | 'block_reason'> {
+export interface Tenant extends Omit<TenantPublic, 'trial_ends_at' | 'usable' | 'block_reason' | 'ai_ready'> {
   custom_domain: string | null;
   token_prefix: string;
   plan_id: string | null;

@@ -34,12 +34,13 @@ export class TenantService {
   readonly slug = computed(() => this.tenant()?.slug ?? null);
   readonly pages = computed(() => ({
     show_track: true,
-    show_ai: true,
     show_support: true,
     show_whatsapp: true,
     show_powered_by: true,
     show_security: true,
     ...(this.tenant()?.pages ?? {}),
+    // AI shows only when it's switched on AND the lab has its own AI key
+    show_ai: this.tenant()?.pages?.show_ai !== false && this.tenant()?.ai_ready === true,
   }));
   readonly trialDaysLeft = computed(() => {
     const t = this.tenant();

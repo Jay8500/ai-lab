@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common';
+import { TenantService } from '../core/tenant.service';
 import { Component, inject, input, signal } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { LabService } from '../core/lab.service';
@@ -47,7 +48,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
         }
 
         <app-upload-dropzone [fileName]="v.report_name" [busy]="uploading()" (file)="upload($event)" />
-        @if (v.report_path) { <app-ai-status [visit]="v" /> }
+        @if (v.report_path && (tenant.pages().show_ai || v.ai_status === 'done')) { <app-ai-status [visit]="v" /> }
 
         <div class="flex gap-2">
           <button
@@ -81,6 +82,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
 export class PatientCard {
   readonly visit = input.required<Visit>();
   protected readonly lab = inject(LabService);
+  protected readonly tenant = inject(TenantService);
   private readonly toast = inject(ToastService);
   protected readonly receipt = inject(ReceiptService);
   protected readonly uploading = signal(false);

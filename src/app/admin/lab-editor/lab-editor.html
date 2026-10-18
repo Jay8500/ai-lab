@@ -225,7 +225,7 @@
           <div class="card divide-y divide-slate-100 p-2">
             @for (tg of pageToggles; track tg.key) {
               <label class="flex cursor-pointer items-center gap-3 px-3 py-3">
-                <span class="min-w-0 flex-1"><b class="block text-sm text-slate-700">{{ tg.label }}</b><span class="text-xs text-slate-400">{{ tg.hint }}</span></span>
+                <span class="min-w-0 flex-1"><b class="block text-sm text-slate-700">{{ tg.label }}</b><span class="text-xs text-slate-400">{{ tg.hint }}</span>@if (tg.key === 'show_ai' && !secrets?.ai_api_key) {<span class="mt-0.5 block text-xs font-medium text-amber-600">Stays hidden until the lab’s AI key is added in API keys.</span>}</span>
                 <input type="checkbox" class="peer sr-only" [ngModel]="$any(pages)[tg.key] !== false" (ngModelChange)="$any(pages)[tg.key] = $event; touch()" />
                 <span class="relative h-6 w-11 shrink-0 rounded-full bg-slate-200 transition peer-checked:bg-brand after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></span>
               </label>
