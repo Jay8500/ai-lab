@@ -12,6 +12,10 @@ export interface NewVisit {
   age: number | null;
   gender: 'M' | 'F' | 'O' | null;
   tests: TestItem[];
+  /** DPDP consent captured at the desk */
+  consent_at: string;
+  consent_by: 'patient' | 'guardian';
+  consent_version: string;
 }
 
 const startOfToday = () => {

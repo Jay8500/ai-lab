@@ -102,6 +102,7 @@ export const HELP: HelpSection[] = [
       { do: 'Domain', flow: ['Configure', 'Domain', 'Subdomain · Token prefix', 'Save & publish'] },
       { do: 'Cover page', flow: ['Configure', 'Pages', 'Texts · Toggles', 'Save & publish'] },
       { do: 'Receipt paper', flow: ['Configure', 'Pages', 'Thermal 80 mm / A5 / A4', 'Save & publish'] },
+      { do: 'Privacy officer', flow: ['Configure', 'Pages', 'Grievance officer · email · phone', 'Save & publish'] },
       { do: 'Tests', flow: ['Configure', 'Tests', 'Add test', 'Code · Name · Price', 'Save & publish'] },
       { do: 'API keys', flow: ['Configure', 'API keys', 'WhatsApp · SMS · Razorpay · AI', 'Save & publish'] },
       { do: 'Turn on AI', flow: ['API keys', 'AI provider: anthropic', 'Lab’s AI key', 'Save & publish'] },
@@ -230,7 +231,8 @@ export const HELP: HelpSection[] = [
     route: '/lab',
     who: ['owner', 'staff'],
     steps: [
-      { do: 'New patient', flow: ['New patient', 'Name *', 'Mobile', 'Age · Gender', 'Tests *', 'Generate token'] },
+      { do: 'New patient', flow: ['New patient', 'Name *', 'Mobile', 'Age · Gender', 'Tests *', 'Consent ✓ *', 'Generate token'] },
+      { do: 'Under 18', flow: ['Age < 18', 'Parent / guardian consents ✓'] },
       { do: 'Print receipt', flow: ['Generate token', 'Print receipt', 'Patient scans QR'] },
       { do: 'Reprint', flow: ['Card / Reports', '🖨 Print receipt'] },
       { do: 'Share token', flow: ['Copy tracking link', 'Give to patient'] },

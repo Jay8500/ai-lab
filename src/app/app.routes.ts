@@ -3,6 +3,8 @@ import { labGuard, ownerGuard, rootGuard, superAdminGuard } from './core/guards'
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.HomePage) },
+  { path: 'privacy', data: { kind: 'privacy' }, loadComponent: () => import('./pages/policy/policy').then((m) => m.PolicyPage) },
+  { path: 'terms', data: { kind: 'terms' }, loadComponent: () => import('./pages/policy/policy').then((m) => m.PolicyPage) },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginPage) },
   { path: 'track', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },
   { path: 'track/:token', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },

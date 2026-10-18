@@ -140,7 +140,7 @@
 
     <footer class="border-t border-slate-100 bg-white">
       <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-400 sm:flex-row sm:px-6">
-        <p>© {{ year }} {{ lab.name }}. {{ pages().footer_note || '' }}</p>
+        <p>© {{ year }} {{ lab.name }}. {{ pages().footer_note || '' }} <a routerLink="/privacy" class="ml-2 hover:text-slate-600">Privacy</a> · <a routerLink="/terms" class="hover:text-slate-600">Terms</a></p>
         <div class="flex items-center gap-4">
           <a routerLink="/login" class="inline-flex items-center gap-1 hover:text-slate-600"><lucide-icon name="lock" class="size-3" /> Lab staff</a>
           @if (pages().show_powered_by !== false) {

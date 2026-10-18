@@ -173,6 +173,13 @@
               <div><label class="label">Title</label><input class="input" [(ngModel)]="pages.login_title" (ngModelChange)="touch()" placeholder="Staff sign in" /></div>
               <div><label class="label">Subtitle</label><input class="input" [(ngModel)]="pages.login_subtitle" (ngModelChange)="touch()" /></div>
             </div>
+            <h3 class="section-title pt-2">Privacy (DPDP Act)</h3>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div><label class="label">Grievance officer</label><input class="input" [ngModel]="$any(pages).grievance_name" (ngModelChange)="$any(pages).grievance_name = $event; touch()" placeholder="Name" /></div>
+              <div><label class="label">Officer email</label><input class="input" type="email" [ngModel]="$any(pages).grievance_email" (ngModelChange)="$any(pages).grievance_email = $event; touch()" placeholder="privacy@lab.com" /></div>
+              <div><label class="label">Officer phone</label><input class="input" [ngModel]="$any(pages).grievance_phone" (ngModelChange)="$any(pages).grievance_phone = $event; touch()" /></div>
+            </div>
+            <p class="-mt-2 text-xs text-slate-400">Shown on the lab’s Privacy notice and Terms. If empty, the lab’s contact email/phone is used.</p>
             <h3 class="section-title pt-2">Token receipt</h3>
             <div>
               <label class="label">Receipt paper</label>

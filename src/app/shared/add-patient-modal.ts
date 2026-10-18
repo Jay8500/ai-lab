@@ -7,10 +7,11 @@ import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { FormField } from './form-field';
 import { Modal } from './modal';
+import { CONSENT_VERSION } from '../pages/policy/policy';
 import { ReceiptService } from '../core/receipt.service';
 
 type Gender = 'M' | 'F' | 'O';
-type PatientField = 'name' | 'mobile' | 'age' | 'tests';
+type PatientField = 'name' | 'mobile' | 'age' | 'tests' | 'consent';
 
 @Component({
   selector: 'app-add-patient-modal',
@@ -107,6 +108,19 @@ type PatientField = 'name' | 'mobile' | 'age' | 'tests';
               <lucide-icon name="circle-x" class="size-3.5" /> {{ te }}
             </p>
           }
+          <div [class.field-invalid]="!!show('consent')">
+            <label class="flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-xs leading-relaxed transition"
+                   [class]="show('consent') ? 'border-rose-200 bg-rose-50/40 text-slate-700' : consent() ? 'border-emerald-200 bg-emerald-50/40 text-slate-700' : 'border-slate-200 text-slate-600'">
+              <input type="checkbox" class="mt-0.5 size-4 shrink-0 accent-[var(--brand)]" name="consent" [checked]="consent()" (change)="consent.set(!consent()); touch('consent')" />
+              <span>
+                <b>{{ minor() ? 'Parent / guardian consents' : 'Patient consents' }} <span class="text-rose-500">*</span></b> to the lab using these details to run the tests and share the report{{ tenantPages().show_ai !== false ? ', including an AI explanation' : '' }}, as described in the
+                <a href="/privacy" target="_blank" rel="noopener" class="font-semibold text-brand hover:underline" (click)="$event.stopPropagation()">privacy notice</a>.
+              </span>
+            </label>
+            @if (show('consent'); as ce) {
+              <p class="animate-fade-in mt-1.5 flex items-center gap-1.5 text-xs font-medium text-rose-600" role="alert"><lucide-icon name="circle-x" class="size-3.5" /> {{ ce }}</p>
+            }
+          </div>
           <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
             <div class="text-sm">
               <p class="text-slate-500">{{ selected().length }} test(s)</p>
@@ -166,6 +180,13 @@ export class AddPatientModal {
   }
 
   protected readonly touched = signal<Record<string, boolean>>({});
+  protected readonly consent = signal(false);
+  protected readonly tenantPages = this.tenant.pages;
+  /** Under 18 → guardian consent */
+  minor() {
+    const a = Number(this.age);
+    return this.age !== null && (this.age as unknown) !== '' && Number.isFinite(a) && a < 18;
+  }
   protected readonly submitted = signal(false);
 
   /** Rules for each field, with a message that explains how to fix it. */
@@ -185,6 +206,7 @@ export class AddPatientModal {
       if (!Number.isInteger(n) || n < 0 || n > 120) e.age = 'Age must be a whole number from 0 to 120.';
     }
     if (!this.selected().length) e.tests = 'Select at least one test to generate a token.';
+    if (!this.consent()) e.consent = this.minor() ? 'A parent or guardian must agree before registering a patient under 18.' : 'Ask the patient for consent and tick this box to continue.';
     return e;
   }
 
@@ -209,6 +231,9 @@ export class AddPatientModal {
         age: this.age ?? null,
         gender: this.gender(),
         tests: this.selected(),
+        consent_at: new Date().toISOString(),
+        consent_by: this.minor() ? 'guardian' : 'patient',
+        consent_version: CONSENT_VERSION,
       });
       this.created.set(v);
       this.toast.success(`Token ${v.token} created`);
@@ -232,5 +257,6 @@ export class AddPatientModal {
     this.created.set(null);
     this.submitted.set(false);
     this.touched.set({});
+    this.consent.set(false);
   }
 }
