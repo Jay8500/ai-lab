@@ -29,6 +29,10 @@ export interface TenantPages {
   footer_note?: string;
   show_track?: boolean;
   show_ai?: boolean;
+  /** "How it works" video on the cover page (default on) */
+  show_video?: boolean;
+  /** Lab's own video instead of the standard one: an .mp4/.webm link or a YouTube link */
+  video_url?: string;
   show_support?: boolean;
   show_whatsapp?: boolean;
   show_powered_by?: boolean;
@@ -60,6 +64,8 @@ export interface TenantPublic {
   block_reason?: 'inactive' | 'trial_ended' | 'payment_overdue' | null;
   /** The lab has an AI key (AI features only show when this is true) */
   ai_ready?: boolean;
+  /** Printed on receipts, e.g. SRS */
+  token_prefix?: string;
   pages: TenantPages;
   test_catalog: TestItem[];
 }

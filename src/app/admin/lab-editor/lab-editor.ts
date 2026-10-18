@@ -124,6 +124,7 @@ export class AdminLabEditor implements OnInit {
     { key: 'show_ai', label: 'AI report explanation', hint: 'Summary card with disclaimer on the patient portal' },
     { key: 'show_whatsapp', label: 'WhatsApp contact', hint: 'Chat button on the cover page' },
     { key: 'show_support', label: 'Circles support button', hint: 'Help / raise-ticket for lab staff' },
+    { key: 'show_video', label: '“How it works” video', hint: 'Short patient walkthrough on the cover page' },
     { key: 'show_security', label: 'Security & privacy section', hint: 'Explains how patient data is protected (great for demos)' },
     { key: 'show_powered_by', label: '“Powered by SpreadApps”', hint: 'Footer credit on public pages' },
   ];
@@ -210,7 +211,7 @@ export class AdminLabEditor implements OnInit {
     name: 'branding', tagline: 'branding', logo_url: 'branding', favicon_url: 'branding', cover_url: 'branding', brand_color: 'branding', accent_color: 'branding',
     contact_phone: 'branding', whatsapp_number: 'branding', contact_email: 'branding', address: 'branding',
     slug: 'domain', custom_domain: 'domain', token_prefix: 'domain',
-    hero_title: 'pages', hero_subtitle: 'pages', footer_note: 'pages', grievance_name: 'pages', grievance_email: 'pages', grievance_phone: 'pages',
+    hero_title: 'pages', hero_subtitle: 'pages', video_url: 'pages', footer_note: 'pages', grievance_name: 'pages', grievance_email: 'pages', grievance_phone: 'pages',
     ai_provider: 'integrations', ai_api_key: 'integrations', ai_model: 'integrations', whatsapp_provider: 'integrations', sms_provider: 'integrations', sms_sender_id: 'integrations', razorpay_key_id: 'integrations',
     custom_price: 'plan', trial_days: 'plan', subscription_ends_at: 'plan',
   };
@@ -263,6 +264,9 @@ export class AdminLabEditor implements OnInit {
     if (v(p['grievance_email']) && !email.test(v(p['grievance_email']))) e['grievance_email'] = 'That email doesn’t look right.';
     if (v(p['grievance_phone']) && !phone(v(p['grievance_phone']))) e['grievance_phone'] = 'Enter a valid phone number.';
     if ((v(p['grievance_email']) || v(p['grievance_phone'])) && !v(p['grievance_name'])) e['grievance_name'] = 'Add the officer’s name.';
+    const vid = v(p['video_url']);
+    if (vid && !/^https:\/\/\S+$/i.test(vid)) e['video_url'] = 'Paste a full link starting with https://';
+    else if (vid && !/(youtube\.com\/(watch\?v=|shorts\/|embed\/)|youtu\.be\/)[\w-]{11}|\.(mp4|webm)(\?\S*)?$/i.test(vid)) e['video_url'] = 'Use a YouTube link or a direct .mp4 / .webm file link.';
 
     // Tests
     const seen = new Set<string>();

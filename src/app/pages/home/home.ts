@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -17,6 +18,7 @@ import { SalesPage } from '../sales/sales';
 })
 export class HomePage {
   protected readonly tenant = inject(TenantService);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
@@ -24,6 +26,26 @@ export class HomePage {
   protected readonly year = new Date().getFullYear();
 
   protected token = '';
+
+  protected readonly howSteps = [
+    { title: 'Get your token at the counter', text: 'Your receipt has a token and a QR code for your visit.' },
+    { title: 'Track your sample live', text: 'Scan the QR or type the token here to see where your sample is.' },
+    { title: 'Download your official report', text: 'The PDF is ready the moment the lab verifies it — earlier reports too.' },
+  ];
+  /** The lab's own video link, if set (mp4/webm or YouTube) */
+  private readonly ownVideo = computed(() => (this.tenant.pages().video_url ?? '').trim());
+  protected readonly youtubeEmbed = computed(() => {
+    const m = this.ownVideo().match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+    return m ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube-nocookie.com/embed/${m[1]}?rel=0`) : null;
+  });
+  protected readonly videoSrc = computed(() => this.ownVideo() || '/demo/how-it-works.mp4');
+  protected readonly videoPoster = computed(() => (this.ownVideo() ? '' : '/demo/how-it-works.jpg'));
+  /** A realistic example token for this lab, e.g. VIJ-1018-001 */
+  protected readonly tokenExample = computed(() => {
+    const d = new Date();
+    const mmdd = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    return `${(this.tenant.tenant()?.token_prefix || 'LAB').toUpperCase()}-${mmdd}-001`;
+  });
 
   protected readonly t = computed(() => this.tenant.tenant());
   protected readonly pages = this.tenant.pages;

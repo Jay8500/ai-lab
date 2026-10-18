@@ -113,7 +113,7 @@ const toTimeInput = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
 
         @if (tasks.scope()) {
-          <app-field label="Patient token" for="tf-token" optional [error]="show('token')" hint="Link a patient visit, e.g. SRS-1018-004.">
+          <app-field label="Patient token" for="tf-token" optional [error]="show('token')" hint="Link a patient visit by the token on their receipt.">
             <input id="tf-token" class="input font-mono uppercase" name="token" [ngModel]="token()" (ngModelChange)="token.set($event.toUpperCase())"
                    (blur)="touch('token')" autocomplete="off" maxlength="14" placeholder="ABC-0000-000" [disabled]="readOnly()" />
           </app-field>
