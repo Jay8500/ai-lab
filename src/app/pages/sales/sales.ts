@@ -158,6 +158,8 @@ export class SalesPage implements OnInit {
       });
       if (error) throw error;
       this.sent.set(data as string);
+      // Email the SpreadApps owner about the new request (best effort, never blocks the visitor)
+      void this.sb.client.functions.invoke('lead-alert', { body: {} }).catch(() => undefined);
     } catch (e) {
       const msg = (e as Error).message ?? '';
       this.toast.fail(/rate limit/i.test(msg) ? 'Too many requests' : e, 'Could not send your request — please WhatsApp or email us.');
