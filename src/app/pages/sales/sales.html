@@ -1,0 +1,324 @@
+<div class="min-h-dvh bg-white text-slate-800">
+  <!-- ───────────── Nav ───────────── -->
+  <header class="sticky top-0 z-40 border-b border-slate-100/80 bg-white/85 backdrop-blur-md">
+    <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+      <a href="#top" (click)="scrollTo('top', $event)" class="flex items-center gap-2.5">
+        <img [src]="brand.logo" alt="" class="size-8" />
+        <span class="font-extrabold tracking-tight text-slate-900">{{ brand.name }} <span class="text-brand">{{ brand.product }}</span></span>
+      </a>
+      <nav class="ml-8 hidden items-center gap-1 text-sm font-medium text-slate-600 lg:flex">
+        @for (l of [['features', 'Features'], ['how', 'How it works'], ['ai', 'AI'], ['security', 'Security'], ['pricing', 'Pricing'], ['faq', 'FAQ']]; track l[0]) {
+          <a [href]="'#' + l[0]" (click)="scrollTo(l[0], $event)" class="rounded-lg px-3 py-2 hover:bg-slate-50 hover:text-slate-900">{{ l[1] }}</a>
+        }
+      </nav>
+      <div class="ml-auto flex items-center gap-2">
+        <button class="btn-ghost hidden py-2! sm:inline-flex" (click)="labPicker.set(true)"><lucide-icon name="log-in" class="size-4" /> Lab login</button>
+        <a href="#demo" (click)="scrollTo('demo', $event)" class="btn-primary py-2!">Book a demo</a>
+        <button class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" (click)="menu.set(!menu())" aria-label="Menu"><lucide-icon name="menu" class="size-5" /></button>
+      </div>
+    </div>
+    @if (menu()) {
+      <div class="animate-fade-in border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
+        @for (l of [['features', 'Features'], ['how', 'How it works'], ['ai', 'AI'], ['security', 'Security'], ['pricing', 'Pricing'], ['faq', 'FAQ']]; track l[0]) {
+          <a [href]="'#' + l[0]" (click)="scrollTo(l[0], $event)" class="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">{{ l[1] }}</a>
+        }
+        <button class="mt-1 block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50" (click)="menu.set(false); labPicker.set(true)">Lab login</button>
+      </div>
+    }
+  </header>
+
+  <!-- ───────────── Hero ───────────── -->
+  <section id="top" class="relative overflow-hidden">
+    <div class="absolute -top-48 left-1/2 size-[720px] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"></div>
+    <div class="absolute top-40 -right-40 size-96 rounded-full bg-emerald-200/30 blur-3xl"></div>
+    <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:pt-20">
+      <div class="animate-fade-up">
+        <span class="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-white px-3 py-1 text-xs font-semibold text-brand shadow-sm">
+          <lucide-icon name="sparkles" class="size-3.5" /> AI-ready lab software · made in India
+        </span>
+        <h1 class="mt-5 text-4xl leading-[1.08] font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          Run your lab.<br />
+          <span class="bg-gradient-to-r from-brand via-violet-500 to-emerald-500 bg-clip-text text-transparent">Deliver reports instantly.</span>
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed text-slate-500">
+          Tokens in seconds, live sample tracking, PDF reports on WhatsApp and a branded patient portal — so your team focuses on the lab, not paperwork.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#demo" (click)="scrollTo('demo', $event)" class="btn-primary px-5! py-3! text-base">Book a free demo <lucide-icon name="arrow-right" class="size-4" /></a>
+          <a href="#how" (click)="scrollTo('how', $event)" class="btn-ghost px-5! py-3! text-base">See how it works</a>
+        </div>
+        <div class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
+          @for (b of ['Free trial', 'Same-day setup', 'No installation', 'Works on phone & PC']; track b) {
+            <span class="inline-flex items-center gap-1.5"><lucide-icon name="circle-check" class="size-4 text-emerald-500" /> {{ b }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Product mock -->
+      <div class="animate-fade-up relative">
+        <div class="rounded-3xl border border-slate-200/70 bg-white p-3 shadow-2xl shadow-brand/10">
+          <div class="flex items-center gap-1.5 px-2 pb-3">
+            <span class="size-2.5 rounded-full bg-rose-300"></span><span class="size-2.5 rounded-full bg-amber-300"></span><span class="size-2.5 rounded-full bg-emerald-300"></span>
+            <span class="ml-3 truncate rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-500">yourlab.spreadapps.in/lab</span>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-3">
+            <div class="grid grid-cols-3 gap-2">
+              @for (k of [['Today', '42', 'bg-brand/10 text-brand'], ['Processing', '9', 'bg-amber-50 text-amber-600'], ['Delivered', '31', 'bg-emerald-50 text-emerald-600']]; track k[0]) {
+                <div class="rounded-xl bg-white p-2.5 shadow-sm">
+                  <p class="text-[10px] text-slate-400">{{ k[0] }}</p>
+                  <p class="text-lg font-extrabold text-slate-800">{{ k[1] }}</p>
+                  <span class="mt-1 block h-1 rounded-full {{ k[2] }}"></span>
+                </div>
+              }
+            </div>
+            <div class="mt-2 space-y-2">
+              @for (p of [['SRS-1018-012', 'Ravi Kumar', 'CBP · FBS', 'Report Ready', 'bg-emerald-50 text-emerald-600 border-emerald-100'], ['SRS-1018-013', 'Lakshmi D.', 'Thyroid', 'In-Testing', 'bg-amber-50 text-amber-600 border-amber-100'], ['SRS-1018-014', 'Arjun R.', 'Lipid', 'Collected', 'bg-blue-50 text-blue-600 border-blue-100']]; track p[0]) {
+                <div class="flex items-center gap-3 rounded-xl bg-white p-2.5 shadow-sm">
+                  <div class="min-w-0 flex-1">
+                    <p class="font-mono text-[9px] font-bold text-brand">#{{ p[0] }}</p>
+                    <p class="truncate text-xs font-bold text-slate-700">{{ p[1] }}</p>
+                    <p class="text-[10px] text-slate-400">{{ p[2] }}</p>
+                  </div>
+                  <span class="pill text-[9px] {{ p[4] }}">{{ p[3] }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- floating cards -->
+        <div class="absolute -bottom-6 -left-4 hidden items-center gap-2.5 rounded-2xl border border-slate-100 bg-white p-3 shadow-xl sm:flex">
+          <span class="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><lucide-icon name="message-circle" class="size-5" /></span>
+          <div><p class="text-xs font-bold text-slate-800">Report sent on WhatsApp</p><p class="text-[10px] text-slate-400">just now · Ravi Kumar</p></div>
+        </div>
+        <div class="absolute -top-5 -right-3 hidden items-center gap-2 rounded-2xl border border-slate-100 bg-white px-3 py-2 shadow-xl sm:flex">
+          <lucide-icon name="shield-check" class="size-4 text-brand" /><span class="text-[11px] font-semibold text-slate-700">Encrypted · India servers</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Features ───────────── -->
+  <section id="features" class="scroll-mt-16 bg-slate-50/70 py-20">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-bold tracking-wider text-brand uppercase">Everything a lab needs</p>
+        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">From front desk to patient’s phone</h2>
+        <p class="mt-3 text-slate-500">Built with reception teams, technicians and lab owners — simple enough to learn in a morning.</p>
+      </div>
+      <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (f of features; track f.title) {
+          <div class="group rounded-2xl border border-slate-100 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60">
+            <span class="grid size-11 place-items-center rounded-xl bg-brand/10 text-brand transition group-hover:bg-brand group-hover:text-white"><lucide-icon [name]="f.icon" class="size-5" /></span>
+            <h3 class="mt-4 font-bold text-slate-900">{{ f.title }}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-slate-500">{{ f.text }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── How it works (timeline) ───────────── -->
+  <section id="how" class="scroll-mt-16 py-20">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-bold tracking-wider text-brand uppercase">How it works</p>
+        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Four steps. Every patient.</h2>
+      </div>
+      <ol class="relative mt-14 grid gap-8 md:grid-cols-4">
+        <span class="absolute top-6 right-[12%] left-[12%] hidden h-0.5 bg-gradient-to-r from-brand/20 via-brand/40 to-emerald-300 md:block"></span>
+        @for (s of steps; track s.title; let i = $index) {
+          <li class="relative flex gap-4 md:flex-col md:items-center md:text-center">
+            <span class="relative z-10 grid size-12 shrink-0 place-items-center rounded-2xl bg-white text-brand shadow-lg ring-1 ring-slate-100">
+              <lucide-icon [name]="s.icon" class="size-5" />
+              <span class="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-brand text-[10px] font-bold text-white">{{ i + 1 }}</span>
+            </span>
+            <div>
+              <h3 class="font-bold text-slate-900">{{ s.title }}</h3>
+              <p class="mt-1 text-sm text-slate-500">{{ s.text }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ───────────── AI ───────────── -->
+  <section id="ai" class="scroll-mt-16 py-20">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 text-white sm:p-12">
+        <div class="absolute -top-24 -right-24 size-80 rounded-full bg-brand/40 blur-3xl"></div>
+        <div class="absolute -bottom-24 left-10 size-72 rounded-full bg-emerald-500/20 blur-3xl"></div>
+        <div class="relative">
+          <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-200"><lucide-icon name="brain" class="size-3.5" /> AI-Lab roadmap</span>
+          <h2 class="mt-4 max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl">AI that explains, spots trends and saves your team time</h2>
+          <p class="mt-3 max-w-2xl text-indigo-100/80">Built on the same secure platform — rolling out to labs in stages.</p>
+          <div class="mt-8 grid gap-4 md:grid-cols-3">
+            @for (a of ai; track a.title) {
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                <div class="flex items-center justify-between">
+                  <span class="grid size-10 place-items-center rounded-xl bg-white/10 text-indigo-200"><lucide-icon [name]="a.icon" class="size-5" /></span>
+                  <span class="rounded-full bg-amber-400/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-200 uppercase">Coming soon</span>
+                </div>
+                <h3 class="mt-4 font-bold">{{ a.title }}</h3>
+                <p class="mt-1 text-sm text-indigo-100/70">{{ a.text }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Security ───────────── -->
+  <section id="security" class="scroll-mt-16 bg-slate-50/70 py-20">
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2">
+      <div>
+        <p class="text-sm font-bold tracking-wider text-brand uppercase">Security & privacy</p>
+        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Patient data stays private. Always.</h2>
+        <p class="mt-3 text-slate-500">Health data deserves more than a password. AI-Lab is built so every lab only ever sees its own patients.</p>
+      </div>
+      <ul class="grid gap-3 sm:grid-cols-2">
+        @for (s of [['lock', 'Encrypted in transit & at rest'], ['building-2', 'Each lab sees only its own data'], ['monitor', 'One active login per account'], ['log-out', 'Remove lost devices remotely'], ['key-round', 'Service keys in an encrypted vault'], ['history', 'Every action recorded']]; track s[1]) {
+          <li class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-4">
+            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><lucide-icon [name]="s[0]" class="size-4" /></span>
+            <span class="text-sm font-semibold text-slate-700">{{ s[1] }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ───────────── Pricing ───────────── -->
+  <section id="pricing" class="scroll-mt-16 py-20">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-sm font-bold tracking-wider text-brand uppercase">Pricing</p>
+        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Simple plans. Start free.</h2>
+        <p class="mt-3 text-slate-500">Prices in INR. Custom pricing for chains and hospitals.</p>
+      </div>
+      <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (p of plans(); track p.code) {
+          @let pr = priceLabel(p);
+          <div class="relative flex flex-col rounded-3xl border bg-white p-6" [class]="p.code === 'growth' ? 'border-brand shadow-xl shadow-brand/10' : 'border-slate-200'">
+            @if (p.code === 'growth') { <span class="absolute -top-3 left-6 rounded-full bg-brand px-3 py-1 text-[11px] font-bold text-white">Most popular</span> }
+            <h3 class="font-bold text-slate-900">{{ p.name }}</h3>
+            <p class="mt-3"><span class="text-3xl font-extrabold tracking-tight text-slate-900">{{ pr.amount }}</span> <span class="text-sm text-slate-500">{{ pr.unit }}</span></p>
+            <ul class="mt-5 flex-1 space-y-2 text-sm text-slate-600">
+              @for (k of planPerks(p); track k) {
+                <li class="flex gap-2"><lucide-icon name="check" class="mt-0.5 size-4 shrink-0 text-emerald-500" /> {{ k }}</li>
+              }
+            </ul>
+            <a href="#demo" (click)="scrollTo('demo', $event)" class="mt-6 w-full" [class]="p.code === 'growth' ? 'btn-primary' : 'btn-ghost'">Get started</a>
+          </div>
+        } @empty {
+          <p class="col-span-full text-center text-sm text-slate-400">Loading plans…</p>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── FAQ ───────────── -->
+  <section id="faq" class="scroll-mt-16 bg-slate-50/70 py-20">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6">
+      <h2 class="text-center text-3xl font-extrabold tracking-tight text-slate-900">Questions labs ask</h2>
+      <div class="mt-10 space-y-3">
+        @for (f of faqs; track f.q) {
+          <details class="group rounded-2xl border border-slate-200 bg-white px-5 py-4 open:shadow-sm">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-slate-800">
+              {{ f.q }} <lucide-icon name="plus" class="size-4 shrink-0 text-slate-400 transition group-open:rotate-45" />
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-slate-500">{{ f.a }}</p>
+          </details>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Demo form ───────────── -->
+  <section id="demo" class="scroll-mt-16 py-20">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-2">
+      <div>
+        <p class="text-sm font-bold tracking-wider text-brand uppercase">Book a demo</p>
+        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">See AI-Lab with your own lab’s name on it</h2>
+        <p class="mt-3 text-slate-500">A 15-minute call. We set up a trial lab with your branding so your team can try it the same day.</p>
+        <ul class="mt-6 space-y-3 text-sm text-slate-600">
+          @for (b of ['Live walkthrough on your phone and PC', 'Your logo, colours and tests pre-loaded', 'Free trial — no card needed']; track b) {
+            <li class="flex gap-2"><lucide-icon name="circle-check" class="mt-0.5 size-4 text-emerald-500" /> {{ b }}</li>
+          }
+        </ul>
+        <a [href]="'mailto:' + brand.supportEmail" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"><lucide-icon name="mail" class="size-4" /> {{ brand.supportEmail }}</a>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
+        @if (sent(); as ref) {
+          <div class="py-10 text-center">
+            <span class="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-500"><lucide-icon name="circle-check" class="size-7" /></span>
+            <h3 class="mt-4 text-xl font-bold text-slate-900">Thanks — we’ll be in touch!</h3>
+            <p class="mt-1 text-sm text-slate-500">Request #{{ ref }}. We usually reply within one working day.</p>
+          </div>
+        } @else {
+          <form class="space-y-4" (ngSubmit)="submit()" novalidate>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <app-field label="Your name" for="ld-name" required [error]="show('name')">
+                <input id="ld-name" class="input" name="n" [(ngModel)]="lead.name" (ngModelChange)="changed()" (blur)="touch('name')" maxlength="80" autocomplete="name" />
+              </app-field>
+              <app-field label="Lab name" for="ld-lab" required [error]="show('lab')">
+                <input id="ld-lab" class="input" name="l" [(ngModel)]="lead.lab" (ngModelChange)="changed()" (blur)="touch('lab')" maxlength="120" autocomplete="organization" />
+              </app-field>
+              <app-field label="Mobile" for="ld-ph" required [error]="show('phone')" hint="We’ll WhatsApp or call you.">
+                <input id="ld-ph" class="input" name="p" inputmode="tel" [(ngModel)]="lead.phone" (ngModelChange)="changed()" (blur)="touch('phone')" maxlength="14" autocomplete="tel" placeholder="98765 43210" />
+              </app-field>
+              <app-field label="City" for="ld-city" optional>
+                <input id="ld-city" class="input" name="c" [(ngModel)]="lead.city" maxlength="60" autocomplete="address-level2" />
+              </app-field>
+            </div>
+            <app-field label="Email" for="ld-em" optional [error]="show('email')">
+              <input id="ld-em" class="input" type="email" name="e" [(ngModel)]="lead.email" (ngModelChange)="changed()" (blur)="touch('email')" autocomplete="email" />
+            </app-field>
+            <app-field label="Anything we should know?" for="ld-msg" optional hint="e.g. number of branches, patients per day.">
+              <textarea id="ld-msg" class="input min-h-24" name="m" [(ngModel)]="lead.message" maxlength="1000"></textarea>
+            </app-field>
+            <button class="btn-primary w-full py-3!" type="submit" [disabled]="sending()">
+              <lucide-icon [name]="sending() ? 'loader-circle' : 'calendar-clock'" class="size-4" [class.animate-spin]="sending()" /> Request my demo
+            </button>
+            <p class="text-center text-[11px] text-slate-400">We only use these details to contact you about AI-Lab.</p>
+          </form>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── Footer ───────────── -->
+  <footer class="border-t border-slate-100 bg-slate-50">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:px-6">
+      <div class="flex items-center gap-2.5">
+        <img [src]="brand.logo" alt="" class="size-6" />
+        <span>© {{ year }} {{ brand.name }} · {{ brand.product }}</span>
+      </div>
+      <div class="flex items-center gap-5">
+        <a [href]="'mailto:' + brand.supportEmail" class="hover:text-slate-800">Contact</a>
+        <button class="hover:text-slate-800" (click)="labPicker.set(true)">Lab login</button>
+        <a routerLink="/login" class="text-slate-400 hover:text-slate-700">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lab login picker -->
+  @if (labPicker()) {
+    <div class="animate-fade-in fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px]" (click)="labPicker.set(false)"></div>
+    <div class="pointer-events-none fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+      <form class="animate-fade-up pointer-events-auto w-full max-w-sm rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl" (ngSubmit)="goToLab()">
+        <h3 class="text-lg font-bold text-slate-900">Sign in to your lab</h3>
+        <p class="mt-1 text-sm text-slate-500">Enter your lab’s address.</p>
+        <div class="input mt-4 flex items-center p-0! focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/10">
+          <input class="min-w-0 flex-1 rounded-xl bg-transparent px-3.5 py-2.5 font-mono text-sm outline-none" name="slug" [(ngModel)]="labSlug" placeholder="your-lab" autocapitalize="none" autofocus />
+          <span class="pr-3.5 text-sm text-slate-400">.spreadapps.in</span>
+        </div>
+        <div class="mt-5 flex gap-2">
+          <button type="button" class="btn-ghost flex-1" (click)="labPicker.set(false)">Cancel</button>
+          <button type="submit" class="btn-primary flex-1">Continue <lucide-icon name="arrow-right" class="size-4" /></button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

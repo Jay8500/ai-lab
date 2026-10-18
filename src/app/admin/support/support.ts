@@ -89,15 +89,16 @@ export class AdminSupport implements OnInit {
   protected readonly kinds = [
     { v: 'ticket' as const, l: 'Tickets', icon: 'life-buoy' },
     { v: 'feedback' as const, l: 'Feedback', icon: 'message-square-heart' },
+    { v: 'lead' as const, l: 'Demo requests', icon: 'calendar-clock' },
   ];
-  protected readonly kind = signal<'ticket' | 'feedback'>('ticket');
+  protected readonly kind = signal<'ticket' | 'feedback' | 'lead'>('ticket');
   protected readonly visible = computed(() =>
     this.tickets()
       .filter((t) => (t.kind ?? 'ticket') === this.kind())
       .filter((t) => this.filter() === 'all' || t.status === this.filter()),
   );
 
-  kindCount(k: 'ticket' | 'feedback') {
+  kindCount(k: 'ticket' | 'feedback' | 'lead') {
     return this.tickets().filter((t) => (t.kind ?? 'ticket') === k && t.status !== 'closed' && t.status !== 'resolved').length;
   }
 

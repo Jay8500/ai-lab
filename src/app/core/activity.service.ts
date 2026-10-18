@@ -31,6 +31,7 @@ const LOOK: Record<string, { icon: string; tone: string }> = {
   'session:signed_out': { icon: 'log-out', tone: 'bg-slate-100 text-slate-500' },
   'ticket:raised': { icon: 'life-buoy', tone: 'bg-rose-100 text-rose-600' },
   'ticket:feedback': { icon: 'message-square-heart', tone: 'bg-pink-100 text-pink-600' },
+  'ticket:lead': { icon: 'calendar-clock', tone: 'bg-emerald-100 text-emerald-600' },
   'lab:created': { icon: 'building-2', tone: 'bg-brand/15 text-brand' },
   'announcement:sent': { icon: 'megaphone', tone: 'bg-indigo-100 text-indigo-600' },
 };

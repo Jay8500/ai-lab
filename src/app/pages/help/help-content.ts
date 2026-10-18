@@ -156,6 +156,30 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Handle ticket', flow: ['Open', 'Read', 'Screenshot', 'Status'] },
       { do: 'Read feedback', flow: ['Feedback', '★ rating', 'Message'] },
+      { do: 'Demo requests', flow: ['Demo requests', 'Call / WhatsApp', 'Status'] },
+    ],
+  },
+  {
+    id: 'admin-sales',
+    title: 'Sales page',
+    icon: 'globe',
+    who: ['platform'],
+    steps: [
+      { do: 'Open', flow: ['ailab.spreadapps.in'] },
+      { do: 'Prices', flow: ['Plans & pricing', 'Edit', 'Shows live on sales page'] },
+      { do: 'Leads', flow: ['Book a demo form', 'Support · Circles', 'Demo requests'] },
+    ],
+  },
+  {
+    id: 'admin-activity',
+    title: 'Activity',
+    icon: 'history',
+    route: '/admin/activity',
+    who: ['platform'],
+    steps: [
+      { do: 'See history', flow: ['Activity', 'Everything / SpreadApps / Mine'] },
+      { do: 'Filter', flow: ['Patients · Tasks · Logins · Sign-ins · Support'] },
+      { do: 'Older', flow: ['Show older'] },
     ],
   },
   {
@@ -208,6 +232,7 @@ export const HELP: HelpSection[] = [
       { do: 'Upload report', flow: ['Drop PDF', 'Report Ready'] },
       { do: 'Send report', flow: ['Notify / Share', 'WhatsApp', 'Delivered'] },
       { do: 'Find patient', flow: ['Search', 'Name · Token · Mobile'] },
+      { do: 'Patient history', flow: ['Card', '🕘 History', 'All visits timeline'] },
     ],
   },
   {
@@ -237,6 +262,7 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Track', flow: ['Tracking link', 'Live status'] },
       { do: 'Download', flow: ['Report Ready', 'Download Official PDF'] },
+      { do: 'Past visits', flow: ['Tracking link', 'Your earlier visits', 'Download PDF'] },
       { do: 'From cover page', flow: ['Track my report', 'Token', 'Check status'] },
     ],
   },
@@ -262,6 +288,18 @@ export const HELP: HelpSection[] = [
       { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
       { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
       { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
+    ],
+  },
+  {
+    id: 'lab-activity',
+    title: 'Activity',
+    icon: 'history',
+    route: '/lab/activity',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'My history', flow: ['Activity', 'Mine'] },
+      { do: 'Lab history', flow: ['Activity', 'Whole lab / Patients'] },
+      { do: 'Filter', flow: ['Patients · Tasks · Logins · Sign-ins'] },
     ],
   },
   {

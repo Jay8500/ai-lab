@@ -144,7 +144,7 @@ export interface SupportTicket {
   page_url: string | null;
   status: 'open' | 'synced' | 'in_progress' | 'resolved' | 'closed';
   circles_ref: string | null;
-  kind?: 'ticket' | 'feedback';
+  kind?: 'ticket' | 'feedback' | 'lead';
   rating?: number | null;
   created_at: string;
 }

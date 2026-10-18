@@ -7,11 +7,12 @@ import { AuthService } from '../../core/auth.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
+import { SalesPage } from '../sales/sales';
 
-/** Cover page: a lab's branded landing when on a lab host, otherwise the SpreadApps AI-Lab landing. */
+/** Cover page: a lab's branded landing on a lab host; the AI-Lab sales page on the platform host. */
 @Component({
   selector: 'app-home',
-  imports: [FormsModule, RouterLink, LucideAngularModule, BrandMark],
+  imports: [FormsModule, RouterLink, LucideAngularModule, BrandMark, SalesPage],
   templateUrl: './home.html',
 })
 export class HomePage {
@@ -44,13 +45,6 @@ export class HomePage {
     { icon: 'monitor', tone: 'bg-amber-50 text-amber-600', title: 'One active login', text: 'Staff accounts work on one device at a time. Signing in elsewhere signs the old device out instantly.' },
     { icon: 'key-round', tone: 'bg-rose-50 text-rose-600', title: 'Protected credentials', text: 'Staff sign-ins are lab-specific, every device can be removed remotely, and service keys are kept in an encrypted vault.' },
   ];
-
-  constructor() {
-    // The platform address is the admin console only — no public landing, no customer list.
-    if (!this.tenant.tenant() && !this.tenant.notFound()) {
-      this.router.navigateByUrl(this.auth.isPlatformAdmin() ? '/admin' : '/login', { replaceUrl: true });
-    }
-  }
 
   track() {
     const tk = this.token.trim();

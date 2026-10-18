@@ -111,7 +111,7 @@ export class TenantService {
   /** True when this browser is on the admin/platform host (not a lab subdomain or lab custom domain). */
   isPlatformHost(): boolean {
     const host = location.hostname;
-    return host === environment.platformHost || host === 'localhost' || host.endsWith('.netlify.app') || /^[d.]+$/.test(host);
+    return host === environment.platformHost || host === `ailab.${environment.baseDomain}` || host === 'localhost' || host.endsWith('.netlify.app') || /^[d.]+$/.test(host);
   }
 
   platformUrl(path = '/'): string {
