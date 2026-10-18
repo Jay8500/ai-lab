@@ -66,15 +66,23 @@ const PAD = 4;
       @for (s of shown(); track s.key) {
         @let last = s.points[s.points.length - 1];
         @let prev = s.points[s.points.length - 2];
-        <li class="flex items-center gap-3 py-3">
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-slate-700">{{ s.test }}</p>
-            <p class="text-xs text-slate-400">
-              {{ s.points.length }} visits · {{ s.points[0].at | date: 'MMM y' }} – {{ last.at | date: 'MMM y' }}
+        <li class="py-3">
+          <div class="flex items-baseline gap-3">
+            <p class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{{ s.test }}</p>
+            <p class="shrink-0 text-sm font-bold tabular-nums" [class]="valueTone(last.flag)">{{ last.value | number: '1.0-2' }} <span class="text-[10px] font-medium text-slate-400">{{ s.unit }}</span></p>
+          </div>
+          <div class="mt-1 flex items-center gap-3">
+          <div class="min-w-0 flex-1 text-xs text-slate-400">
+            <p class="flex items-center gap-0.5 whitespace-nowrap tabular-nums">
+              <lucide-icon [name]="last.value > prev.value ? 'arrow-up' : last.value < prev.value ? 'arrow-down' : 'minus'" class="size-3" />
+              {{ last.value - prev.value > 0 ? '+' : '' }}{{ last.value - prev.value | number: '1.0-2' }} since {{ prev.at | date: 'MMM d' }}
+            </p>
+            <p>
+              {{ s.points.length }} visits since {{ s.points[0].at | date: 'MMM y' }}
               @if (s.low !== null || s.high !== null) { · normal {{ rangeLabel(s) }} }
             </p>
           </div>
-          <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" class="h-10 w-[132px] shrink-0 overflow-visible" aria-hidden="true">
+          <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" class="h-10 w-[120px] shrink-0 overflow-visible sm:w-[132px]" aria-hidden="true">
             @if (geo(s); as g) {
               @if (g.band) {
                 <rect x="0" [attr.y]="g.band.y" [attr.width]="w" [attr.height]="g.band.h" rx="3" class="fill-emerald-100/70" />
@@ -85,12 +93,6 @@ const PAD = 4;
               }
             }
           </svg>
-          <div class="w-24 shrink-0 text-right">
-            <p class="text-sm font-bold tabular-nums" [class]="valueTone(last.flag)">{{ last.value | number: '1.0-2' }} <span class="text-[10px] font-medium text-slate-400">{{ s.unit }}</span></p>
-            <p class="flex items-center justify-end gap-0.5 text-[11px] text-slate-400 tabular-nums">
-              <lucide-icon [name]="last.value > prev.value ? 'arrow-up' : last.value < prev.value ? 'arrow-down' : 'minus'" class="size-3" />
-              {{ last.value - prev.value > 0 ? '+' : '' }}{{ last.value - prev.value | number: '1.0-2' }} since {{ prev.at | date: 'MMM d' }}
-            </p>
           </div>
         </li>
       }
