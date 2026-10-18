@@ -147,6 +147,7 @@ export class LabShell implements OnInit {
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
     { path: '/lab/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
+    ...(this.tenant.pages().show_ai !== false ? [{ path: '/lab/assistant', label: 'Ask AI', icon: 'bot' }] : []),
     ...(this.auth.isOwner()
       ? [
           { path: '/lab/tests', label: 'Tests & prices', icon: 'test-tube' },

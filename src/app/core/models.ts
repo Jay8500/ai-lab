@@ -138,6 +138,8 @@ export interface Visit {
   ai_status?: 'none' | 'pending' | 'done' | 'error';
   ai_error?: string | null;
   ai_generated_at?: string | null;
+  /** Numeric results the AI read from the report (for trends) */
+  ai_values?: ReportValue[] | null;
   ai_model?: string | null;
   created_at: string;
 }
@@ -156,6 +158,16 @@ export interface SupportTicket {
   kind?: 'ticket' | 'feedback' | 'lead';
   rating?: number | null;
   created_at: string;
+}
+
+/** One numeric result read from a report PDF by the AI. */
+export interface ReportValue {
+  test: string;
+  value: number;
+  unit: string | null;
+  low: number | null;
+  high: number | null;
+  flag: 'low' | 'normal' | 'high' | null;
 }
 
 export type BillingKind = 'subscription' | 'per_report' | 'revenue_share' | 'setup' | 'database' | 'maintenance' | 'adjustment' | 'other';

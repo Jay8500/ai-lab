@@ -18,6 +18,7 @@ export const routes: Routes = [
       { path: 'help', loadComponent: () => import('./pages/help/help').then((m) => m.HelpPage) },
       { path: 'activity', loadComponent: () => import('./pages/activity/activity').then((m) => m.ActivityPage) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
+      { path: 'assistant', loadComponent: () => import('./lab/assistant/assistant').then((m) => m.LabAssistant) },
       { path: 'tests', canActivate: [ownerGuard], loadComponent: () => import('./lab/tests/tests').then((m) => m.LabTests) },
       { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },
       { path: 'security', loadComponent: () => import('./pages/security/security').then((m) => m.SecurityPage) },

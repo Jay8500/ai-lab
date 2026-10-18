@@ -7,11 +7,12 @@ import { Visit } from '../core/models';
 import { SupabaseService } from '../core/supabase.service';
 import { Modal } from './modal';
 import { Timeline, TimelineItem } from './timeline';
+import { buildTrends, Trends } from './trends';
 
 /** All visits of one patient (same mobile, or same name when no mobile) as a timeline. */
 @Component({
   selector: 'app-patient-history',
-  imports: [LucideAngularModule, DatePipe, Modal, Timeline],
+  imports: [LucideAngularModule, DatePipe, Modal, Timeline, Trends],
   template: `
     @if (lab.historyFor(); as v) {
       <app-modal [title]="v.patient_name" [subtitle]="subtitle()" [width]="600" (closed)="lab.historyFor.set(null)">
@@ -23,6 +24,13 @@ import { Timeline, TimelineItem } from './timeline';
         @if (loading()) {
           <div class="flex justify-center py-8"><lucide-icon name="loader-circle" class="size-6 animate-spin text-slate-300" /></div>
         } @else {
+          @if (trends().length) {
+            <section class="mb-5 rounded-2xl border border-violet-100 bg-violet-50/30 px-4 pt-3 pb-2">
+              <h3 class="flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="trending-up" class="size-4 text-violet-600" /> Trends across visits</h3>
+              <p class="text-xs text-slate-400">Read from the reports by AI · green band = normal range. Check the PDF before advising.</p>
+              <app-trends [series]="trends()" />
+            </section>
+          }
           <app-timeline [items]="items()" empty="No history yet." />
         }
       </app-modal>
@@ -37,6 +45,7 @@ export class PatientHistory {
   protected readonly visits = signal<Visit[]>([]);
   protected readonly items = signal<TimelineItem[]>([]);
   protected readonly loading = signal(false);
+  protected readonly trends = computed(() => buildTrends(this.visits().map((x) => ({ at: x.created_at, token: x.token, values: x.ai_values }))));
   protected readonly reports = computed(() => this.visits().filter((v) => v.report_path).length);
   protected readonly firstVisit = computed(() => this.visits().at(-1)?.created_at ?? null);
   protected readonly subtitle = computed(() => {

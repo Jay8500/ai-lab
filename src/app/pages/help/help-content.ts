@@ -257,6 +257,19 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'Find report', flow: ['Search', 'Name · Token · Mobile'] },
       { do: 'Open / share', flow: ['PDF', 'Copy link'] },
+      { do: 'Trends', flow: ['Patient', '🕘 History', 'Trends across visits'] },
+    ],
+  },
+  {
+    id: 'lab-assistant',
+    title: 'Ask AI',
+    icon: 'bot',
+    route: '/lab/assistant',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'Ask', flow: ['Ask AI', 'Type a question', 'Enter'] },
+      { do: 'Ideas', flow: ['Today’s revenue', 'Pending longest', 'Top tests', 'This week vs last'] },
+      { do: 'Privacy', flow: ['Counts & tokens only', 'No names or phones'] },
     ],
   },
   {

@@ -11,10 +11,12 @@ import { BrandMark } from '../../shared/brand-mark';
 import { Timeline, TimelineItem } from '../../shared/timeline';
 import { lookFor, VISIT_EVENT_LABEL } from '../../core/activity.service';
 import { renderMessage } from '../../core/inbox.service';
+import { buildTrends, Trends } from '../../shared/trends';
+import { ReportValue } from '../../core/models';
 
 interface TrackHistory {
   events: { action: string; at: string }[];
-  previous: { token: string; created_at: string; status: VisitStatus; tests: { code: string; name: string }[]; report_path: string | null }[];
+  previous: { token: string; created_at: string; status: VisitStatus; tests: { code: string; name: string }[]; report_path: string | null; ai_values?: ReportValue[] | null }[];
 }
 
 interface TrackResult {
@@ -29,6 +31,7 @@ interface TrackResult {
   report_uploaded_at: string | null;
   ai_summary: string | null;
   ai_status?: string;
+  ai_values?: ReportValue[] | null;
   created_at: string;
   mobile_hint: string;
 }
@@ -38,7 +41,7 @@ const ORDER: VisitStatus[] = ['collected', 'in_lab', 'verified', 'ready', 'deliv
 /** Zero-login patient portal: /track/:token */
 @Component({
   selector: 'app-track',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, BrandMark, Timeline],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, BrandMark, Timeline, Trends],
   templateUrl: './track.html',
 })
 export class TrackPage implements OnDestroy {
@@ -52,6 +55,14 @@ export class TrackPage implements OnDestroy {
   protected readonly result = signal<TrackResult | null>(null);
   protected readonly aiHtml = computed(() => renderMessage(this.result()?.ai_summary ?? ''));
   protected readonly history = signal<TrackHistory | null>(null);
+  protected readonly trends = computed(() => {
+    const r = this.result();
+    if (!r) return [];
+    return buildTrends([
+      { at: r.created_at, token: r.token, values: r.ai_values },
+      ...(this.history()?.previous ?? []).map((p) => ({ at: p.created_at, token: p.token, values: p.ai_values })),
+    ]);
+  });
   protected readonly loading = signal(false);
   protected readonly missing = signal(false);
   protected query = '';

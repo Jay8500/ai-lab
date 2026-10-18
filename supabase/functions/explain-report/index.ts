@@ -19,6 +19,8 @@ const DEFAULT_MODEL: Record<string, string> = {
   gemini: 'gemini-2.5-flash',
 };
 
+const MARKER = '===VALUES===';
+
 const SYSTEM = `You explain medical laboratory reports to patients in India in clear, simple English.
 Rules:
 - Use only what is written in the report. Never invent values, ranges or tests.
@@ -26,7 +28,7 @@ Rules:
 - Do not diagnose, do not name diseases the patient "has", and do not suggest medicines or doses.
 - If a value is far outside its range, say calmly that it should be shown to a doctor soon.
 - Do not include the patient's name, phone number or any ID.
-- Keep it under 300 words. Friendly, reassuring, factual.
+- Keep the explanation under 300 words. Friendly, reassuring, factual.
 Format exactly like this (plain text, ** for bold, • for bullets, blank line between sections):
 **Overall**
 One or two sentences.
@@ -35,7 +37,11 @@ One or two sentences.
 • Test name — value (unit): what it measures. Within / above / below the normal range.
 
 **What to do next**
-• One to three short, practical points (e.g. discuss with your doctor, repeat test if advised).`;
+• One to three short, practical points (e.g. discuss with your doctor, repeat test if advised).
+
+After the explanation, on its own line write exactly ${MARKER} and then a JSON array with every numeric result printed on the report:
+[{"test": "name as printed", "value": 13.2, "unit": "g/dL", "low": 13, "high": 17, "flag": "low" | "normal" | "high"}]
+Use null for a missing range limit. Copy numbers exactly from the report; skip results that are not numbers. Write nothing after the JSON.`;
 
 interface AiConfig {
   provider: string;
@@ -113,6 +119,43 @@ async function explainWithGemini(cfg: AiConfig, pdfB64: string, prompt: string):
   return text;
 }
 
+interface ReportValue {
+  test: string;
+  value: number;
+  unit: string | null;
+  low: number | null;
+  high: number | null;
+  flag: 'low' | 'normal' | 'high' | null;
+}
+
+/** Split the model output into the patient explanation and the numeric values (for trends). */
+function splitOutput(raw: string): { summary: string; values: ReportValue[] | null } {
+  const i = raw.indexOf(MARKER);
+  if (i < 0) return { summary: raw.trim(), values: null };
+  const summary = raw.slice(0, i).trim();
+  const num = (x: unknown) =>
+    typeof x === 'number' && Number.isFinite(x) ? x : typeof x === 'string' && x.trim() !== '' && Number.isFinite(Number(x)) ? Number(x) : null;
+  try {
+    const body = raw.slice(i + MARKER.length);
+    const arr = JSON.parse(body.slice(body.indexOf('['), body.lastIndexOf(']') + 1));
+    if (!Array.isArray(arr)) return { summary, values: null };
+    const values = arr
+      .map((r: Record<string, unknown>) => ({
+        test: String(r.test ?? '').trim().slice(0, 80),
+        value: num(r.value),
+        unit: r.unit ? String(r.unit).trim().slice(0, 20) : null,
+        low: num(r.low),
+        high: num(r.high),
+        flag: (['low', 'normal', 'high'].includes(String(r.flag)) ? r.flag : null) as ReportValue['flag'],
+      }))
+      .filter((r): r is ReportValue => !!r.test && r.value !== null)
+      .slice(0, 80);
+    return { summary, values: values.length ? values : null };
+  } catch {
+    return { summary, values: null };
+  }
+}
+
 /** Short, user-safe error text stored on the visit. */
 function friendly(e: unknown): string {
   if (e instanceof Anthropic.AuthenticationError) return 'The lab’s AI key was rejected — check it in API keys.';
@@ -170,12 +213,14 @@ Deno.serve(async (req) => {
     const tests = (v.tests ?? []).map((t: { code: string; name: string }) => `${t.name} (${t.code})`).join(', ');
     const prompt = `Explain this lab report for the patient.${v.age ? ` Patient age: ${v.age}.` : ''}${v.gender ? ` Sex: ${v.gender}.` : ''} Tests ordered: ${tests || 'see report'}.`;
 
-    const summary =
+    const raw =
       provider === 'openai' ? await explainWithOpenAI(cfg, pdfB64, prompt)
       : provider === 'gemini' ? await explainWithGemini(cfg, pdfB64, prompt)
       : await explainWithClaude(cfg, pdfB64, prompt);
 
-    await setStatus({ ai_status: 'done', ai_summary: summary, ai_error: null, ai_generated_at: new Date().toISOString(), ai_model: `${provider}:${cfg.model}` });
+    const { summary, values } = splitOutput(raw);
+    if (!summary) throw new Error('The AI returned an empty explanation.');
+    await setStatus({ ai_status: 'done', ai_summary: summary, ai_values: values, ai_error: null, ai_generated_at: new Date().toISOString(), ai_model: `${provider}:${cfg.model}` });
     return json({ ok: true });
   } catch (e) {
     console.error('explain-report failed', e);

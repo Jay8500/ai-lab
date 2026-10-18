@@ -138,6 +138,13 @@
           <app-timeline [items]="progress()" />
         </section>
       }
+      @if (result() && trends().length && tenant.pages().show_ai !== false) {
+        <section class="card animate-fade-up p-5 sm:p-6">
+          <h2 class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="trending-up" class="size-4 text-violet-600" /> How your results changed</h2>
+          <p class="mb-2 text-xs text-slate-400">From your reports at {{ tenant.name() }} · green band = normal range. Always discuss changes with your doctor.</p>
+          <app-trends [series]="trends()" [limit]="5" />
+        </section>
+      }
       @if (result() && earlier().length) {
         <section class="card animate-fade-up p-5 sm:p-6">
           <h2 class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="file-text" class="size-4 text-brand" /> Your earlier visits</h2>

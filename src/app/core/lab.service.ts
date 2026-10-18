@@ -133,6 +133,21 @@ export class LabService {
    * upload, and from the "Explain with AI" button — same action either way. The card shows
    * a skeleton while it runs; the result arrives through the live visits feed.
    */
+  /** Ask AI about this lab's numbers (lab-assistant function, the lab's own AI key). */
+  async ask(question: string, history: { role: 'user' | 'assistant'; content: string }[]): Promise<string> {
+    const { data, error } = await this.sb.client.functions.invoke('lab-assistant', { body: { question, history } });
+    let msg: string | null = data?.error ?? null;
+    if (error) {
+      try {
+        msg = (await (error as { context?: Response }).context?.json())?.error ?? error.message;
+      } catch {
+        msg = error.message;
+      }
+    }
+    if (msg) throw new Error(/failed to send|fetch/i.test(msg) ? 'Couldn’t reach the AI — check your internet and try again.' : msg);
+    return String(data?.answer ?? '');
+  }
+
   async explain(v: Visit): Promise<void> {
     if (!v.report_path) {
       this.toast.warn('Upload the report PDF first.');

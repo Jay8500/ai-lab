@@ -62,8 +62,8 @@ export class SalesPage implements OnInit {
 
   protected readonly ai = [
     { icon: 'sparkles', title: 'AI report explainer', text: 'Plain-language summaries of results for patients the moment the report is uploaded, with a clear medical disclaimer.', live: true },
-    { icon: 'chart-column', title: 'Trends across visits', text: 'See how a patient’s values change over time, highlighted automatically.', live: false },
-    { icon: 'bot', title: 'Smart assistant for staff', text: 'Ask “which reports are pending since morning?” and get the answer instantly.', live: false },
+    { icon: 'chart-column', title: 'Trends across visits', text: 'See how a patient’s values change over time, highlighted automatically.', live: true },
+    { icon: 'bot', title: 'Smart assistant for staff', text: 'Ask “which reports are pending since morning?” and get the answer instantly.', live: true },
   ];
 
   protected readonly steps = [
