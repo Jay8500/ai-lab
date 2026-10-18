@@ -50,7 +50,8 @@
   }
   /* <app-field> with an error: red control */
   .field-invalid .input,
-  .field-invalid .seg {
+  .field-invalid .seg,
+  .input.is-invalid {
     @apply border-rose-300 bg-rose-50/30 focus:border-rose-400 focus:ring-rose-500/10;
   }
   .label {

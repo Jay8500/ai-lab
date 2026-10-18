@@ -6,6 +6,7 @@ import { AdminService } from '../../core/admin.service';
 import { BillingModel, Plan } from '../../core/models';
 import { ToastService } from '../../core/toast.service';
 import { Modal } from '../../shared/modal';
+import { FormField } from '../../shared/form-field';
 
 const MODELS: { v: BillingModel; l: string; hint: string }[] = [
   { v: 'free', l: 'Free / trial', hint: 'No charge' },
@@ -26,7 +27,7 @@ const FEATURES = [
 
 @Component({
   selector: 'app-admin-plans',
-  imports: [FormsModule, LucideAngularModule, DecimalPipe, Modal],
+  imports: [FormsModule, LucideAngularModule, DecimalPipe, Modal, FormField],
   template: `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
@@ -66,13 +67,18 @@ const FEATURES = [
 
     @if (form(); as f) {
       <app-modal [title]="f.id ? 'Edit plan' : 'New plan'" (closed)="form.set(null)" [width]="560">
-        <form class="space-y-4" (ngSubmit)="save(f)">
+        @let e = errors(f);
+        <form class="space-y-4" (ngSubmit)="save(f)" novalidate>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="label">Name</label><input class="input" name="n" [(ngModel)]="f.name" required /></div>
-            <div><label class="label">Code</label><input class="input font-mono" name="c" [(ngModel)]="f.code" required /></div>
+            <app-field label="Name" required [error]="e.name" hint="Shown to labs, e.g. Growth.">
+              <input class="input" name="n" [(ngModel)]="f.name" maxlength="60" />
+            </app-field>
+            <app-field label="Code" required [error]="e.code" hint="Short ID, e.g. growth.">
+              <input class="input font-mono lowercase" name="c" [(ngModel)]="f.code" maxlength="30" autocapitalize="none" spellcheck="false" />
+            </app-field>
           </div>
           <div>
-            <span class="label">Billing model</span>
+            <span class="label">Billing model <span class="text-rose-500">*</span></span>
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
               @for (m of models; track m.v) {
                 <button type="button" class="rounded-xl border px-3 py-2 text-left transition"
@@ -84,12 +90,22 @@ const FEATURES = [
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div><label class="label">Price ₹</label><input class="input" type="number" name="pr" [(ngModel)]="f.price" /></div>
-            <div><label class="label">Per report ₹</label><input class="input" type="number" step="0.5" name="pf" [(ngModel)]="f.per_report_fee" /></div>
-            <div><label class="label">Rev share %</label><input class="input" type="number" name="rs" [(ngModel)]="f.revenue_share_pct" /></div>
-            <div><label class="label">Setup ₹</label><input class="input" type="number" name="sf" [(ngModel)]="f.setup_fee" /></div>
+            <app-field label="Price ₹" [required]="needs(f, 'price')" [error]="e.price">
+              <input class="input" type="number" min="0" name="pr" [(ngModel)]="f.price" />
+            </app-field>
+            <app-field label="Per report ₹" [required]="needs(f, 'per_report_fee')" [error]="e.per_report_fee">
+              <input class="input" type="number" min="0" step="0.5" name="pf" [(ngModel)]="f.per_report_fee" />
+            </app-field>
+            <app-field label="Rev share %" [required]="needs(f, 'revenue_share_pct')" [error]="e.revenue_share_pct">
+              <input class="input" type="number" min="0" max="100" name="rs" [(ngModel)]="f.revenue_share_pct" />
+            </app-field>
+            <app-field label="Setup ₹" optional [error]="e.setup_fee">
+              <input class="input" type="number" min="0" name="sf" [(ngModel)]="f.setup_fee" />
+            </app-field>
           </div>
-          <div><label class="label">Monthly report quota (blank = unlimited)</label><input class="input" type="number" name="q" [(ngModel)]="f.report_quota" /></div>
+          <app-field label="Monthly report quota" optional [error]="e.report_quota" hint="Leave empty for unlimited reports.">
+            <input class="input" type="number" min="1" name="q" [(ngModel)]="f.report_quota" placeholder="Unlimited" />
+          </app-field>
           <div class="grid grid-cols-2 gap-2">
             @for (ft of features; track ft.key) {
               <label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" class="size-4 accent-[var(--brand)]" [name]="ft.key" [(ngModel)]="f.features[ft.key]" /> {{ ft.label }}</label>
@@ -130,6 +146,7 @@ export class AdminPlans {
   }
 
   edit(p?: Plan) {
+    this.submitted.set(false);
     this.form.set(
       p
         ? structuredClone({ ...p, features: { ...(p.features ?? {}) } })
@@ -137,10 +154,45 @@ export class AdminPlans {
     );
   }
 
+  protected readonly submitted = signal(false);
+
+  /** Which price fields the chosen billing model uses */
+  needs(f: Partial<Plan>, k: 'price' | 'per_report_fee' | 'revenue_share_pct') {
+    const m = f.billing_model;
+    if (k === 'price') return m === 'monthly' || m === 'yearly' || m === 'hybrid';
+    if (k === 'per_report_fee') return m === 'per_report' || m === 'hybrid';
+    return m === 'revenue_share';
+  }
+
+  errors(f: Partial<Plan>): Partial<Record<'name' | 'code' | 'price' | 'per_report_fee' | 'revenue_share_pct' | 'setup_fee' | 'report_quota', string>> {
+    if (!this.submitted()) return {};
+    const e: ReturnType<AdminPlans['errors']> = {};
+    const empty = (v: unknown) => v === '' || v === null || v === undefined;
+    const name = (f.name ?? '').trim();
+    if (!name) e.name = 'Enter a plan name.';
+    else if (name.length < 2) e.name = 'Use at least 2 characters.';
+    const code = (f.code ?? '').trim();
+    if (!code) e.code = 'Enter a short code.';
+    else if (!/^[a-z0-9_-]{2,30}$/i.test(code)) e.code = 'Letters, numbers, - or _ only (2–30).';
+    else if (this.admin.plans().some((p) => p.code.toLowerCase() === code.toLowerCase() && p.id !== f.id)) e.code = 'Another plan already uses this code.';
+    for (const k of ['price', 'per_report_fee', 'setup_fee'] as const) {
+      const v = f[k] as unknown;
+      if (!empty(v) && Number(v) < 0) e[k] = 'Can’t be negative.';
+      else if (k !== 'setup_fee' && this.needs(f, k) && !(Number(v) > 0)) e[k] = 'Required for this billing model.';
+    }
+    const rs = f.revenue_share_pct as unknown;
+    if (!empty(rs) && (Number(rs) < 0 || Number(rs) > 100)) e.revenue_share_pct = 'Use 0 to 100.';
+    else if (this.needs(f, 'revenue_share_pct') && !(Number(rs) > 0)) e.revenue_share_pct = 'Required for revenue share.';
+    const q = f.report_quota as unknown;
+    if (!empty(q) && (!Number.isInteger(Number(q)) || Number(q) < 1)) e.report_quota = 'A whole number of reports, or leave empty.';
+    return e;
+  }
+
   async save(f: Partial<Plan>) {
-    if (!f.name?.trim()) return this.toast.warn('Enter a plan name.');
-    if (!/^[a-z0-9_-]{2,30}$/i.test(f.code ?? '')) return this.toast.warn('Plan code: letters, numbers, - or _ only.');
-    if ([f.price, f.per_report_fee, f.revenue_share_pct, f.setup_fee].some((v) => Number(v) < 0)) return this.toast.warn('Prices cannot be negative.');
+    this.submitted.set(true);
+    if (Object.keys(this.errors(f)).length) return this.toast.warn('Fix the highlighted fields.');
+    f.name = f.name!.trim();
+    f.code = f.code!.trim().toLowerCase();
     this.busy.set(true);
     try {
       const num = (v: unknown) => (v === '' || v === null || v === undefined ? 0 : Number(v));

@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { CirclesLogo } from './circles-logo';
+import { FormField } from './form-field';
 import { SupportService } from '../core/support.service';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
@@ -11,7 +12,7 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent';
 /** Slide-over "Raise a ticket" panel, powered by Circles. */
 @Component({
   selector: 'app-circles-support',
-  imports: [FormsModule, LucideAngularModule, CirclesLogo],
+  imports: [FormsModule, LucideAngularModule, CirclesLogo, FormField],
   template: `
     @if (support.open()) {
       <div class="animate-fade-in fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[2px]" (click)="close()"></div>
@@ -43,19 +44,18 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent';
             <button class="btn-ghost mt-6" (click)="ticketId.set(null)">Raise another</button>
           </div>
         } @else {
-          <form class="flex flex-1 flex-col overflow-y-auto" (ngSubmit)="submit()">
+          <form class="flex flex-1 flex-col overflow-y-auto" (ngSubmit)="submit()" novalidate>
             <div class="space-y-4 p-5">
               <div class="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
                 Lab context: <span class="font-mono font-semibold text-slate-700">{{ tenant.slug() ?? 'platform' }}</span> — attached automatically
               </div>
-              <div>
-                <label class="label" for="ts">Issue summary</label>
-                <input id="ts" class="input" name="summary" [(ngModel)]="summary" required maxlength="140" placeholder="e.g. PDF upload fails for large reports" />
-              </div>
-              <div>
-                <label class="label" for="td">Details</label>
-                <textarea id="td" class="input min-h-28" name="details" [(ngModel)]="details" placeholder="What happened? What did you expect?"></textarea>
-              </div>
+              @let e = errors();
+              <app-field label="Issue summary" for="ts" required [error]="e.summary" [counter]="summary.length + ' / 140'">
+                <input id="ts" class="input" name="summary" [(ngModel)]="summary" maxlength="140" placeholder="e.g. PDF upload fails for large reports" />
+              </app-field>
+              <app-field label="Details" for="td" optional [error]="e.details" hint="Steps to repeat it help us fix it faster." [counter]="details.length ? details.length + ' / 2000' : ''">
+                <textarea id="td" class="input min-h-28" name="details" [(ngModel)]="details" maxlength="2000" placeholder="What happened? What did you expect?"></textarea>
+              </app-field>
               <div>
                 <span class="label">Priority</span>
                 <div class="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1">
@@ -127,8 +127,21 @@ export class CirclesSupport {
     this.preview.set(f ? URL.createObjectURL(f) : null);
   }
 
+  protected readonly submitted = signal(false);
+
+  errors(): { summary?: string; details?: string } {
+    if (!this.submitted()) return {};
+    const e: { summary?: string; details?: string } = {};
+    const s = this.summary.replace(/\s+/g, ' ').trim();
+    if (!s) e.summary = 'Add a short summary of the issue.';
+    else if (s.length < 8) e.summary = 'A few more words, please — e.g. “Upload fails for big PDFs”.';
+    if (this.details.trim() && this.details.trim().length < 10) e.details = 'Add a little more detail, or leave it empty.';
+    return e;
+  }
+
   async submit() {
-    if (!this.summary.trim()) return this.toast.warn('Add a short summary of the issue.');
+    this.submitted.set(true);
+    if (Object.keys(this.errors()).length) return this.toast.warn('Check the highlighted fields.');
     this.busy.set(true);
     try {
       const id = await this.support.submit({
@@ -141,6 +154,7 @@ export class CirclesSupport {
       this.toast.success('Ticket raised.');
       this.summary = '';
       this.details = '';
+      this.submitted.set(false);
       this.file = null;
       this.fileName.set('');
       this.preview.set(null);

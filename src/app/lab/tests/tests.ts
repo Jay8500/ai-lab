@@ -30,20 +30,26 @@ import { ToastService } from '../../core/toast.service';
         <input class="input py-2! pl-9!" placeholder="Filter tests" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </div>
       <div class="hidden grid-cols-[110px_1fr_120px_100px_40px] gap-2 px-1 pb-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
-        <span>Code</span><span>Test name</span><span>Price ₹</span><span>Report in (hrs)</span><span></span>
+        <span>Code <span class="text-rose-500">*</span></span><span>Test name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>Report in (hrs)</span><span></span>
       </div>
       <div class="space-y-2">
         @for (t of tests(); track $index; let i = $index) {
           @if (matches(t)) {
+            @let e = rowErr(i);
             <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_120px_100px_40px] sm:bg-transparent sm:p-0">
-              <input class="input font-mono uppercase" [(ngModel)]="t.code" (ngModelChange)="dirty.set(true)" placeholder="CBP" maxlength="12" />
-              <input class="input col-span-2 sm:col-span-1" [(ngModel)]="t.name" (ngModelChange)="dirty.set(true)" placeholder="Complete Blood Picture" />
-              <input class="input" type="number" min="0" [(ngModel)]="t.price" (ngModelChange)="dirty.set(true)" />
-              <input class="input" type="number" min="0" [(ngModel)]="t.tat_hours" (ngModelChange)="dirty.set(true)" />
+              <input class="input font-mono uppercase" [class.is-invalid]="!!e.code" [(ngModel)]="t.code" (ngModelChange)="dirty.set(true)" placeholder="CBP" maxlength="12" aria-label="Test code" />
+              <input class="input col-span-2 sm:col-span-1" [class.is-invalid]="!!e.name" [(ngModel)]="t.name" (ngModelChange)="dirty.set(true)" placeholder="Complete Blood Picture" maxlength="80" aria-label="Test name" />
+              <input class="input" type="number" min="0" [class.is-invalid]="!!e.price" [(ngModel)]="t.price" (ngModelChange)="dirty.set(true)" aria-label="Price" placeholder="₹" />
+              <input class="input" type="number" min="1" [class.is-invalid]="!!e.tat" [(ngModel)]="t.tat_hours" (ngModelChange)="dirty.set(true)" aria-label="Report in hours" placeholder="hrs" />
               <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="remove(i)" title="Remove test">
                 <lucide-icon name="trash-2" class="size-4" />
               </button>
             </div>
+            @if (e.code || e.name || e.price || e.tat) {
+              <p class="animate-fade-in -mt-1 flex items-start gap-1.5 px-1 text-xs font-medium text-rose-600" role="alert">
+                <lucide-icon name="circle-x" class="mt-px size-3.5 shrink-0" /> {{ e.code || e.name || e.price || e.tat }}
+              </p>
+            }
           }
         } @empty {
           <p class="py-10 text-center text-sm text-slate-400">No tests yet — add your first one.</p>
@@ -83,13 +89,37 @@ export class LabTests implements OnInit {
     this.dirty.set(true);
   }
 
+  protected readonly submitted = signal(false);
+
+  /** Problems with one row (only after Save is pressed; blank rows are dropped on save). */
+  rowErr(i: number): { code?: string; name?: string; price?: string; tat?: string } {
+    if (!this.submitted()) return {};
+    const t = this.tests()[i];
+    const code = (t.code ?? '').trim();
+    const name = (t.name ?? '').trim();
+    if (!code && !name) return {};
+    const e: { code?: string; name?: string; price?: string; tat?: string } = {};
+    if (!code) e.code = 'Add a short code, e.g. CBP.';
+    else if (!/^[A-Za-z0-9-]{2,12}$/.test(code)) e.code = 'Code: 2–12 letters, numbers or -.';
+    else if (this.tests().some((x, j) => j < i && (x.code ?? '').trim().toUpperCase() === code.toUpperCase())) e.code = `Code ${code.toUpperCase()} is already used above.`;
+    if (!name) e.name = 'Add the test name patients will see.';
+    else if (name.length < 2) e.name = 'Test name is too short.';
+    const p = t.price as unknown;
+    if (p === '' || p === null || p === undefined || !(Number(p) >= 0)) e.price = 'Enter a price (0 or more).';
+    else if (Number(p) > 100000) e.price = 'That price looks too high — check it.';
+    const h = t.tat_hours as unknown;
+    if (h !== '' && h !== null && h !== undefined && (!(Number(h) >= 1) || Number(h) > 720)) e.tat = 'Report time: 1 to 720 hours, or leave empty.';
+    return e;
+  }
+
   async save() {
-    const rows = this.tests().filter((t) => t.code.trim() || t.name.trim());
-    if (rows.some((t) => !t.code.trim())) return this.toast.warn('Every test needs a code.');
-    if (rows.some((t) => !t.name.trim())) return this.toast.warn('Every test needs a name.');
-    const codes = rows.map((t) => t.code.trim().toUpperCase());
-    if (new Set(codes).size !== codes.length) return this.toast.warn('Two tests have the same code.');
-    if (rows.some((t) => !(Number(t.price) >= 0))) return this.toast.warn('Prices must be 0 or more.');
+    this.submitted.set(true);
+    const bad = this.tests().some((_, i) => Object.keys(this.rowErr(i)).length);
+    if (bad) {
+      this.q.set('');
+      return this.toast.warn('Fix the highlighted tests.');
+    }
+    const rows = this.tests().filter((t) => (t.code ?? '').trim() || (t.name ?? '').trim());
 
     const clean = rows.map((t) => ({
       code: t.code.trim().toUpperCase(),
@@ -104,6 +134,7 @@ export class LabTests implements OnInit {
       await this.tenant.refresh();
       this.tests.set(structuredClone(clean));
       this.dirty.set(false);
+      this.submitted.set(false);
       this.toast.success('Tests saved.');
     } catch (e) {
       this.toast.fail(e, 'Could not save tests.');

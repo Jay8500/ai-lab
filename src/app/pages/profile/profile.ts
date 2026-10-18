@@ -8,18 +8,19 @@ import { realEmail } from '../../core/models';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { Avatar } from '../../shared/avatar';
+import { FormField } from '../../shared/form-field';
 
 /** "My profile" — used inside both the admin console and the lab workspace. */
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, Avatar],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, Avatar, FormField],
   template: `
     @if (auth.profile(); as p) {
       <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">My profile</h1>
       <p class="text-sm text-slate-500">Your photo and name are shown to your team.</p>
 
       <div class="mt-5 grid gap-5 lg:grid-cols-[1fr_380px]">
-        <form class="card space-y-5 p-5 sm:p-6" (ngSubmit)="save()">
+        <form class="card space-y-5 p-5 sm:p-6" (ngSubmit)="save()" novalidate>
           <div class="flex flex-wrap items-center gap-5">
             <app-avatar [name]="name || p.username" [url]="photo()" [size]="88" />
             <div class="flex flex-wrap gap-2">
@@ -37,10 +38,9 @@ import { Avatar } from '../../shared/avatar';
             </div>
           </div>
 
-          <div>
-            <label class="label" for="pf-name">Full name</label>
-            <input id="pf-name" class="input" name="name" [(ngModel)]="name" maxlength="80" />
-          </div>
+          <app-field label="Full name" for="pf-name" required [error]="nameErr()" hint="As your team knows you, e.g. Ravi Kumar.">
+            <input id="pf-name" class="input" name="name" [(ngModel)]="name" (blur)="nameTouched.set(true)" maxlength="80" autocomplete="name" />
+          </app-field>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div>
@@ -69,16 +69,15 @@ import { Avatar } from '../../shared/avatar';
           </button>
         </form>
 
-        <form class="card h-fit space-y-3 p-5 sm:p-6" (ngSubmit)="changePassword()">
+        <form class="card h-fit space-y-3 p-5 sm:p-6" (ngSubmit)="changePassword()" novalidate>
           <h2 class="section-title">Change password</h2>
-          <div>
-            <label class="label" for="pf-pw">New password</label>
+          @let pe = pwErr();
+          <app-field label="New password" for="pf-pw" required [error]="pe.pw" hint="At least 8 characters, with a letter and a number.">
             <input id="pf-pw" class="input" type="password" name="pw" [(ngModel)]="pw" autocomplete="new-password" placeholder="At least 8 characters" />
-          </div>
-          <div>
-            <label class="label" for="pf-pw2">Confirm new password</label>
+          </app-field>
+          <app-field label="Confirm new password" for="pf-pw2" required [error]="pe.pw2">
             <input id="pf-pw2" class="input" type="password" name="pw2" [(ngModel)]="pw2" autocomplete="new-password" />
-          </div>
+          </app-field>
           <button class="btn-ghost w-full" type="submit" [disabled]="savingPw()">
             <lucide-icon name="key-round" class="size-4" /> Update password
           </button>
@@ -133,8 +132,31 @@ export class ProfilePage implements OnInit {
     }
   }
 
+  protected readonly nameTouched = signal(false);
+  protected readonly pwSubmitted = signal(false);
+
+  nameErr(): string | null {
+    if (!this.nameTouched()) return null;
+    const n = this.name.replace(/\s+/g, ' ').trim();
+    if (!n) return 'Enter your name.';
+    if (n.length < 2) return 'Use at least 2 characters.';
+    if (!/^[\p{L}][\p{L}\p{M} .'()-]*$/u.test(n)) return 'Use letters, spaces, dots or hyphens only.';
+    return null;
+  }
+
+  pwErr(): { pw?: string; pw2?: string } {
+    if (!this.pwSubmitted()) return {};
+    const e: { pw?: string; pw2?: string } = {};
+    if (!this.pw) e.pw = 'Enter a new password.';
+    else if (this.pw.length < 8) e.pw = 'Use at least 8 characters.';
+    else if (!/[A-Za-z]/.test(this.pw) || !/\d/.test(this.pw)) e.pw = 'Mix letters and numbers.';
+    if (!e.pw && this.pw !== this.pw2) e.pw2 = 'The two passwords don’t match.';
+    return e;
+  }
+
   async save() {
-    if (!this.name.trim()) return this.toast.warn('Enter your name.');
+    this.nameTouched.set(true);
+    if (this.nameErr()) return this.toast.warn('Check your name.');
     this.saving.set(true);
     try {
       await this.auth.updateProfile(this.name, this.photo());
@@ -147,12 +169,13 @@ export class ProfilePage implements OnInit {
   }
 
   async changePassword() {
-    if (this.pw.length < 8) return this.toast.warn('Password must be at least 8 characters.');
-    if (this.pw !== this.pw2) return this.toast.warn('The two passwords do not match.');
+    this.pwSubmitted.set(true);
+    if (Object.keys(this.pwErr()).length) return this.toast.warn('Check the new password.');
     this.savingPw.set(true);
     try {
       await this.auth.updatePassword(this.pw);
       this.pw = this.pw2 = '';
+      this.pwSubmitted.set(false);
       this.toast.success('Password updated.');
     } catch (e) {
       this.toast.fail(e, 'Could not update the password.');
