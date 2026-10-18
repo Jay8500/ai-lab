@@ -4,11 +4,12 @@ import { RouterOutlet } from '@angular/router';
 import { installTypingRules } from './core/text-clean';
 import { DialogHost } from './shared/dialog-host';
 import { ToastHost } from './shared/toast-host';
+import { UpdateBanner } from './shared/update-banner';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastHost, DialogHost],
-  template: `<router-outlet /><app-toast-host /><app-dialog-host />`,
+  imports: [RouterOutlet, ToastHost, DialogHost, UpdateBanner],
+  template: `<router-outlet /><app-toast-host /><app-dialog-host /><app-update-banner />`,
 })
 export class App {
   constructor() {
