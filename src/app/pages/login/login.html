@@ -21,7 +21,11 @@
         <div class="mt-6 grid grid-cols-3 gap-3 text-sm">
           <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="zap" class="size-4" /><p class="mt-2 font-semibold">Instant tokens</p></div>
           <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="send" class="size-4" /><p class="mt-2 font-semibold">WhatsApp reports</p></div>
-          <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="sparkles" class="size-4" /><p class="mt-2 font-semibold">AI explained</p></div>
+          @if (!t() || tenant.pages().show_ai) {
+            <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="sparkles" class="size-4" /><p class="mt-2 font-semibold">AI explained</p></div>
+          } @else {
+            <div class="rounded-2xl bg-white/15 p-3 backdrop-blur"><lucide-icon name="smartphone" class="size-4" /><p class="mt-2 font-semibold">Live tracking</p></div>
+          }
         </div>
       </div>
       <div class="flex items-center gap-3">

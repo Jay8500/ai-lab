@@ -5,7 +5,7 @@ export const environment = {
   /** Root domain whose subdomains map to lab slugs: srisai.spreadapps.in -> srisai */
   baseDomain: 'spreadapps.in',
   /** Where the super admin console lives. Switch to 'ailab.spreadapps.in' once that domain is on the Netlify site. */
-  platformHost: 'spreadapps-ai-lab.netlify.app',
+  platformHost: 'ailab.spreadapps.in',
   /** Subdomains that belong to the platform, never to a lab */
   reservedSubdomains: ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api'],
   /** Lab used when ?lab= is not given on netlify.app / localhost previews (null = SpreadApps landing) */
