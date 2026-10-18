@@ -30,7 +30,7 @@ import { FormField } from '../../shared/form-field';
                 {{ photo() ? 'Change photo' : 'Upload photo' }}
               </label>
               @if (photo()) {
-                <button type="button" class="btn-ghost py-2! text-xs hover:text-rose-600!" (click)="photo.set(null)">
+                <button type="button" class="btn-ghost py-2! text-xs hover:text-rose-600!" (click)="removePhoto()">
                   <lucide-icon name="trash-2" class="size-3.5" /> Remove
                 </button>
               }
@@ -123,12 +123,25 @@ export class ProfilePage implements OnInit {
     if (f.size > 2 * 1024 * 1024) return this.toast.warn('Photo must be under 2 MB.');
     this.uploading.set(true);
     try {
-      this.photo.set(await this.auth.uploadAvatar(f));
-      this.toast.info('Photo ready — click Save profile.');
+      const url = await this.auth.uploadAvatar(f);
+      // Save straight away so the header and team lists update now
+      await this.auth.updateProfile(this.auth.profile()?.full_name || this.name, url);
+      this.photo.set(url);
+      this.toast.success('Photo updated.');
     } catch (err) {
       this.toast.fail(err, 'Could not upload the photo.');
     } finally {
       this.uploading.set(false);
+    }
+  }
+
+  async removePhoto() {
+    try {
+      await this.auth.updateProfile(this.auth.profile()?.full_name || this.name, null);
+      this.photo.set(null);
+      this.toast.success('Photo removed — your initials are shown instead.');
+    } catch (err) {
+      this.toast.fail(err, 'Could not remove the photo.');
     }
   }
 
