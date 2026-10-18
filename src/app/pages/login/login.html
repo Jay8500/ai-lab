@@ -59,6 +59,22 @@
           <span>{{ tenant.tenant()!.block_reason === 'payment_overdue' ? 'This lab has an overdue invoice — new work is paused. Lab admins can sign in and pay from Plan & team.' : 'This lab\'s ' + (tenant.tenant()!.status === 'trial' ? 'free trial has ended' : 'subscription is inactive') + '. You can sign in to view data; contact ' + brand.name + ' to reactivate.' }}</span>
         </div>
       }
+      @if (tabNotice(); as tn) {
+        <div class="animate-fade-up mt-5 rounded-2xl border border-brand/20 bg-brand/5 p-4">
+          <p class="flex items-center gap-2 text-sm font-bold text-slate-800">
+            <lucide-icon name="monitor" class="size-4 text-brand" />
+            {{ tn === 'busy' ? 'Already open in another tab' : 'Opened in another tab' }}
+          </p>
+          <p class="mt-1 text-xs text-slate-500">
+            {{ tn === 'busy'
+              ? 'For security, your workspace can be open in only one tab. Switch to that tab, or continue here and that tab will close the workspace.'
+              : 'You continued in another tab, so the workspace was closed here. You can close this tab.' }}
+          </p>
+          <button type="button" class="btn-primary mt-3 w-full" (click)="useThisTab()">
+            <lucide-icon name="log-in" class="size-4" /> Use this tab instead
+          </button>
+        </div>
+      }
       @if (kickedNotice()) {
         <div class="animate-fade-up mt-5 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           <lucide-icon name="shield-check" class="mt-0.5 size-4 shrink-0" />
@@ -93,7 +109,7 @@
           <a [href]="e.url" class="btn-primary mt-3 w-full">Go to {{ e.host }} <lucide-icon name="arrow-right" class="size-4" /></a>
         </div>
       }
-      <form class="mt-6 space-y-4" [class.hidden]="!!pending()" (ngSubmit)="submit()">
+      <form class="mt-6 space-y-4" [class.hidden]="!!pending() || !!tabNotice()" (ngSubmit)="submit()">
         @if (mode() !== 'reset') {
           <div>
             <label class="label" for="em">{{ mode() === 'forgot' ? 'Email' : 'Username or email' }}</label>

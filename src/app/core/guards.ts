@@ -2,18 +2,23 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { TenantService } from './tenant.service';
+import { TabLockService } from './tab-lock.service';
+
+/** Another tab of this browser already has the workspace open → send this one to the login page. */
+const busyTab = (router: Router, url: string) => router.createUrlTree(['/login'], { queryParams: { tab: 'busy', next: url } });
 
 /** Admin console: super admins only, and only on the platform host (never inside a lab's site). */
 export const superAdminGuard: CanActivateFn = async (_r, state) => {
   const auth = inject(AuthService);
   const tenant = inject(TenantService);
   const router = inject(Router);
+  const tabs = inject(TabLockService);
   await auth.init();
   if (tenant.tenant()) {
     location.href = tenant.platformUrl('/admin');
     return false;
   }
-  if (auth.isPlatformAdmin()) return true;
+  if (auth.isPlatformAdmin()) return (await tabs.claim()) ? true : busyTab(router, state.url);
   return router.createUrlTree(['/login'], { queryParams: { next: state.url } });
 };
 
@@ -22,10 +27,11 @@ export const labGuard: CanActivateFn = async (_r, state) => {
   const auth = inject(AuthService);
   const tenant = inject(TenantService);
   const router = inject(Router);
+  const tabs = inject(TabLockService);
   await auth.init();
   const t = tenant.tenant();
   if (!t) return router.createUrlTree(['/']);
-  if (auth.isLabUser() && auth.profile()?.tenant_id === t.id) return true;
+  if (auth.isLabUser() && auth.profile()?.tenant_id === t.id) return (await tabs.claim()) ? true : busyTab(router, state.url);
   return router.createUrlTree(['/login'], { queryParams: { next: state.url } });
 };
 

@@ -10,6 +10,7 @@ import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { describeDevice, SessionService } from '../../core/session.service';
 import { ActivityService } from '../../core/activity.service';
+import { TabLockService } from '../../core/tab-lock.service';
 
 type Mode = 'login' | 'forgot' | 'reset';
 
@@ -27,6 +28,9 @@ export class LoginPage implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly sessions = inject(SessionService);
   private readonly activity = inject(ActivityService);
+  private readonly tabs = inject(TabLockService);
+  /** busy = the workspace is already open in another tab; moved = another tab took it over */
+  protected readonly tabNotice = signal<'busy' | 'moved' | null>(null);
   protected readonly brand = environment.brand;
 
   protected email = this.auth.lastEmail;
@@ -59,6 +63,19 @@ export class LoginPage implements OnInit {
       this.mode.set('reset');
       return;
     }
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'busy' || tab === 'moved') {
+      // Same session as the other tab — don't sign out, just don't open the workspace here
+      if (this.auth.profile()) return this.tabNotice.set(tab);
+    }
+    const p = this.auth.profile();
+    if (p) await this.routeFor(p).catch((e) => this.toast.fail(e));
+  }
+
+  /** Move the workspace to this tab; the other tab goes to the login page. */
+  async useThisTab() {
+    this.tabs.takeOver();
+    this.tabNotice.set(null);
     const p = this.auth.profile();
     if (p) await this.routeFor(p).catch((e) => this.toast.fail(e));
   }
