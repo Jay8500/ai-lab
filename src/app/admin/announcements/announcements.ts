@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,6 +7,7 @@ import { SupabaseService } from '../../core/supabase.service';
 import { cleanText } from '../../core/text-clean';
 import { ToastService } from '../../core/toast.service';
 import { FormField } from '../../shared/form-field';
+import { Timeline, TimelineItem } from '../../shared/timeline';
 import { DialogService } from '../../core/dialog.service';
 
 type Category = 'general' | 'payment' | 'feature' | 'maintenance' | 'trial';
@@ -71,7 +71,7 @@ const STATUSES = ['active', 'trial', 'expired', 'suspended'];
 
 @Component({
   selector: 'app-admin-announcements',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, FormField],
+  imports: [FormsModule, RouterLink, LucideAngularModule, FormField, Timeline],
   templateUrl: './announcements.html',
 })
 export class AdminAnnouncements implements OnInit {
@@ -97,6 +97,25 @@ export class AdminAnnouncements implements OnInit {
   protected readonly configured = signal<boolean | null>(null);
   protected readonly fromLabel = signal('');
   protected readonly history = signal<Announcement[]>([]);
+  /** Sent announcements as a timeline, newest first. */
+  protected readonly sentItems = computed<TimelineItem[]>(() =>
+    this.history().map((a) => {
+      const look: Record<Category, { icon: string; tone: string }> = {
+        general: { icon: 'megaphone', tone: 'bg-indigo-100 text-indigo-600' },
+        payment: { icon: 'credit-card', tone: 'bg-amber-100 text-amber-700' },
+        feature: { icon: 'sparkles', tone: 'bg-emerald-100 text-emerald-600' },
+        maintenance: { icon: 'triangle-alert', tone: 'bg-rose-100 text-rose-600' },
+        trial: { icon: 'hourglass', tone: 'bg-violet-100 text-violet-600' },
+      };
+      const parts = [
+        a.recipients ? `✉ ${a.sent}/${a.recipients} emailed` : '',
+        a.in_app_count ? `🔔 ${a.in_app_count} in-app` : '',
+        a.failed ? `${a.failed} failed` : '',
+        a.skipped_no_email ? `${a.skipped_no_email} without email` : '',
+      ].filter(Boolean);
+      return { id: a.id, at: a.created_at, title: a.subject, subtitle: parts.join(' · '), icon: look[a.category].icon, tone: look[a.category].tone, chips: [this.catLabel(a.category).l] };
+    }),
+  );
 
   protected readonly category = signal<Category>('general');
   protected readonly subject = signal('');

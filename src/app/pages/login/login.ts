@@ -9,6 +9,7 @@ import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { describeDevice, SessionService } from '../../core/session.service';
+import { ActivityService } from '../../core/activity.service';
 
 type Mode = 'login' | 'forgot' | 'reset';
 
@@ -25,6 +26,7 @@ export class LoginPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly sessions = inject(SessionService);
+  private readonly activity = inject(ActivityService);
   protected readonly brand = environment.brand;
 
   protected email = this.auth.lastEmail;
@@ -92,6 +94,7 @@ export class LoginPage implements OnInit {
       } else {
         const p = await this.auth.signIn(this.email.trim(), this.password, this.remember, this.t()?.slug ?? null);
         this.kickedNotice.set(false);
+        if (this.belongsHere(p)) this.activity.log('signed_in');
         if (this.belongsHere(p)) {
           const others = (await this.sessions.list()).filter((s) => !s.is_current);
           if (others.length) {

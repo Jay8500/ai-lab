@@ -12,13 +12,14 @@ import { AddPatientModal } from '../shared/add-patient-modal';
 import { BrandMark } from '../shared/brand-mark';
 import { CirclesLogo } from '../shared/circles-logo';
 import { AnnouncementBanner, AnnouncementReader } from '../shared/inbox-ui';
+import { PatientHistory } from '../shared/patient-history';
 import { CirclesSupport } from '../shared/circles-support-modal';
 import { NavItem, Sidebar, SidebarState } from '../shared/sidebar';
 import { TenantHeader } from '../shared/tenant-header';
 
 @Component({
   selector: 'app-lab-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo, AnnouncementBanner, AnnouncementReader],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, DatePipe, TenantHeader, AddPatientModal, CirclesSupport, Sidebar, BrandMark, CirclesLogo, AnnouncementBanner, AnnouncementReader, PatientHistory],
   template: `
     @let mini = sidebar.compact();
     <app-sidebar [items]="nav()" heading="Workspace">
@@ -118,6 +119,7 @@ import { TenantHeader } from '../shared/tenant-header';
     }
     <app-circles-support />
     <app-announcement-reader />
+    <app-patient-history />
   `,
 })
 export class LabShell implements OnInit {
@@ -140,6 +142,7 @@ export class LabShell implements OnInit {
           { path: '/lab/account', label: 'Plan & team', icon: 'settings' },
         ]
       : []),
+    { path: '/lab/activity', label: 'Activity', icon: 'history' },
     { path: '/lab/help', label: 'Help & feedback', icon: 'book-open' },
   ]);
 

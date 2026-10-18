@@ -29,6 +29,8 @@ export class LabService {
   readonly loading = signal(false);
   /** Add-patient modal, opened from header, bottom nav or empty state. */
   readonly addOpen = signal(false);
+  /** Patient whose visit history is open (timeline modal). */
+  readonly historyFor = signal<Visit | null>(null);
 
   readonly todays = computed(() => this.visits().filter((v) => new Date(v.created_at) >= startOfToday()));
   readonly active = computed(() => this.visits().filter((v) => v.status !== 'delivered' || new Date(v.created_at) >= startOfToday()));

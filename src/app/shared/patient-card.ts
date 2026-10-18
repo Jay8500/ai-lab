@@ -64,6 +64,9 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
           <button class="btn-ghost px-3! py-2!" (click)="copyLink()" title="Copy tracking link">
             <lucide-icon name="copy" class="size-3.5" />
           </button>
+          <button class="btn-ghost px-3! py-2!" (click)="lab.historyFor.set(v)" title="Patient history">
+            <lucide-icon name="history" class="size-3.5" />
+          </button>
         </div>
       </div>
     </article>

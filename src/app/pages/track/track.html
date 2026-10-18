@@ -127,6 +127,20 @@
         </div>
       }
 
+      @if (result() && progress().length) {
+        <section class="card animate-fade-up p-5 sm:p-6">
+          <h2 class="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="history" class="size-4 text-brand" /> Progress of this visit</h2>
+          <app-timeline [items]="progress()" />
+        </section>
+      }
+      @if (result() && earlier().length) {
+        <section class="card animate-fade-up p-5 sm:p-6">
+          <h2 class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="file-text" class="size-4 text-brand" /> Your earlier visits</h2>
+          <p class="mb-4 text-xs text-slate-400">At {{ tenant.name() }}, linked by your mobile number.</p>
+          <app-timeline [items]="earlier()" />
+        </section>
+      }
+
       @if (tenant.tenant()?.contact_phone) {
         <a [href]="'tel:' + tenant.tenant()!.contact_phone" class="card flex items-center gap-3 p-4 text-sm">
           <span class="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600"><lucide-icon name="phone" class="size-4" /></span>

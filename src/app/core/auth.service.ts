@@ -118,6 +118,11 @@ export class AuthService {
   /** Signs out THIS device only — other devices are managed under Account security. */
   async signOut(): Promise<void> {
     this.signingOut = true;
+    // record before the session ends (needs the token)
+    await this.sb.client.rpc('log_event', { p_action: 'signed_out' }).then(
+      () => undefined,
+      () => undefined,
+    );
     try {
       await this.sb.client.auth.signOut({ scope: 'local' });
     } catch {

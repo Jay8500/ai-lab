@@ -78,6 +78,7 @@ export class AdminShell implements OnInit {
           { path: '/admin/settings', label: 'Platform settings', icon: 'settings' },
         ]
       : []),
+    { path: '/admin/activity', label: 'Activity', icon: 'history' },
     { path: '/admin/help', label: 'Help & feedback', icon: 'book-open' },
   ]);
 

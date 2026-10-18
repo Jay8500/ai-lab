@@ -57,6 +57,7 @@ import { DialogService } from '../../core/dialog.service';
                   @if (lab.reportUrl(v); as url) {
                     <a class="btn-ghost px-2.5! py-1.5! text-xs" [href]="url" target="_blank" rel="noopener"><lucide-icon name="eye" class="size-3.5" /> PDF</a>
                   }
+                  <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="lab.historyFor.set(v)" title="Patient history"><lucide-icon name="history" class="size-3.5" /></button>
                   <button class="btn-ghost px-2.5! py-1.5! text-xs" (click)="copy(v)" title="Copy tracking link"><lucide-icon name="link" class="size-3.5" /></button>
                   @if (auth.isOwner()) {
                     <button class="btn-ghost px-2.5! py-1.5! text-xs hover:text-rose-600!" (click)="remove(v)" title="Delete visit"><lucide-icon name="trash-2" class="size-3.5" /></button>
@@ -79,6 +80,7 @@ import { DialogService } from '../../core/dialog.service';
             </div>
             <div class="flex flex-col items-end gap-1.5">
               <app-status-pill [status]="v.status" />
+              <button class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500" (click)="lab.historyFor.set(v)"><lucide-icon name="history" class="size-3.5" /> History</button>
               @if (lab.reportUrl(v); as url) {
                 <a class="text-xs font-semibold text-brand" [href]="url" target="_blank" rel="noopener">Open PDF</a>
               }

@@ -8,6 +8,13 @@ import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
 import { BrandMark } from '../../shared/brand-mark';
+import { Timeline, TimelineItem } from '../../shared/timeline';
+import { lookFor, VISIT_EVENT_LABEL } from '../../core/activity.service';
+
+interface TrackHistory {
+  events: { action: string; at: string }[];
+  previous: { token: string; created_at: string; status: VisitStatus; tests: { code: string; name: string }[]; report_path: string | null }[];
+}
 
 interface TrackResult {
   token: string;
@@ -29,7 +36,7 @@ const ORDER: VisitStatus[] = ['collected', 'in_lab', 'verified', 'ready', 'deliv
 /** Zero-login patient portal: /track/:token */
 @Component({
   selector: 'app-track',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, BrandMark],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, BrandMark, Timeline],
   templateUrl: './track.html',
 })
 export class TrackPage implements OnDestroy {
@@ -41,6 +48,7 @@ export class TrackPage implements OnDestroy {
 
   protected readonly steps = VISIT_STEPS;
   protected readonly result = signal<TrackResult | null>(null);
+  protected readonly history = signal<TrackHistory | null>(null);
   protected readonly loading = signal(false);
   protected readonly missing = signal(false);
   protected query = '';
@@ -97,8 +105,37 @@ export class TrackPage implements OnDestroy {
   }
 
   private async fetch(slug: string, token: string) {
-    const { data } = await this.sb.client.rpc('track_visit', { p_slug: slug, p_token: token });
+    const [{ data }, hist] = await Promise.all([
+      this.sb.client.rpc('track_visit', { p_slug: slug, p_token: token }),
+      this.sb.client.rpc('track_history', { p_slug: slug, p_token: token }),
+    ]);
     this.result.set((data as TrackResult) ?? null);
     this.missing.set(!data);
+    this.history.set((hist.data as TrackHistory) ?? null);
   }
+
+  /** This visit's progress, newest first. */
+  protected readonly progress = computed<TimelineItem[]>(() =>
+    (this.history()?.events ?? []).map((e, i) => {
+      const look = lookFor('visit', e.action);
+      return { id: 'e' + i, at: e.at, title: VISIT_EVENT_LABEL[e.action] ?? 'Updated', icon: look.icon, tone: look.tone };
+    }),
+  );
+
+  /** Earlier visits at this lab (same mobile number). */
+  protected readonly earlier = computed<TimelineItem[]>(() =>
+    (this.history()?.previous ?? []).map((p) => {
+      const ready = !!p.report_path;
+      return {
+        id: p.token,
+        at: p.created_at,
+        title: (p.tests ?? []).map((t) => t.name || t.code).join(', ') || 'Lab visit',
+        subtitle: ready ? 'Report available' : 'In progress',
+        icon: ready ? 'file-check' : 'clock',
+        tone: ready ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600',
+        chips: ['#' + p.token],
+        link: ready ? { label: 'Download PDF', href: this.sb.publicUrl('reports', p.report_path!) } : null,
+      };
+    }),
+  );
 }
