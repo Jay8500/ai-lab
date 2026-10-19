@@ -32,6 +32,19 @@ Details: [lis-devices.md](lis-devices.md).
 | P3 | **Patient email-code (OTP) login** | after B3; 6-digit code by email → link reports once (token + mobile last 4). Resend free = 100 emails/day — paid plan (~$20/mo) if many patients |
 | L5 | Per-test report status for patients | "CBP ready, Thyroid pending" on the track page (data exists in `test_results`) |
 
+## Departments — configurable lab setup (planned 2026-10-19)
+Each lab admin switches on the departments they run (haematology, biochemistry, microbiology, histopathology, radiology, outsourcing);
+that drives registration, sample collection, worklists, reporting and the patient portal. Full design: [departments-architecture.md](departments-architecture.md).
+
+| # | Phase | Notes |
+|---|---|---|
+| D1 | Lab setup + departments, grouped registration | config page; department on tests; staff departments |
+| D2 | Per-test progress () + department worklists | visits.status stays as a summary — nothing breaks |
+| D3 | Sample collection desk + home-collection assignment + rejection | |
+| D4 | Radiology: machines/rooms, appointments, Findings/Impression templates, radiologist sign-off, separate report | |
+| D5 | Microbiology (culture + antibiotic S/I/R) and histopathology (written reports) | |
+| D6 | Outsourcing to reference labs | |
+
 ## 2. Waiting on you (tell me when it's done)
 | # | Item | What you do first | Then I build |
 |---|---|---|---|
