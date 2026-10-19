@@ -55,7 +55,7 @@ export class AuthService {
   readonly googleEnabled = signal(false);
   private googleChecked = false;
   checkGoogle(): void {
-    if (this.googleChecked) return;
+    if (this.googleChecked || !environment.features.googleSignIn) return;
     this.googleChecked = true;
     fetch(environment.supabaseUrl + '/auth/v1/settings', { headers: { apikey: environment.supabaseAnonKey } })
       .then((r) => r.json())

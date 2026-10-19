@@ -27,7 +27,7 @@ Details: [lis-devices.md](lis-devices.md).
 | L2 | Two-way (host query) | analyzer asks AI-Lab which tests to run for a barcode |
 | L3 | Delta checks & critical values | warn on big change since last visit; call-the-doctor list |
 | L4 | Pathologist signature image + NABL fields on the report | |
-| P1 | ~~Patient accounts~~ — done with Google sign-in (2026-10-19) | add email OTP after B3, WhatsApp OTP after B5 |
+| P1 | **Patient accounts (Google sign-in) — built, ON HOLD** | switch on: create the free Google OAuth client (no billing / no $300 trial needed), enable Google in Supabase, set `environment.features.googleSignIn = true` |
 | P2 | Booking alerts to the lab by email / WhatsApp | today: live badge + list in Bookings |
 | L5 | Per-test report status for patients | "CBP ready, Thyroid pending" on the track page (data exists in `test_results`) |
 

@@ -10,6 +10,8 @@ export const environment = {
   reservedSubdomains: ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api'],
   /** Lab used when ?lab= is not given on netlify.app / localhost previews (null = SpreadApps landing) */
   demoTenant: null as string | null,
+  /** Feature switches. googleSignIn: patient accounts + Google login buttons (on hold — set true once Google OAuth is set up). */
+  features: { googleSignIn: false },
   brand: {
     name: 'SpreadApps',
     product: 'AI-Lab',

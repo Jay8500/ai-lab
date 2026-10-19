@@ -26,6 +26,7 @@ export class HomePage {
   protected readonly year = new Date().getFullYear();
 
   protected token = '';
+  protected readonly patientLogin = environment.features.googleSignIn;
   protected readonly bookingOpen = computed(() => !!this.tenant.tenant()?.usable && this.tenant.pages().show_booking !== false);
 
   protected readonly howSteps = [
