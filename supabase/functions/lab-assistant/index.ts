@@ -36,7 +36,7 @@ const IST = (d: Date | string) => new Date(new Date(d).getTime() + 330 * 60000).
 const hours = (a: string, b: string) => Math.round(((new Date(b).getTime() - new Date(a).getTime()) / 3600000) * 10) / 10;
 
 /** Compact numbers for the model; nothing that identifies a patient. */
-function snapshot(lab: { name: string; test_catalog: unknown }, visits: Visit[]) {
+function snapshot(lab: { name: string; test_catalog: unknown }, visits: Visit[], results: { token: string; test_code: string; status: string; source: string }[] = []) {
   const now = new Date();
   const today = IST(now);
   const daily: Record<string, { visits: number; revenue: number; reports: number }> = {};
@@ -83,6 +83,8 @@ function snapshot(lab: { name: string; test_catalog: unknown }, visits: Visit[])
       ai_flagged_high: s.high, ai_flagged_low: s.low,
     })),
     pending_reports: pending,
+    results_waiting_verification: results.filter((r) => r.status === 'entered').map((r) => ({ token: r.token, test: r.test_code, from: r.source === 'device' ? 'analyzer' : 'typed' })).slice(0, 60),
+    results_verified_count: results.filter((r) => r.status === 'verified').length,
     ready_not_delivered: readyNotDelivered,
     patients: {
       gender: visits.reduce((m: Record<string, number>, v) => ((m[v.gender ?? 'unknown'] = (m[v.gender ?? 'unknown'] ?? 0) + 1), m), {}),
@@ -202,7 +204,11 @@ Deno.serve(async (req) => {
     .limit(3000);
 
   try {
-    const sys = system(snapshot(lab!, (visits ?? []) as Visit[]));
+    // Result entry status (tokens only) — e.g. "which results are waiting for the pathologist?"
+    const { data: res } = await admin.from('test_results').select('test_code, status, source, visits!inner(token, created_at)')
+      .eq('tenant_id', me.tenant_id).gte('visits.created_at', since).limit(2000);
+    const results = (res ?? []).map((r: Record<string, unknown>) => ({ token: String((r.visits as { token: string }).token), test_code: String(r.test_code), status: String(r.status), source: String(r.source) }));
+    const sys = system(snapshot(lab!, (visits ?? []) as Visit[], results));
     const answer =
       provider === 'openai' ? await askOpenAI(apiKey, model, sys, turns)
       : provider === 'gemini' ? await askGemini(apiKey, model, sys, turns)

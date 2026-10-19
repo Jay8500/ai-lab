@@ -23,6 +23,9 @@ const LOOK: Record<string, { icon: string; tone: string }> = {
   'visit:report_uploaded': { icon: 'file-check', tone: 'bg-emerald-100 text-emerald-600' },
   'visit:report_sent': { icon: 'send', tone: 'bg-teal-100 text-teal-600' },
   'visit:delivered': { icon: 'send', tone: 'bg-teal-100 text-teal-600' },
+  'visit:results_entered': { icon: 'microscope', tone: 'bg-sky-100 text-sky-600' },
+  'visit:results_verified': { icon: 'badge-check', tone: 'bg-violet-100 text-violet-600' },
+  'visit:tests_changed': { icon: 'pencil', tone: 'bg-slate-100 text-slate-600' },
   'task:created': { icon: 'list-todo', tone: 'bg-indigo-100 text-indigo-600' },
   'task:completed': { icon: 'circle-check', tone: 'bg-emerald-100 text-emerald-600' },
   'task:reassigned': { icon: 'users', tone: 'bg-slate-100 text-slate-600' },
@@ -49,6 +52,9 @@ export const VISIT_EVENT_LABEL: Record<string, string> = {
   report_uploaded: 'Report ready',
   report_sent: 'Report sent to you',
   delivered: 'Report delivered',
+  results_entered: 'Results being checked',
+  results_verified: 'Results verified by the lab',
+  tests_changed: 'Tests updated',
 };
 
 export function lookFor(entity: string, action: string) {

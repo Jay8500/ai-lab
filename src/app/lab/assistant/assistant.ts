@@ -20,6 +20,7 @@ const SUGGESTIONS = [
   'Compare this week with last week.',
   'What is our average turnaround per test?',
   'Which ready reports are not delivered yet?',
+  'Which results are waiting for the pathologist?',
 ];
 
 /** Ask AI: staff ask questions about the lab's own numbers (lab-assistant edge function, lab's own key). */

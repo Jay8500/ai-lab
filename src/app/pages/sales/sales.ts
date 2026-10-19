@@ -81,6 +81,8 @@ export class SalesPage implements OnInit {
     { q: 'Can we keep our own lab brand?', a: 'Yes — your logo, colours, cover page and tests & prices on your own subdomain (custom domains on request).' },
     { q: 'Is patient data safe?', a: 'Data is encrypted in transit and at rest on servers in India. Each lab only ever sees its own data, and every action is recorded.' },
     { q: 'How long does setup take?', a: 'Usually the same day: we create your lab, you add your tests and staff, and reception can start.' },
+    { q: 'Can we type results and print reports in AI-Lab?', a: 'Yes. Technicians enter values with ranges and H/L flags, the pathologist verifies, and the PDF report with your letterhead is created automatically. You can still upload PDFs from other software.' },
+    { q: 'Can our analyzers send results directly?', a: 'Analyzers with an LIS port (ASTM or HL7) can be connected per lab — we set it up with you and your machine vendor. Barcode tube labels are printed from AI-Lab.' },
     { q: 'Is there a free trial?', a: 'Yes. Every lab starts with a free trial; you choose a plan only when you are happy.' },
   ];
 

@@ -128,8 +128,9 @@ export class LabDashboard {
   protected readonly q = signal('');
   protected readonly workflow = [
     { t: 'Register', d: 'add patient & tests, hand over the token' },
-    { t: 'Process', d: 'move the sample to testing and verify' },
-    { t: 'Upload', d: 'drop the signed PDF on the card' },
+    { t: 'Label', d: 'print barcode labels for the tubes' },
+    { t: 'Results', d: 'type values (or they arrive from the analyzer)' },
+    { t: 'Verify', d: 'pathologist verifies — the PDF report is made' },
     { t: 'Notify', d: 'send the link on WhatsApp in one tap' },
   ];
 
