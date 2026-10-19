@@ -29,6 +29,7 @@ Details: [lis-devices.md](lis-devices.md).
 | L4 | Pathologist signature image + NABL fields on the report | |
 | P1 | **Patient accounts (Google sign-in) — built, ON HOLD** | switch on: create the free Google OAuth client (no billing / no $300 trial needed), enable Google in Supabase, set `environment.features.googleSignIn = true` |
 | P2 | Booking alerts to the lab by email / WhatsApp | today: live badge + list in Bookings |
+| P3 | **Patient email-code (OTP) login** | after B3; 6-digit code by email → link reports once (token + mobile last 4). Resend free = 100 emails/day — paid plan (~$20/mo) if many patients |
 | L5 | Per-test report status for patients | "CBP ready, Thyroid pending" on the track page (data exists in `test_results`) |
 
 ## 2. Waiting on you (tell me when it's done)
@@ -36,7 +37,7 @@ Details: [lis-devices.md](lis-devices.md).
 |---|---|---|---|
 | B1 | **Razorpay — labs pay SpreadApps online** | Razorpay account approved (PAN, business bank account) | order + checkout + webhook → invoice auto-paid |
 | B2 | **Razorpay — patients pay the lab online** | each lab creates its own Razorpay account | "Pay ₹X" on the track page with the lab's keys |
-| B3 | **Invite / verify emails for new logins** | Supabase → Auth → SMTP = Resend (smtp.resend.com, 465, user `resend`, password = Resend key, sender noreply@mail.spreadapps.in) | Create login sends a verify link instead of a password |
+| B3 | **Invite / verify emails for new logins** | Supabase → Auth → SMTP = Resend (smtp.resend.com, 465, user `resend`, password = Resend key, sender noreply@mail.spreadapps.in) | Reliable "Forgot password" (today: Supabase built-in sender, few/hour) · Create login sends a verify link · enables P3. The existing Resend key is only used by our functions (announcements, demo alerts) |
 | B4 | **Circles ticket bridge** | restore the Circles Supabase project | tickets sync both ways, "My tickets" for labs |
 | B5 | **Automatic WhatsApp sending** | WhatsApp Business API account (Meta / Gupshup / Interakt / WATI) | reports sent without tapping Share |
 | B6 | **Business name in legal pages** | send official name + address (e.g. "SpreadApps, proprietor …, Hyderabad") | Privacy, Terms, invoices, sales footer |
