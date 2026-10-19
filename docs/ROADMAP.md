@@ -27,6 +27,8 @@ Details: [lis-devices.md](lis-devices.md).
 | L2 | Two-way (host query) | analyzer asks AI-Lab which tests to run for a barcode |
 | L3 | Delta checks & critical values | warn on big change since last visit; call-the-doctor list |
 | L4 | Pathologist signature image + NABL fields on the report | |
+| P1 | **Patient accounts (OTP login)** | one login for all visits, bookings and reports — needs SMS (MSG91 etc.) or Supabase email (B3) for OTP |
+| P2 | Booking alerts to the lab by email / WhatsApp | today: live badge + list in Bookings |
 | L5 | Per-test report status for patients | "CBP ready, Thyroid pending" on the track page (data exists in `test_results`) |
 
 ## 2. Waiting on you (tell me when it's done)

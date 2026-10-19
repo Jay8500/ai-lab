@@ -6,6 +6,7 @@ export const routes: Routes = [
   { path: 'privacy', data: { kind: 'privacy' }, loadComponent: () => import('./pages/policy/policy').then((m) => m.PolicyPage) },
   { path: 'terms', data: { kind: 'terms' }, loadComponent: () => import('./pages/policy/policy').then((m) => m.PolicyPage) },
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginPage) },
+  { path: 'book', loadComponent: () => import('./pages/book/book').then((m) => m.BookPage) },
   { path: 'track', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },
   { path: 'track/:token', loadComponent: () => import('./pages/track/track').then((m) => m.TrackPage) },
   {
@@ -18,6 +19,7 @@ export const routes: Routes = [
       { path: 'help', loadComponent: () => import('./pages/help/help').then((m) => m.HelpPage) },
       { path: 'activity', loadComponent: () => import('./pages/activity/activity').then((m) => m.ActivityPage) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
+      { path: 'bookings', loadComponent: () => import('./lab/bookings/bookings').then((m) => m.LabBookings) },
       { path: 'results', loadComponent: () => import('./lab/results/results').then((m) => m.LabResults) },
       { path: 'devices', canActivate: [ownerGuard], loadComponent: () => import('./lab/devices/devices').then((m) => m.LabDevices) },
       { path: 'assistant', loadComponent: () => import('./lab/assistant/assistant').then((m) => m.LabAssistant) },

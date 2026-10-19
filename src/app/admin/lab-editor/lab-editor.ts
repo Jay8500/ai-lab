@@ -127,6 +127,8 @@ export class AdminLabEditor implements OnInit {
     { key: 'show_ai', label: 'AI report explanation', hint: 'Summary card with disclaimer on the patient portal' },
     { key: 'show_whatsapp', label: 'WhatsApp contact', hint: 'Chat button on the cover page' },
     { key: 'show_support', label: 'Circles support button', hint: 'Help / raise-ticket for lab staff' },
+    { key: 'show_booking', label: 'Online booking', hint: 'Patients book tests (with prescription) from the website' },
+    { key: 'home_collection', label: 'Home sample collection', hint: 'Offer home collection in online bookings (off unless switched on)' },
     { key: 'show_video', label: '“How it works” video', hint: 'Short patient walkthrough on the cover page' },
     { key: 'show_security', label: 'Security & privacy section', hint: 'Explains how patient data is protected (great for demos)' },
     { key: 'show_powered_by', label: '“Powered by SpreadApps”', hint: 'Footer credit on public pages' },
@@ -151,7 +153,7 @@ export class AdminLabEditor implements OnInit {
 
   private load(t: Tenant) {
     this.draft = structuredClone(t);
-    this.pages = { show_track: true, show_ai: true, show_support: true, show_whatsapp: true, show_powered_by: true, show_security: true, ...(t.pages ?? {}) };
+    this.pages = { show_track: true, show_ai: true, show_support: true, show_whatsapp: true, show_powered_by: true, show_security: true, show_booking: true, home_collection: false, ...(t.pages ?? {}) };
     this.tests = structuredClone(t.test_catalog ?? []);
     this.dirty.set(false);
     this.cdr.markForCheck();

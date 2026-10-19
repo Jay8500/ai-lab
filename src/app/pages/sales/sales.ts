@@ -49,6 +49,7 @@ export class SalesPage implements OnInit {
     { icon: 'zap', title: 'Token in 5 seconds', text: 'Reception registers the patient, picks tests and generates a token — on the front-desk PC or a phone.' },
     { icon: 'flask-conical', title: 'Sample workflow', text: 'Collected → testing → verified → ready. Everyone sees where every sample is, live.' },
     { icon: 'microscope', title: 'Result entry & instant reports', text: 'Technicians type values with ranges and H/L flags; the pathologist verifies and the PDF report is created automatically.' },
+    { icon: 'calendar-clock', title: 'Online test booking', text: 'Patients see your tests & prices, upload the prescription and request a slot — at the lab or home collection.' },
     { icon: 'printer', title: 'Barcode tube labels', text: 'One label per tube from the patient card — the analyzer reads the token straight from the tube.' },
     { icon: 'send', title: 'Reports on WhatsApp', text: 'Drop the signed PDF on the patient card and share it on WhatsApp in one tap.' },
     { icon: 'smartphone', title: 'Patient tracking & history', text: 'Patients follow their sample live, download the official PDF and see all earlier visits — no login.' },

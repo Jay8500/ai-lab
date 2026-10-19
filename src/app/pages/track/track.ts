@@ -21,6 +21,10 @@ interface TrackHistory {
 
 interface TrackResult {
   token: string;
+  /** true = only progress is shown until the patient proves it's theirs */
+  locked?: boolean;
+  access?: 'locked' | 'wrong' | 'blocked';
+  can_verify?: boolean;
   patient_name: string;
   age: number | null;
   gender: string | null;
@@ -33,7 +37,6 @@ interface TrackResult {
   ai_status?: string;
   ai_values?: ReportValue[] | null;
   created_at: string;
-  mobile_hint: string;
 }
 
 const ORDER: VisitStatus[] = ['collected', 'in_lab', 'verified', 'ready', 'delivered'];
@@ -46,6 +49,10 @@ const ORDER: VisitStatus[] = ['collected', 'in_lab', 'verified', 'ready', 'deliv
 })
 export class TrackPage implements OnDestroy {
   readonly token = input<string>();
+  /** ?k= secret key from the WhatsApp link / receipt QR */
+  readonly k = input<string>();
+  protected last4 = '';
+  protected readonly verifying = signal(false);
   protected readonly tenant = inject(TenantService);
   private readonly sb = inject(SupabaseService);
   private readonly router = inject(Router);
@@ -118,11 +125,48 @@ export class TrackPage implements OnDestroy {
     }, 20_000);
   }
 
+  /** Proof for this token, kept for this browser tab only */
+  private proof(token: string): { key?: string; last4?: string } {
+    const k = this.k();
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('trk:' + token.toUpperCase()) ?? '{}');
+      return { key: k || saved.key, last4: saved.last4 };
+    } catch {
+      return { key: k };
+    }
+  }
+  private remember(token: string, p: { key?: string; last4?: string }) {
+    try { sessionStorage.setItem('trk:' + token.toUpperCase(), JSON.stringify(p)); } catch { /* private mode */ }
+  }
+
+  async verify() {
+    const token = this.result()?.token;
+    const slug = this.tenant.slug();
+    const digits = this.last4.replace(/\D/g, '');
+    if (!token || !slug) return;
+    if (digits.length !== 4) return this.toast.warn('Enter the last 4 digits of the mobile number you gave the lab.');
+    this.verifying.set(true);
+    this.remember(token, { ...this.proof(token), last4: digits });
+    await this.fetch(slug, token);
+    this.verifying.set(false);
+    const r = this.result();
+    if (r?.locked) {
+      this.remember(token, { key: this.proof(token).key });
+      if (r.access === 'blocked') this.toast.warn('Too many wrong tries. Please wait 15 minutes or use the link from the lab.');
+      else this.toast.warn('Those digits don’t match the mobile number for this token.');
+    } else {
+      this.last4 = '';
+    }
+  }
+
   private async fetch(slug: string, token: string) {
-    const [{ data }, hist] = await Promise.all([
-      this.sb.client.rpc('track_visit', { p_slug: slug, p_token: token }),
-      this.sb.client.rpc('track_history', { p_slug: slug, p_token: token }),
-    ]);
+    const p = this.proof(token);
+    if (p.key && this.k()) this.remember(token, p);
+    const args = { p_slug: slug, p_token: token, p_key: p.key ?? null, p_last4: p.last4 ?? null };
+    const { data } = await this.sb.client.rpc('track_visit', args);
+    // History only after access is granted (a wrong guess must not be counted twice); locked → progress only
+    const unlocked = data && !(data as TrackResult).locked;
+    const hist = await this.sb.client.rpc('track_history', unlocked ? args : { ...args, p_last4: null });
     this.result.set((data as TrackResult) ?? null);
     this.missing.set(!data);
     this.history.set((hist.data as TrackHistory) ?? null);

@@ -26,6 +26,7 @@ export class HomePage {
   protected readonly year = new Date().getFullYear();
 
   protected token = '';
+  protected readonly bookingOpen = computed(() => !!this.tenant.tenant()?.usable && this.tenant.pages().show_booking !== false);
 
   protected readonly howSteps = [
     { title: 'Get your token at the counter', text: 'Your receipt has a token and a QR code for your visit.' },

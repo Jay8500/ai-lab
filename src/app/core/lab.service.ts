@@ -185,8 +185,10 @@ export class LabService {
     return v.report_path ? this.sb.publicUrl('reports', v.report_path) : null;
   }
 
-  trackUrl(v: Pick<Visit, 'token'>): string {
-    return this.tenantSvc.labUrl(this.tenantSvc.slug()!, `/track/${encodeURIComponent(v.token)}`);
+  /** Patient link — carries the visit's secret key so it opens without extra checks. */
+  trackUrl(v: Pick<Visit, 'token' | 'access_key'>): string {
+    const key = v.access_key ? `?k=${encodeURIComponent(v.access_key)}` : '';
+    return this.tenantSvc.labUrl(this.tenantSvc.slug()!, `/track/${encodeURIComponent(v.token)}${key}`);
   }
 
   shareText(v: Visit): string {

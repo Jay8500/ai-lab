@@ -119,6 +119,10 @@ export interface TenantPages {
   show_whatsapp?: boolean;
   show_powered_by?: boolean;
   show_security?: boolean;
+  /** Patients can request bookings from the website (default on) */
+  show_booking?: boolean;
+  /** Offer home sample collection in online bookings (default off) */
+  home_collection?: boolean;
   /** Receipt paper: thermal 80 mm (default), A5 or A4 */
   receipt_size?: '80mm' | 'a5' | 'a4';
   ai_disclaimer?: string;
@@ -231,6 +235,8 @@ export interface Visit {
   /** Numeric results the AI read from the report (for trends) */
   ai_values?: ReportValue[] | null;
   ai_model?: string | null;
+  /** Secret for the patient's link / receipt QR (patients without it must confirm their mobile) */
+  access_key?: string;
   created_at: string;
 }
 

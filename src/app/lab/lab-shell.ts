@@ -6,6 +6,7 @@ import { AuthService } from '../core/auth.service';
 import { LabService } from '../core/lab.service';
 import { SupportService } from '../core/support.service';
 import { TaskService } from '../core/task.service';
+import { BookingsService } from '../core/bookings.service';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { AddPatientModal } from '../shared/add-patient-modal';
@@ -141,11 +142,13 @@ export class LabShell implements OnInit {
   private readonly toast = inject(ToastService);
   protected readonly sidebar = SidebarState;
   private readonly tasks = inject(TaskService);
+  private readonly bookings = inject(BookingsService);
   private readonly router = inject(Router);
 
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
     { path: '/lab/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
+    ...(this.tenant.pages().show_booking !== false ? [{ path: '/lab/bookings', label: 'Bookings', icon: 'calendar-clock', badge: this.bookings.requested() || undefined }] : []),
     { path: '/lab/results', label: 'Results', icon: 'microscope' },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
     ...(this.tenant.pages().show_ai !== false ? [{ path: '/lab/assistant', label: 'Ask AI', icon: 'bot' }] : []),

@@ -43,11 +43,15 @@
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="font-mono text-xs font-bold tracking-wider text-brand">#{{ r.token }}</p>
-              <h1 class="mt-1 text-xl font-bold text-slate-800">{{ maskedName() }}</h1>
-              <p class="mt-0.5 text-xs text-slate-400">
-                {{ r.age ? r.age + ' yrs' : '' }}{{ r.gender ? ' · ' + r.gender : '' }} · Registered {{ r.created_at | date: 'MMM d, h:mm a' }}
-                @if (r.mobile_hint) { · ••{{ r.mobile_hint }} }
-              </p>
+              @if (r.locked) {
+                <h1 class="mt-1 flex items-center gap-1.5 text-xl font-bold text-slate-800"><lucide-icon name="lock" class="size-4 text-slate-400" /> Details protected</h1>
+                <p class="mt-0.5 text-xs text-slate-400">Registered {{ r.created_at | date: 'MMM d, h:mm a' }}</p>
+              } @else {
+                <h1 class="mt-1 text-xl font-bold text-slate-800">{{ maskedName() }}</h1>
+                <p class="mt-0.5 text-xs text-slate-400">
+                  {{ r.age ? r.age + ' yrs' : '' }}{{ r.gender ? ' · ' + r.gender : '' }} · Registered {{ r.created_at | date: 'MMM d, h:mm a' }}
+                </p>
+              }
             </div>
             @if (isReady()) {
               <span class="pill border-emerald-100 bg-emerald-50 text-emerald-600"><lucide-icon name="circle-check" class="size-3.5" /> Ready</span>
@@ -80,7 +84,24 @@
             }
           </ol>
 
-          @if (isReady() && pdfUrl()) {
+          @if (r.locked) {
+            <form class="mt-7 rounded-2xl border border-brand/20 bg-brand/5 p-4" (ngSubmit)="verify()" novalidate>
+              <p class="flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="shield-check" class="size-4 text-brand" /> Is this your report?</p>
+              @if (r.can_verify) {
+                <p class="mt-1 text-xs text-slate-500">To protect your health data, enter the <b>last 4 digits of the mobile number</b> you gave the lab. Or open the link the lab sent you on WhatsApp.</p>
+                <div class="mt-3 flex gap-2">
+                  <input class="input w-32 text-center font-mono text-lg tracking-[0.4em]" name="l4" [(ngModel)]="last4" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" [disabled]="r.access === 'blocked'" />
+                  <button class="btn-primary flex-1" type="submit" [disabled]="verifying() || r.access === 'blocked'">
+                    <lucide-icon [name]="verifying() ? 'loader-circle' : 'lock'" class="size-4" [class.animate-spin]="verifying()" /> Show my report
+                  </button>
+                </div>
+                @if (r.access === 'wrong') { <p class="mt-2 text-xs font-medium text-rose-600">Those digits don’t match. Please check and try again.</p> }
+                @if (r.access === 'blocked') { <p class="mt-2 text-xs font-medium text-rose-600">Too many tries — please wait 15 minutes, or use the link / QR from the lab.</p> }
+              } @else {
+                <p class="mt-1 text-xs text-slate-500">Please open the link the lab sent you, or scan the QR code on your receipt.</p>
+              }
+            </form>
+          } @else if (isReady() && pdfUrl()) {
             <a [href]="pdfUrl()" target="_blank" rel="noopener" download class="btn-success mt-7 w-full py-3! text-base">
               <lucide-icon name="download" class="size-5" /> Download Official PDF
             </a>
@@ -94,7 +115,7 @@
         </section>
 
         <!-- AI explanation -->
-        @if (tenant.pages().show_ai) {
+        @if (tenant.pages().show_ai && !r.locked) {
           <section class="card animate-fade-up overflow-hidden">
             <div class="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-white px-5 py-4">
               <span class="grid size-9 place-items-center rounded-xl bg-violet-100 text-violet-600"><lucide-icon name="sparkles" class="size-4" /></span>
@@ -138,14 +159,14 @@
           <app-timeline [items]="progress()" />
         </section>
       }
-      @if (result() && trends().length && tenant.pages().show_ai !== false) {
+      @if (result() && !result()!.locked && trends().length && tenant.pages().show_ai !== false) {
         <section class="card animate-fade-up p-5 sm:p-6">
           <h2 class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="trending-up" class="size-4 text-violet-600" /> How your results changed</h2>
           <p class="mb-2 text-xs text-slate-400">From your reports at {{ tenant.name() }} · green band = normal range. Always discuss changes with your doctor.</p>
           <app-trends [series]="trends()" [limit]="5" />
         </section>
       }
-      @if (result() && earlier().length) {
+      @if (result() && !result()!.locked && earlier().length) {
         <section class="card animate-fade-up p-5 sm:p-6">
           <h2 class="mb-1 flex items-center gap-2 text-sm font-bold text-slate-800"><lucide-icon name="file-text" class="size-4 text-brand" /> Your earlier visits</h2>
           <p class="mb-4 text-xs text-slate-400">At {{ tenant.name() }}, linked by your mobile number.</p>

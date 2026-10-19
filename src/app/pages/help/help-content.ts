@@ -104,6 +104,7 @@ export const HELP: HelpSection[] = [
       { do: 'Cover page', flow: ['Configure', 'Pages', 'Texts · Toggles', 'Save & publish'] },
       { do: 'Receipt paper', flow: ['Configure', 'Pages', 'Thermal 80 mm / A5 / A4', 'Save & publish'] },
       { do: 'Privacy officer', flow: ['Configure', 'Pages', 'Grievance officer · email · phone', 'Save & publish'] },
+      { do: 'Online booking', flow: ['Configure', 'Pages', 'Online booking on/off', 'Home collection on/off', 'Save & publish'] },
       { do: 'Demo video', flow: ['Configure', 'Pages', '“How it works” video on/off', 'Own YouTube / .mp4 link (optional)', 'Save & publish'] },
       { do: 'Tests', flow: ['Configure', 'Tests', 'Add test', 'Code · Name · Price', 'Save & publish'] },
       { do: 'Result values', flow: ['Configure', 'Tests', 'Values', 'Standard template', 'Save & publish'] },
@@ -301,6 +302,20 @@ export const HELP: HelpSection[] = [
     ],
   },
   TASKS('/lab', ['owner', 'staff']),
+  {
+    id: 'lab-bookings',
+    title: 'Bookings',
+    icon: 'calendar-clock',
+    route: '/lab/bookings',
+    who: ['owner', 'staff'],
+    steps: [
+      { do: 'New request', flow: ['Bookings', 'New', 'Prescription / tests'] },
+      { do: 'Confirm', flow: ['Call / WhatsApp', 'Confirm', 'Note (optional)'] },
+      { do: 'Patient arrives', flow: ['Confirmed', 'Patient arrived · register', 'Token + receipt'] },
+      { do: 'Cancel', flow: ['Cancel', 'Reason for patient'] },
+      { do: 'Share page', flow: ['Open booking page', 'Copy link', 'WhatsApp / Google profile'] },
+    ],
+  },
   {
     id: 'lab-results',
     title: 'Results',
