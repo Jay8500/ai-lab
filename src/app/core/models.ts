@@ -1,10 +1,11 @@
-export type Role = 'super_admin' | 'platform_admin' | 'lab_owner' | 'lab_staff';
+export type Role = 'super_admin' | 'platform_admin' | 'lab_owner' | 'lab_staff' | 'patient';
 
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: 'Super admin',
   platform_admin: 'SpreadApps admin',
   lab_owner: 'Lab admin',
   lab_staff: 'Lab staff',
+  patient: 'Patient',
 };
 
 /** Job titles for lab staff (display + future per-title permissions). */

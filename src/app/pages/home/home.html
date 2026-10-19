@@ -22,6 +22,7 @@
           @if (dashboardLink(); as link) {
             <a [routerLink]="link" class="btn-primary py-2!">Open dashboard <lucide-icon name="arrow-right" class="size-4" /></a>
           } @else if (pages().show_track) {
+            <a routerLink="/me" class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 sm:block">My reports</a>
             @if (bookingOpen()) {
               <a routerLink="/book" class="btn-ghost py-2! whitespace-nowrap"><lucide-icon name="calendar-clock" class="size-4" /> <span class="sm:hidden">Book</span><span class="hidden sm:inline">Book a test</span></a>
             }

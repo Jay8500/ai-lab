@@ -58,6 +58,7 @@ export class LoginPage implements OnInit {
   );
 
   async ngOnInit() {
+    this.auth.checkGoogle();
     if (this.sessions.consumeKickedNotice()) this.kickedNotice.set(true);
     if (this.route.snapshot.queryParamMap.get('reset')) {
       this.mode.set('reset');
@@ -78,6 +79,19 @@ export class LoginPage implements OnInit {
     this.tabNotice.set(null);
     const p = this.auth.profile();
     if (p) await this.routeFor(p).catch((e) => this.toast.fail(e));
+  }
+
+  protected readonly googleOn = this.auth.googleEnabled;
+
+  async google() {
+    this.busy.set(true);
+    try {
+      const next = this.route.snapshot.queryParamMap.get('next');
+      await this.auth.signInWithGoogle('/login' + (next ? '?next=' + encodeURIComponent(next) : ''));
+    } catch (e) {
+      this.toast.fail(e);
+      this.busy.set(false);
+    }
   }
 
   async submit() {
@@ -174,6 +188,16 @@ export class LoginPage implements OnInit {
   private async routeFor(p: Profile) {
     const next = this.route.snapshot.queryParamMap.get('next');
     const lab = this.t();
+    // A Google account with no staff login: it's a patient account
+    if (p.role === 'patient') {
+      if (lab) {
+        await this.router.navigateByUrl('/me');
+        this.toast.info(`This Google account has no staff login at ${lab.name} — showing your patient page.`);
+        return;
+      }
+      await this.auth.signOut();
+      throw new Error('This Google account isn’t a SpreadApps admin login.');
+    }
     const isPlatform = p.role === 'super_admin' || p.role === 'platform_admin';
 
     if (!lab) {

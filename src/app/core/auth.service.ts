@@ -3,6 +3,7 @@ import { Session } from '@supabase/supabase-js';
 import { initialsOf, Profile, ROLE_LABELS } from './models';
 import { rememberStorage, SupabaseService } from './supabase.service';
 import { cleanText } from './text-clean';
+import { environment } from '../../environments/environment';
 
 const LAST_EMAIL_KEY = 'sa_last_email';
 
@@ -25,6 +26,8 @@ export class AuthService {
     return p.role === 'lab_staff' && p.title ? p.title : ROLE_LABELS[p.role];
   });
   readonly isOwner = computed(() => this.profile()?.role === 'lab_owner');
+  /** Signed in with Google from a lab's patient portal (no workspace access). */
+  readonly isPatient = computed(() => this.profile()?.role === 'patient');
   readonly displayName = computed(() => this.profile()?.full_name || this.profile()?.username || '');
   readonly initials = computed(() => initialsOf(this.displayName()));
 
@@ -42,6 +45,31 @@ export class AuthService {
       this.ready.set(true);
     })();
     return this.initPromise;
+  }
+
+  /**
+   * Google sign-in. Patients get a patient account; staff and admins sign in to their existing
+   * account when the Google email matches it (Supabase links the two). Returns to `next` on this site.
+   */
+  /** Whether Google sign-in is switched on in Supabase (buttons stay hidden until it is). */
+  readonly googleEnabled = signal(false);
+  private googleChecked = false;
+  checkGoogle(): void {
+    if (this.googleChecked) return;
+    this.googleChecked = true;
+    fetch(environment.supabaseUrl + '/auth/v1/settings', { headers: { apikey: environment.supabaseAnonKey } })
+      .then((r) => r.json())
+      .then((s) => this.googleEnabled.set(s?.external?.google === true))
+      .catch(() => undefined);
+  }
+
+  async signInWithGoogle(next: string): Promise<void> {
+    rememberStorage.remember = true;
+    const { error } = await this.sb.client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: location.origin + next, queryParams: { prompt: 'select_account' } },
+    });
+    if (error) throw new Error(/provider is not enabled|Unsupported provider/i.test(error.message) ? 'Google sign-in isn’t switched on yet — please use your username and password.' : error.message);
   }
 
   get lastEmail(): string {

@@ -85,12 +85,22 @@ Deno.serve(async (req) => {
     // No real email? Username-only login with an internal, non-deliverable address.
     if (!email) email = `${username}@${NO_EMAIL_DOMAIN}`;
 
-    const { data, error } = await admin.auth.admin.createUser({
+    let { data, error } = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
       user_metadata: { full_name: fullName },
       app_metadata: { role, tenant_id: tenantId ?? '' },
     });
-    if (error) return json({ error: error.message.includes('already') ? 'That email already has an account' : error.message }, 400);
+    if (error && error.message.includes('already')) {
+      // The person already signed in as a patient (e.g. with Google) — turn that account into this staff login.
+      const { data: existing } = await admin.from('profiles').select('id, role').eq('email', email).maybeSingle();
+      if (!existing || existing.role !== 'patient') return json({ error: 'That email already has an account' }, 400);
+      const upd = await admin.auth.admin.updateUserById(existing.id, { password, app_metadata: { role, tenant_id: tenantId ?? '' } });
+      if (upd.error) return json({ error: upd.error.message }, 400);
+      await admin.from('patient_links').delete().eq('user_id', existing.id);
+      data = upd.data;
+      error = null;
+    }
+    if (error || !data?.user) return json({ error: error?.message ?? 'Could not create the login' }, 400);
 
     await admin.from('profiles').upsert({
       id: data.user.id, email, full_name: fullName, role, tenant_id: tenantId, username,

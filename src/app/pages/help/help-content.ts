@@ -44,6 +44,7 @@ const PROFILE_SECURITY = (base: string, who: HelpAudience[]): HelpSection[] => [
       { do: 'Remove a device', flow: ['Device', 'Remove', 'Sign out device'] },
       { do: 'Sign out others', flow: ['Sign out all other devices', 'Confirm'] },
       { do: 'New device sign-in', flow: ['Sign in', 'Continue here', 'Others signed out'] },
+      { do: 'Google sign-in', flow: ['Login', 'Sign in with Google', 'Same Gmail as your login'] },
       { do: 'One tab only', flow: ['2nd tab opens', 'Already open in another tab', 'Use this tab instead'] },
       { do: 'Sign out here', flow: ['Sidebar', 'Red sign-out'] },
     ],

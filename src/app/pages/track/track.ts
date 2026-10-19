@@ -11,6 +11,7 @@ import { BrandMark } from '../../shared/brand-mark';
 import { Timeline, TimelineItem } from '../../shared/timeline';
 import { lookFor, VISIT_EVENT_LABEL } from '../../core/activity.service';
 import { renderMessage } from '../../core/inbox.service';
+import { AuthService } from '../../core/auth.service';
 import { buildTrends, Trends } from '../../shared/trends';
 import { ReportValue } from '../../core/models';
 
@@ -53,6 +54,20 @@ export class TrackPage implements OnDestroy {
   readonly k = input<string>();
   protected last4 = '';
   protected readonly verifying = signal(false);
+  protected readonly auth = inject(AuthService);
+  protected readonly saved = signal(false);
+
+  /** Signed-in patient: add this visit (and every visit with the same mobile) to My reports */
+  async saveToAccount() {
+    const r = this.result();
+    const slug = this.tenant.slug();
+    if (!r || !slug) return;
+    const p = this.proof(r.token);
+    const { data, error } = await this.sb.client.rpc('link_patient', { p_slug: slug, p_token: r.token, p_key: p.key ?? null, p_last4: p.last4 ?? null });
+    if (error || !data?.ok) return this.toast.warn('Could not add it — open the link from the lab, or enter your mobile digits first.');
+    this.saved.set(true);
+    this.toast.success('Saved to My reports.');
+  }
   protected readonly tenant = inject(TenantService);
   private readonly sb = inject(SupabaseService);
   private readonly router = inject(Router);
@@ -93,6 +108,7 @@ export class TrackPage implements OnDestroy {
   });
 
   constructor() {
+    this.auth.checkGoogle();
     effect(() => {
       const tk = this.token();
       this.query = tk ?? '';
