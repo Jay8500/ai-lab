@@ -245,16 +245,21 @@
             <button class="btn-ghost py-2! text-xs" (click)="addTest()"><lucide-icon name="plus" class="size-3.5" /> Add test</button>
           </div>
           <div class="mt-4 space-y-2">
-            <div class="hidden grid-cols-[110px_1fr_110px_90px_40px] gap-2 px-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
-              <span>Code <span class="text-rose-500">*</span></span><span>Name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>TAT hrs</span><span></span>
+            <div class="hidden grid-cols-[110px_1fr_110px_90px_110px_40px] gap-2 px-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
+              <span>Code <span class="text-rose-500">*</span></span><span>Name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>TAT hrs</span><span>Result values</span><span></span>
             </div>
             @for (t of tests; track $index; let i = $index) {
               @let te = e['test' + i] || '';
-              <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_110px_90px_40px] sm:bg-transparent sm:p-0">
+              <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_110px_90px_110px_40px] sm:bg-transparent sm:p-0">
                 <input class="input font-mono uppercase" [class.is-invalid]="te.startsWith('Code')" [(ngModel)]="t.code" (ngModelChange)="touch()" placeholder="CBP" maxlength="12" aria-label="Code" />
                 <input class="input col-span-2 sm:col-span-1" [class.is-invalid]="te.startsWith('Name')" [(ngModel)]="t.name" (ngModelChange)="touch()" placeholder="Complete Blood Picture" maxlength="80" aria-label="Name" />
                 <input class="input" type="number" min="0" [class.is-invalid]="te.startsWith('Price')" [(ngModel)]="t.price" (ngModelChange)="touch()" aria-label="Price" />
                 <input class="input" type="number" min="1" [class.is-invalid]="te.startsWith('Report')" [(ngModel)]="t.tat_hours" (ngModelChange)="touch()" aria-label="Report in hours" />
+                <button type="button" class="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-semibold transition sm:col-span-1"
+                      [class]="t.params?.length ? 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100' : 'border-dashed border-slate-200 text-slate-500 hover:border-slate-300'"
+                      (click)="paramsFor.set(i)" [title]="t.params?.length ? 'Edit the values entered for this test' : 'Add values to enter results in AI-Lab'">
+                <lucide-icon name="list-todo" class="size-3.5" /> {{ t.params?.length ? t.params!.length + ' values' : 'Values' }}
+              </button>
                 <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="removeTest(i)" title="Remove test"><lucide-icon name="trash-2" class="size-4" /></button>
               </div>
               @if (te) {
@@ -263,6 +268,14 @@
             }
           </div>
         </div>
+        @if (paramsFor() !== null && tests[paramsFor()!]; as pt) {
+          <app-test-params-editor [test]="pt" (saved)="setParams(paramsFor()!, $event)" (closed)="paramsFor.set(null)" />
+        }
+      }
+
+      <!-- ───────── Devices ───────── -->
+      @case ('devices') {
+        <app-devices-manager [tenantId]="d.id" [catalog]="tests" [tokenPrefix]="d.token_prefix" />
       }
 
       <!-- ───────── Integrations / API keys ───────── -->

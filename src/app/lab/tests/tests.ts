@@ -5,11 +5,12 @@ import { TestItem } from '../../core/models';
 import { SupabaseService } from '../../core/supabase.service';
 import { TenantService } from '../../core/tenant.service';
 import { ToastService } from '../../core/toast.service';
+import { TestParamsEditor } from '../../shared/test-params-editor';
 
 /** Lab admins maintain their own tests, prices and turnaround times. */
 @Component({
   selector: 'app-lab-tests',
-  imports: [FormsModule, LucideAngularModule],
+  imports: [FormsModule, LucideAngularModule, TestParamsEditor],
   template: `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
@@ -29,18 +30,23 @@ import { ToastService } from '../../core/toast.service';
         <lucide-icon name="search" class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
         <input class="input py-2! pl-9!" placeholder="Filter tests" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </div>
-      <div class="hidden grid-cols-[110px_1fr_120px_100px_40px] gap-2 px-1 pb-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
-        <span>Code <span class="text-rose-500">*</span></span><span>Test name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>Report in (hrs)</span><span></span>
+      <div class="hidden grid-cols-[110px_1fr_120px_100px_110px_40px] gap-2 px-1 pb-1 text-[11px] font-semibold text-slate-400 uppercase sm:grid">
+        <span>Code <span class="text-rose-500">*</span></span><span>Test name <span class="text-rose-500">*</span></span><span>Price ₹ <span class="text-rose-500">*</span></span><span>Report in (hrs)</span><span>Result values</span><span></span>
       </div>
       <div class="space-y-2">
         @for (t of tests(); track $index; let i = $index) {
           @if (matches(t)) {
             @let e = rowErr(i);
-            <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_120px_100px_40px] sm:bg-transparent sm:p-0">
+            <div class="grid grid-cols-[1fr_1fr_40px] gap-2 rounded-xl bg-slate-50 p-2 sm:grid-cols-[110px_1fr_120px_100px_110px_40px] sm:bg-transparent sm:p-0">
               <input class="input font-mono uppercase" [class.is-invalid]="!!e.code" [(ngModel)]="t.code" (ngModelChange)="dirty.set(true)" placeholder="CBP" maxlength="12" aria-label="Test code" />
               <input class="input col-span-2 sm:col-span-1" [class.is-invalid]="!!e.name" [(ngModel)]="t.name" (ngModelChange)="dirty.set(true)" placeholder="Complete Blood Picture" maxlength="80" aria-label="Test name" />
               <input class="input" type="number" min="0" [class.is-invalid]="!!e.price" [(ngModel)]="t.price" (ngModelChange)="dirty.set(true)" aria-label="Price" placeholder="₹" />
               <input class="input" type="number" min="1" [class.is-invalid]="!!e.tat" [(ngModel)]="t.tat_hours" (ngModelChange)="dirty.set(true)" aria-label="Report in hours" placeholder="hrs" />
+              <button type="button" class="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-semibold transition sm:col-span-1"
+                      [class]="t.params?.length ? 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100' : 'border-dashed border-slate-200 text-slate-500 hover:border-slate-300'"
+                      (click)="paramsFor.set(i)" [title]="t.params?.length ? 'Edit the values entered for this test' : 'Add values to enter results in AI-Lab'">
+                <lucide-icon name="list-todo" class="size-3.5" /> {{ t.params?.length ? t.params!.length + ' values' : 'Values' }}
+              </button>
               <button class="grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600" (click)="remove(i)" title="Remove test">
                 <lucide-icon name="trash-2" class="size-4" />
               </button>
@@ -55,6 +61,9 @@ import { ToastService } from '../../core/toast.service';
           <p class="py-10 text-center text-sm text-slate-400">No tests yet — add your first one.</p>
         }
       </div>
+      @if (paramsFor() !== null && tests()[paramsFor()!]; as pt) {
+        <app-test-params-editor [test]="pt" (saved)="setParams(paramsFor()!, $event)" (closed)="paramsFor.set(null)" />
+      }
       <p class="mt-4 text-xs text-slate-400">{{ tests().length }} test(s). Changes apply to new patient visits; existing visits keep their prices.</p>
     </div>
   `,
@@ -68,6 +77,15 @@ export class LabTests implements OnInit {
   protected readonly q = signal('');
   protected readonly saving = signal(false);
   protected readonly dirty = signal(false);
+  /** Row whose result values are being edited */
+  protected readonly paramsFor = signal<number | null>(null);
+
+  setParams(i: number, t: TestItem) {
+    this.tests.update((l) => l.map((x, j) => (j === i ? { ...x, params: t.params, sample: t.sample, department: t.department } : x)));
+    this.paramsFor.set(null);
+    this.dirty.set(true);
+    this.toast.info('Values updated — press Save to keep them.');
+  }
 
   ngOnInit() {
     this.tests.set(structuredClone(this.tenant.tenant()?.test_catalog ?? []));
@@ -126,6 +144,9 @@ export class LabTests implements OnInit {
       name: t.name.trim(),
       price: Number(t.price),
       tat_hours: Number(t.tat_hours) || undefined,
+      ...(t.params?.length ? { params: t.params } : {}),
+      ...(t.sample ? { sample: t.sample } : {}),
+      ...(t.department ? { department: t.department } : {}),
     }));
     this.saving.set(true);
     try {

@@ -2,7 +2,7 @@ import { Component, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { LabService } from '../core/lab.service';
-import { DEFAULT_TESTS, TestItem, Visit } from '../core/models';
+import { DEFAULT_TESTS, TestItem, Visit, orderedTest } from '../core/models';
 import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { FormField } from './form-field';
@@ -230,7 +230,7 @@ export class AddPatientModal {
         mobile,
         age: this.age ?? null,
         gender: this.gender(),
-        tests: this.selected(),
+        tests: this.selected().map(orderedTest),
         consent_at: new Date().toISOString(),
         consent_by: this.minor() ? 'guardian' : 'patient',
         consent_version: CONSENT_VERSION,

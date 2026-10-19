@@ -13,11 +13,93 @@ export type TenantStatus = 'trial' | 'active' | 'suspended' | 'expired';
 export type VisitStatus = 'collected' | 'in_lab' | 'verified' | 'ready' | 'delivered';
 export type BillingModel = 'free' | 'monthly' | 'yearly' | 'per_report' | 'revenue_share' | 'hybrid';
 
+/** One value reported for a test, e.g. CBP → Haemoglobin. */
+export interface TestParam {
+  /** Short code, also used to match analyzer results, e.g. HB */
+  key: string;
+  name: string;
+  unit?: string;
+  type?: 'number' | 'text' | 'option';
+  /** For type 'option' */
+  options?: string[];
+  /** Reference range (adults); _f = female override */
+  low?: number | null;
+  high?: number | null;
+  low_f?: number | null;
+  high_f?: number | null;
+  decimals?: number;
+  /** Calculated from other keys, e.g. 'CHOL - HDL - TG / 5' */
+  formula?: string;
+  /** Sub-heading on the report, e.g. 'Differential count' */
+  section?: string;
+}
+
+export const SAMPLE_TYPES = ['EDTA (purple)', 'Fluoride (grey)', 'Serum (red/yellow)', 'Citrate (blue)', 'Urine', 'Stool', 'Swab', 'Other'];
+
 export interface TestItem {
   code: string;
   name: string;
   price: number;
   tat_hours?: number;
+  /** Values to enter for this test (empty = report uploaded as PDF only) */
+  params?: TestParam[];
+  /** Tube / container — used for barcode labels */
+  sample?: string;
+  department?: string;
+}
+
+/** What is stored on a visit: the ordered test without its parameter definitions. */
+export const orderedTest = (t: TestItem): TestItem => ({ code: t.code, name: t.name, price: t.price, ...(t.tat_hours ? { tat_hours: t.tat_hours } : {}), ...(t.sample ? { sample: t.sample } : {}) });
+
+export type ResultFlag = 'low' | 'normal' | 'high' | 'abnormal' | null;
+export interface ResultValue {
+  v: string;
+  n: number | null;
+  flag: ResultFlag;
+}
+export interface TestResult {
+  id: string;
+  tenant_id: string;
+  visit_id: string;
+  test_code: string;
+  values: Record<string, ResultValue>;
+  status: 'pending' | 'entered' | 'verified';
+  source: 'manual' | 'device';
+  device_id: string | null;
+  notes: string | null;
+  entered_by: string | null;
+  entered_at: string | null;
+  verified_by: string | null;
+  verified_at: string | null;
+  updated_at: string;
+}
+
+export interface LabDevice {
+  id: string;
+  tenant_id: string;
+  name: string;
+  kind: 'hematology' | 'biochemistry' | 'immunoassay' | 'electrolyte' | 'urine' | 'coagulation' | 'hba1c' | 'other';
+  make: string | null;
+  model: string | null;
+  protocol: 'astm' | 'hl7';
+  connection: 'serial' | 'tcp' | 'file';
+  settings: { host?: string; port?: number | null; baud?: number | null; data_bits?: number; parity?: string; stop_bits?: number; folder?: string };
+  mapping: { device_code: string; test_code: string; param_key: string }[];
+  active: boolean;
+  key_hint: string | null;
+  last_message_at: string | null;
+  created_at: string;
+}
+
+export interface DeviceMessage {
+  id: string;
+  device_id: string;
+  received_at: string;
+  raw: string | null;
+  summary: { results: number; matched: string[]; unmatched: string[]; skipped: string[] } | null;
+  status: 'matched' | 'partial' | 'unmatched' | 'error';
+  error: string | null;
+  simulated: boolean;
 }
 
 /** Copy + feature toggles the super admin controls for each lab's pages. */

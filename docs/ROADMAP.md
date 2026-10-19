@@ -10,11 +10,24 @@ Say **"build payments"** to start with A1–A4.
 |---|---|---|
 | A1 | **Counter payment modes** for patients | cash, cash on collection (home pickup), lab UPI QR, card POS, cheque, bank, part / advance, due — `visit_payments` table |
 | A2 | **Bills & payment history** | per visit (tests, discount, total, paid, due) and per patient across all visits; ✅ paid ⏳ pending ❌ failed/rejected ↩ refunded ticks; day-end collection report by mode / staff |
-| A3 | **Report per test** | `visit_items`: status + PDF per test (CBP ready, Thyroid pending) instead of one PDF per visit |
+| A3 | ~~Report per test~~ | done via `test_results` (status per test); patient-side display is L5 |
 | A4 | **Patient emails** | token + tracking link, report ready, payment receipt, due reminder — lab logo / name / address / phone; only with email + consent (add optional email to the add-patient form) |
 | A5 | **More lab emails** | payment received receipt, payment failed / rejected, trial ending soon |
 | A6 | **Export all lab data** | patients Excel + all report PDFs zip — for labs that leave (build on first request) |
 | A7 | **"Hold report until paid"** lab setting | enforce in `track_visit`, not only in the UI |
+
+## LIS — done 2026-10-19
+Result values per test (standard templates, ranges, formulas) · Results screen (entry → verify → automatic PDF) · edit tests after
+registration · tube barcode labels · Devices (settings, code mapping, device key, ASTM/HL7 endpoint, test-message simulator, message log).
+Details: [lis-devices.md](lis-devices.md).
+
+| # | Next for LIS | Notes |
+|---|---|---|
+| L1 | **SpreadApps Lab Connector** (Windows) | reads the analyzer's serial / LAN port and POSTs messages to `device-ingest` — needs a real analyzer + its LIS manual to test |
+| L2 | Two-way (host query) | analyzer asks AI-Lab which tests to run for a barcode |
+| L3 | Delta checks & critical values | warn on big change since last visit; call-the-doctor list |
+| L4 | Pathologist signature image + NABL fields on the report | |
+| L5 | Per-test report status for patients | "CBP ready, Thyroid pending" on the track page (data exists in `test_results`) |
 
 ## 2. Waiting on you (tell me when it's done)
 | # | Item | What you do first | Then I build |

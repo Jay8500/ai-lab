@@ -48,6 +48,8 @@ export class SalesPage implements OnInit {
   protected readonly features = [
     { icon: 'zap', title: 'Token in 5 seconds', text: 'Reception registers the patient, picks tests and generates a token — on the front-desk PC or a phone.' },
     { icon: 'flask-conical', title: 'Sample workflow', text: 'Collected → testing → verified → ready. Everyone sees where every sample is, live.' },
+    { icon: 'microscope', title: 'Result entry & instant reports', text: 'Technicians type values with ranges and H/L flags; the pathologist verifies and the PDF report is created automatically.' },
+    { icon: 'printer', title: 'Barcode tube labels', text: 'One label per tube from the patient card — the analyzer reads the token straight from the tube.' },
     { icon: 'send', title: 'Reports on WhatsApp', text: 'Drop the signed PDF on the patient card and share it on WhatsApp in one tap.' },
     { icon: 'smartphone', title: 'Patient tracking & history', text: 'Patients follow their sample live, download the official PDF and see all earlier visits — no login.' },
     { icon: 'globe', title: 'Your own branded website', text: 'yourlab.spreadapps.in with your logo, colours, cover page, tests & prices.' },
@@ -64,6 +66,7 @@ export class SalesPage implements OnInit {
     { icon: 'sparkles', title: 'AI report explainer', text: 'Plain-language summaries of results for patients the moment the report is uploaded, with a clear medical disclaimer.', live: true },
     { icon: 'chart-column', title: 'Trends across visits', text: 'See how a patient’s values change over time, highlighted automatically.', live: true },
     { icon: 'bot', title: 'Smart assistant for staff', text: 'Ask “which reports are pending since morning?” and get the answer instantly.', live: true },
+    { icon: 'monitor', title: 'Analyzer interfacing', text: 'ASTM / HL7 machines send results straight in — set up per lab with your vendor.', live: false },
   ];
 
   protected readonly steps = [

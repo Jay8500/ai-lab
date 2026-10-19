@@ -146,11 +146,13 @@ export class LabShell implements OnInit {
   protected readonly nav = computed<NavItem[]>(() => [
     { path: '/lab', label: 'Dashboard', icon: 'layout-dashboard', exact: true },
     { path: '/lab/tasks', label: 'Tasks', icon: 'list-todo', badge: this.tasks.myDueCount() || undefined },
+    { path: '/lab/results', label: 'Results', icon: 'microscope' },
     { path: '/lab/reports', label: 'Reports', icon: 'file-text', badge: this.lab.kpis().ready || undefined },
     ...(this.tenant.pages().show_ai !== false ? [{ path: '/lab/assistant', label: 'Ask AI', icon: 'bot' }] : []),
     ...(this.auth.isOwner()
       ? [
           { path: '/lab/tests', label: 'Tests & prices', icon: 'test-tube' },
+          { path: '/lab/devices', label: 'Devices', icon: 'monitor' },
           { path: '/lab/account', label: 'Plan & team', icon: 'settings' },
         ]
       : []),

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { TestItem, Visit, VisitStatus } from './models';
+import { ReportValue, TestItem, Visit, VisitStatus, orderedTest } from './models';
 import { SupabaseService } from './supabase.service';
 import { TenantService } from './tenant.service';
 import { ToastService } from './toast.service';
@@ -198,6 +198,18 @@ export class LabService {
     const digits = (v.mobile ?? '').replace(/\D/g, '');
     const phone = digits.length === 10 ? `91${digits}` : digits;
     return `https://wa.me/${phone}?text=${encodeURIComponent(this.shareText(v))}`;
+  }
+
+  /** Add / remove tests after registration (prescription changes); the bill follows. */
+  async updateTests(v: Visit, tests: TestItem[]): Promise<Visit> {
+    if (!tests.length) throw new Error('Keep at least one test on the visit.');
+    const amount = tests.reduce((s, t) => s + Number(t.price || 0), 0);
+    return this.patch(v.id, { tests: tests.map(orderedTest), amount });
+  }
+
+  /** Exact values from entered results (used for trends instead of AI-read values). */
+  async setResultValues(v: Visit, values: ReportValue[]): Promise<Visit> {
+    return this.patch(v.id, { ai_values: values.length ? values : null });
   }
 
   private async patch(id: string, patch: Partial<Visit>): Promise<Visit> {

@@ -220,7 +220,9 @@ Deno.serve(async (req) => {
 
     const { summary, values } = splitOutput(raw);
     if (!summary) throw new Error('The AI returned an empty explanation.');
-    await setStatus({ ai_status: 'done', ai_summary: summary, ai_values: values, ai_error: null, ai_generated_at: new Date().toISOString(), ai_model: `${provider}:${cfg.model}` });
+    // Verified results entered in AI-Lab are exact — never replace them with values read from the PDF
+    const { count: verified } = await admin.from('test_results').select('id', { count: 'exact', head: true }).eq('visit_id', v.id).eq('status', 'verified');
+    await setStatus({ ai_status: 'done', ai_summary: summary, ...(verified ? {} : { ai_values: values }), ai_error: null, ai_generated_at: new Date().toISOString(), ai_model: `${provider}:${cfg.model}` });
     return json({ ok: true });
   } catch (e) {
     console.error('explain-report failed', e);

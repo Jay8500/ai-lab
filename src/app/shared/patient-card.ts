@@ -9,6 +9,9 @@ import { AiStatus } from './ai-explanation';
 import { StatusPill } from './status-pill';
 import { UploadDropzone } from './upload-dropzone';
 import { ReceiptService } from '../core/receipt.service';
+import { LabelsService } from '../core/labels.service';
+import { RouterLink } from '@angular/router';
+import { EditTestsModal } from './edit-tests-modal';
 
 const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
   collected: { to: 'in_lab', label: 'Start testing' },
@@ -17,7 +20,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
 
 @Component({
   selector: 'app-patient-card',
-  imports: [LucideAngularModule, DatePipe, StatusPill, UploadDropzone, AiStatus],
+  imports: [LucideAngularModule, DatePipe, StatusPill, UploadDropzone, AiStatus, RouterLink, EditTestsModal],
   template: `
     @let v = visit();
     <article class="card animate-fade-up flex h-full flex-col p-4 transition hover:shadow-md">
@@ -47,6 +50,11 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
           </button>
         }
 
+        <div class="grid grid-cols-3 gap-1.5">
+          <a class="btn-ghost px-2! py-1.5! text-[11px]" routerLink="/lab/results" [queryParams]="{ visit: v.id }" title="Enter or review results"><lucide-icon name="microscope" class="size-3.5" /> Results</a>
+          <button class="btn-ghost px-2! py-1.5! text-[11px]" (click)="labels.print(v)" title="Print tube barcode labels"><lucide-icon name="printer" class="size-3.5" /> Labels</button>
+          <button class="btn-ghost px-2! py-1.5! text-[11px]" (click)="editing.set(true)" [disabled]="!!v.report_path" [title]="v.report_path ? 'Report already created' : 'Add or remove tests'"><lucide-icon name="pencil" class="size-3.5" /> Tests</button>
+        </div>
         <app-upload-dropzone [fileName]="v.report_name" [busy]="uploading()" (file)="upload($event)" />
         @if (v.report_path && (tenant.pages().show_ai || v.ai_status === 'done')) { <app-ai-status [visit]="v" /> }
 
@@ -77,6 +85,7 @@ const NEXT: Partial<Record<VisitStatus, { to: VisitStatus; label: string }>> = {
         </div>
       </div>
     </article>
+    @if (editing()) { <app-edit-tests-modal [visit]="v" (closed)="editing.set(false)" /> }
   `,
 })
 export class PatientCard {
@@ -87,6 +96,8 @@ export class PatientCard {
   protected readonly receipt = inject(ReceiptService);
   protected readonly uploading = signal(false);
   protected readonly working = signal(false);
+  protected readonly editing = signal(false);
+  protected readonly labels = inject(LabelsService);
 
   protected next() {
     return NEXT[this.visit().status] ?? null;

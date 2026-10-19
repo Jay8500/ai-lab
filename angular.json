@@ -54,7 +54,16 @@
             ],
             "allowedCommonJsDependencies": [
               "qrcode",
-              "dijkstrajs"
+              "dijkstrajs",
+              "jsbarcode",
+              "html2canvas",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "dompurify",
+              "jspdf-autotable",
+              "jspdf"
             ]
           },
           "configurations": {

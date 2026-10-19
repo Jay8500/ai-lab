@@ -8,6 +8,7 @@ import { TenantService } from '../core/tenant.service';
 import { ToastService } from '../core/toast.service';
 import { FormField } from './form-field';
 import { Modal } from './modal';
+import { qrDataUrl } from '../core/qr';
 
 type Method = 'upi' | 'bank' | 'cash' | 'cheque';
 
@@ -142,7 +143,7 @@ export class PayInvoiceModal {
     effect(() => {
       const link = this.upiLink();
       if (!link) return;
-      import('qrcode').then(({ toDataURL }) => toDataURL(link, { margin: 1, width: 320, errorCorrectionLevel: 'M' })).then((d) => this.qr.set(d));
+      qrDataUrl(link, { margin: 1, width: 320, errorCorrectionLevel: 'M' }).then((d) => this.qr.set(d)).catch(() => undefined);
     });
   }
 

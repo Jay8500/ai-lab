@@ -18,6 +18,8 @@ export const routes: Routes = [
       { path: 'help', loadComponent: () => import('./pages/help/help').then((m) => m.HelpPage) },
       { path: 'activity', loadComponent: () => import('./pages/activity/activity').then((m) => m.ActivityPage) },
       { path: 'reports', loadComponent: () => import('./lab/reports/reports').then((m) => m.LabReports) },
+      { path: 'results', loadComponent: () => import('./lab/results/results').then((m) => m.LabResults) },
+      { path: 'devices', canActivate: [ownerGuard], loadComponent: () => import('./lab/devices/devices').then((m) => m.LabDevices) },
       { path: 'assistant', loadComponent: () => import('./lab/assistant/assistant').then((m) => m.LabAssistant) },
       { path: 'tests', canActivate: [ownerGuard], loadComponent: () => import('./lab/tests/tests').then((m) => m.LabTests) },
       { path: 'profile', loadComponent: () => import('./pages/profile/profile').then((m) => m.ProfilePage) },

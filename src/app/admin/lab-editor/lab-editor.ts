@@ -14,8 +14,10 @@ import { TeamManager } from '../../shared/team-manager';
 import { LabStatusPill } from '../lab-status-pill';
 import { DialogService } from '../../core/dialog.service';
 import { FormField } from '../../shared/form-field';
+import { TestParamsEditor } from '../../shared/test-params-editor';
+import { DevicesManager } from '../../shared/devices-manager';
 
-type Tab = 'branding' | 'domain' | 'pages' | 'tests' | 'integrations' | 'plan' | 'users';
+type Tab = 'branding' | 'domain' | 'pages' | 'tests' | 'devices' | 'integrations' | 'plan' | 'users';
 
 interface SecretField {
   key: keyof TenantSecrets;
@@ -26,7 +28,7 @@ interface SecretField {
 
 @Component({
   selector: 'app-admin-lab-editor',
-  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill, TeamManager, FormField],
+  imports: [FormsModule, RouterLink, LucideAngularModule, DatePipe, DecimalPipe, LabStatusPill, TeamManager, FormField, TestParamsEditor, DevicesManager],
   templateUrl: './lab-editor.html',
 })
 export class AdminLabEditor implements OnInit {
@@ -49,6 +51,7 @@ export class AdminLabEditor implements OnInit {
     { key: 'domain', label: 'Domain', icon: 'globe' },
     { key: 'pages', label: 'Pages', icon: 'layout-template' },
     { key: 'tests', label: 'Tests', icon: 'test-tube' },
+    { key: 'devices', label: 'Devices', icon: 'monitor' },
     { key: 'integrations', label: 'API keys', icon: 'key-round' },
     { key: 'plan', label: 'Plan & billing', icon: 'credit-card' },
     { key: 'users', label: 'Admins & staff', icon: 'users' },
@@ -349,6 +352,14 @@ export class AdminLabEditor implements OnInit {
     this.tests = [...this.tests, { code: '', name: '', price: 0, tat_hours: 6 }];
     this.touch();
   }
+  protected readonly paramsFor = signal<number | null>(null);
+  setParams(i: number, t: TestItem) {
+    this.tests = this.tests.map((x, j) => (j === i ? { ...x, params: t.params, sample: t.sample, department: t.department } : x));
+    this.paramsFor.set(null);
+    this.touch();
+    this.toast.info('Values updated — press Save & publish to keep them.');
+  }
+
   removeTest(i: number) {
     this.tests = this.tests.filter((_, idx) => idx !== i);
     this.touch();
