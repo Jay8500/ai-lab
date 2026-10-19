@@ -39,7 +39,7 @@ that drives registration, sample collection, worklists, reporting and the patien
 | # | Phase | Notes |
 |---|---|---|
 | D1 | Lab setup + departments, grouped registration | config page; department on tests; staff departments |
-| D2 | Per-test progress () + department worklists | visits.status stays as a summary — nothing breaks |
+| D2 | Per-test progress (`visit_items`) + department worklists | visits.status stays as a summary — nothing breaks |
 | D3 | Sample collection desk + home-collection assignment + rejection | |
 | D4 | Radiology: machines/rooms, appointments, Findings/Impression templates, radiologist sign-off, separate report | |
 | D5 | Microbiology (culture + antibiotic S/I/R) and histopathology (written reports) | |
