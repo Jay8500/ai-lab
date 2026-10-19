@@ -7,7 +7,7 @@ export const environment = {
   /** Where the super admin console lives. Switch to 'ailab.spreadapps.in' once that domain is on the Netlify site. */
   platformHost: 'ailab.spreadapps.in',
   /** Subdomains that belong to the platform, never to a lab */
-  reservedSubdomains: ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api'],
+  reservedSubdomains: ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api', 'tools', 'kit', 'mail'],
   /** Lab used when ?lab= is not given on netlify.app / localhost previews (null = SpreadApps landing) */
   demoTenant: null as string | null,
   /** Feature switches. googleSignIn: patient accounts + Google login buttons (on hold — set true once Google OAuth is set up). */

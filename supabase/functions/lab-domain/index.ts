@@ -12,7 +12,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const BASE = 'spreadapps.in';
-const RESERVED = ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api'];
+const RESERVED = ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api', 'tools', 'kit', 'mail'];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
