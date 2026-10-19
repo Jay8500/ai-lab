@@ -74,7 +74,7 @@ export class AdminShell implements OnInit {
     { path: '/admin/support', label: 'Support · Circles', icon: 'life-buoy', img: 'brand/circles-logo.svg', badge: this.admin.totals().tickets || undefined },
     ...(this.auth.isRoot()
       ? [
-          { path: '/admin/team', label: 'SpreadApps team', icon: 'users' },
+          { path: '/admin/team', label: 'Spread Apps team', icon: 'users' },
           { path: '/admin/settings', label: 'Platform settings', icon: 'settings' },
         ]
       : []),

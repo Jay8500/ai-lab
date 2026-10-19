@@ -131,7 +131,7 @@ export class AdminLabEditor implements OnInit {
     { key: 'home_collection', label: 'Home sample collection', hint: 'Offer home collection in online bookings (off unless switched on)' },
     { key: 'show_video', label: '“How it works” video', hint: 'Short patient walkthrough on the cover page' },
     { key: 'show_security', label: 'Security & privacy section', hint: 'Explains how patient data is protected (great for demos)' },
-    { key: 'show_powered_by', label: '“Powered by SpreadApps”', hint: 'Footer credit on public pages' },
+    { key: 'show_powered_by', label: '“Powered by Spread Apps”', hint: 'Footer credit on public pages' },
   ];
 
   async ngOnInit() {

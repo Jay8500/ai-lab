@@ -181,7 +181,7 @@ export class LoginPage implements OnInit {
 
   /**
    * Strict separation — an account only works where it belongs:
-   *  admin address  → SpreadApps admins only
+   *  admin address  → Spread Apps admins only
    *  lab subdomain  → that lab's admins and staff only
    * Anything else is signed out immediately.
    */
@@ -196,7 +196,7 @@ export class LoginPage implements OnInit {
         return;
       }
       await this.auth.signOut();
-      throw new Error('This Google account isn’t a SpreadApps admin login.');
+      throw new Error('This Google account isn’t a Spread Apps admin login.');
     }
     const isPlatform = p.role === 'super_admin' || p.role === 'platform_admin';
 
@@ -212,7 +212,7 @@ export class LoginPage implements OnInit {
         this.elsewhere.set({ label: `${data.name} workspace`, url: this.tenant.labUrl(data.slug, '/login'), host: new URL(this.tenant.labUrl(data.slug, '/login')).host });
         return;
       }
-      throw new Error('This sign-in is for SpreadApps admins only.');
+      throw new Error('This sign-in is for Spread Apps admins only.');
     }
 
     if (!isPlatform && p.tenant_id === lab.id) {
@@ -221,7 +221,7 @@ export class LoginPage implements OnInit {
     }
 
     if (isPlatform) {
-      await this.sendElsewhere('SpreadApps admin console', this.tenant.platformUrl('/login'));
+      await this.sendElsewhere('Spread Apps admin console', this.tenant.platformUrl('/login'));
       return;
     }
     await this.auth.signOut();

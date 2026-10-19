@@ -14,8 +14,8 @@ interface Section {
 }
 
 /**
- * Privacy notice / Terms. On a lab's site the lab is the Data Fiduciary and SpreadApps its
- * Data Processor; on ailab.spreadapps.in SpreadApps speaks to labs as its customers.
+ * Privacy notice / Terms. On a lab's site the lab is the Data Fiduciary and Spread Apps its
+ * Data Processor; on ailab.spreadapps.in Spread Apps speaks to labs as its customers.
  * Starting text aligned to India's DPDP Act 2023 — to be reviewed by a lawyer.
  */
 @Component({
@@ -69,7 +69,7 @@ export class PolicyPage {
   private readonly grievance = computed(() => {
     const t = this.tenant.tenant();
     const p = (t?.pages ?? {}) as Record<string, string>;
-    const name = p['grievance_name'] || (t ? `${t.name} Grievance Officer` : 'SpreadApps Grievance Officer');
+    const name = p['grievance_name'] || (t ? `${t.name} Grievance Officer` : 'Spread Apps Grievance Officer');
     const contact = [p['grievance_email'] || t?.contact_email || environment.brand.supportEmail, p['grievance_phone'] || t?.contact_phone].filter(Boolean).join(' · ');
     return `${name} — ${contact}`;
   });
@@ -83,12 +83,12 @@ export class PolicyPage {
 
   private labPrivacy(lab: string, brand: string): Section[] {
     return [
-      { h: 'Who we are', p: [`${lab} (“the lab”, “we”) collects and uses your personal data to run your tests and deliver your report. We are the Data Fiduciary under India’s Digital Personal Data Protection Act, 2023. We use ${brand}, provided by SpreadApps, as our software; SpreadApps processes data only on our instructions (Data Processor).`] },
+      { h: 'Who we are', p: [`${lab} (“the lab”, “we”) collects and uses your personal data to run your tests and deliver your report. We are the Data Fiduciary under India’s Digital Personal Data Protection Act, 2023. We use ${brand}, provided by Spread Apps, as our software; Spread Apps processes data only on our instructions (Data Processor).`] },
       { h: 'What we collect', li: ['Name, age, sex and mobile number', 'Tests ordered, sample status and your report (PDF)', 'An AI-written plain-language explanation of your report, if the lab uses it', 'Basic technical data when you open the tracking page (browser, time)'] },
       { h: 'Why we use it', li: ['To register your visit, run your tests and give you your report', 'To send your report link by WhatsApp or SMS', 'To show your earlier visits at this lab so you can download past reports', 'To meet legal and medical record-keeping requirements'] },
       { h: 'Your consent', p: ['We ask for your consent when you register. For anyone under 18, a parent or guardian consents on their behalf. You can withdraw consent at any time by contacting the lab; this won’t affect tests already done, and some records may have to be kept by law.'] },
       { h: 'AI explanation', p: ['If the lab has turned it on, your report is sent securely to an AI service to write a simple explanation. It is for general understanding only — it is not a diagnosis. Always consult your doctor about your results.'] },
-      { h: 'Who can see your data', li: ['Only authorised staff of this lab', 'SpreadApps, only to run and support the software', 'The AI provider chosen by the lab, only to write the explanation', 'Never sold, and never shared with other labs or advertisers'] },
+      { h: 'Who can see your data', li: ['Only authorised staff of this lab', 'Spread Apps, only to run and support the software', 'The AI provider chosen by the lab, only to write the explanation', 'Never sold, and never shared with other labs or advertisers'] },
       { h: 'How we protect it', li: ['Encrypted in transit (HTTPS) and at rest, on servers in India', 'Report links are unguessable; you only need your token', 'Staff accounts are lab-only, one active login at a time, with every action recorded'] },
       { h: 'How long we keep it', p: ['We keep your records as long as needed for your care and as required by law, and then delete them.'] },
       { h: 'Your rights', li: ['Access a summary of your data and how it is used', 'Correct or update wrong details', 'Ask us to erase data we no longer need to keep', 'Nominate someone to exercise these rights for you', 'Complain to us, and if not resolved, to the Data Protection Board of India'] },
@@ -108,7 +108,7 @@ export class PolicyPage {
 
   private platformPrivacy(brand: string): Section[] {
     return [
-      { h: 'Who we are', p: [`SpreadApps provides ${brand}, software that diagnostic labs use to manage patients and deliver reports. For patient data, each lab is the Data Fiduciary and SpreadApps is its Data Processor, acting only on the lab’s instructions.`] },
+      { h: 'Who we are', p: [`Spread Apps provides ${brand}, software that diagnostic labs use to manage patients and deliver reports. For patient data, each lab is the Data Fiduciary and Spread Apps is its Data Processor, acting only on the lab’s instructions.`] },
       { h: 'Data we handle for labs', li: ['Lab account details: lab name, staff names, usernames, emails, phone numbers', 'Patient visit data the lab enters, reports it uploads, and AI explanations it requests', 'Usage and security logs (sign-ins, devices, actions) to keep accounts safe', 'Demo requests submitted on this site: name, lab, phone, city, email'] },
       { h: 'How we use it', li: ['To provide, secure and support the service', 'To bill labs for their plan and charges', 'To send service, billing and feature updates to lab admins', 'Never sold; never used for advertising'] },
       { h: 'Security', li: ['Encryption in transit and at rest; servers in India', 'Strict separation: each lab can only access its own data', 'One active login per account, remote device sign-out, encrypted API keys, full activity history'] },
@@ -121,7 +121,7 @@ export class PolicyPage {
 
   private platformTerms(brand: string): Section[] {
     return [
-      { h: 'The service', p: [`${brand} is provided by SpreadApps to diagnostic labs on the plan and charges agreed with each lab.`] },
+      { h: 'The service', p: [`${brand} is provided by Spread Apps to diagnostic labs on the plan and charges agreed with each lab.`] },
       { h: 'Lab responsibilities', li: ['Obtain patient consent and keep patient data accurate', 'Keep staff logins private and remove staff who leave', 'Use the AI explanation only as an aid; medical responsibility stays with the lab and doctors', 'Use your own AI and messaging keys within those providers’ terms'] },
       { h: 'Billing', p: ['Subscription, database & hosting, maintenance and other charges are invoiced with due dates. Unpaid accounts may be paused after notice.'] },
       { h: 'Availability', p: ['We work to keep the service available and secure, with planned maintenance announced in advance.'] },

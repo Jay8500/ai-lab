@@ -9,7 +9,7 @@ import { TenantService } from '../../core/tenant.service';
 import { TeamManager } from '../../shared/team-manager';
 import { PayInvoiceModal } from '../../shared/pay-invoice-modal';
 
-/** Lab owner view: plan & trial, invoices, and staff logins. Everything else is set by SpreadApps. */
+/** Lab owner view: plan & trial, invoices, and staff logins. Everything else is set by Spread Apps. */
 @Component({
   selector: 'app-lab-account',
   imports: [LucideAngularModule, DatePipe, TeamManager, PayInvoiceModal],

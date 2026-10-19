@@ -66,7 +66,7 @@ const TASKS = (base: string, who: HelpAudience[]): HelpSection => ({
 });
 
 export const HELP: HelpSection[] = [
-  // ───────────── SpreadApps admin console ─────────────
+  // ───────────── Spread Apps admin console ─────────────
   {
     id: 'admin-start',
     title: 'Getting started',
@@ -190,14 +190,14 @@ export const HELP: HelpSection[] = [
     route: '/admin/activity',
     who: ['platform'],
     steps: [
-      { do: 'See history', flow: ['Activity', 'Everything / SpreadApps / Mine'] },
+      { do: 'See history', flow: ['Activity', 'Everything / Spread Apps / Mine'] },
       { do: 'Filter', flow: ['Patients · Tasks · Logins · Sign-ins · Support'] },
       { do: 'Older', flow: ['Show older'] },
     ],
   },
   {
     id: 'admin-team',
-    title: 'SpreadApps team',
+    title: 'Spread Apps team',
     icon: 'users',
     route: '/admin/team',
     who: ['root'],
@@ -368,7 +368,7 @@ export const HELP: HelpSection[] = [
     steps: [
       { do: 'See plan', flow: ['Plan', 'Trial', 'Invoices'] },
       { do: 'Pay invoice', flow: ['Invoices', 'Pay now', 'Scan UPI QR', 'Enter UTR', 'Submit'] },
-      { do: 'After paying', flow: ['Verifying', 'SpreadApps confirms', 'Paid ✓'] },
+      { do: 'After paying', flow: ['Verifying', 'Spread Apps confirms', 'Paid ✓'] },
       { do: 'Overdue', flow: ['New patients paused', 'Pay now', 'Resumes when confirmed'] },
       { do: 'Add staff', flow: ['Name *', 'Role', 'Job title', 'Password ↻', 'Create login', 'Share username'] },
       { do: 'Manage', flow: ['✉ Email', '🔑 Password', '⎋ Sign out everywhere', '🗑 Remove'] },
@@ -388,7 +388,7 @@ export const HELP: HelpSection[] = [
   },
   {
     id: 'lab-updates',
-    title: 'Updates from SpreadApps',
+    title: 'Updates from Spread Apps',
     icon: 'bell',
     who: ['owner', 'staff'],
     steps: [

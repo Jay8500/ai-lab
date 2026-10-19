@@ -175,7 +175,7 @@ export class AdminLabs implements OnInit {
     else if (/[A-Z]/.test(slug)) e.slug = 'Use lowercase letters only, e.g. srisai-diagnostics.';
     else if (/\s/.test(slug)) e.slug = 'Spaces aren’t allowed — use a dash instead, e.g. sri-sai.';
     else if (!/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) e.slug = '2–41 characters: lowercase letters, numbers and dashes, starting with a letter or number.';
-    else if (RESERVED.includes(slug)) e.slug = `“${slug}” is reserved for SpreadApps — choose another.`;
+    else if (RESERVED.includes(slug)) e.slug = `“${slug}” is reserved for Spread Apps — choose another.`;
     else if (this.admin.tenants().some((t) => t.slug === slug)) e.slug = 'Another lab already uses this subdomain.';
     if (!f.plan_id) e.plan = 'Choose a plan — you can change it later.';
     const days = Number(f.trial_days);

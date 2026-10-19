@@ -15,9 +15,9 @@ export class AuthService {
   readonly profile = signal<Profile | null>(null);
   readonly ready = signal(false);
 
-  /** SpreadApps owner — manages platform admins and platform settings. */
+  /** Spread Apps owner — manages platform admins and platform settings. */
   readonly isRoot = computed(() => this.profile()?.role === 'super_admin');
-  /** Any SpreadApps admin (owner or team) — the admin console. */
+  /** Any Spread Apps admin (owner or team) — the admin console. */
   readonly isPlatformAdmin = computed(() => ['super_admin', 'platform_admin'].includes(this.profile()?.role ?? ''));
   readonly isLabUser = computed(() => ['lab_owner', 'lab_staff'].includes(this.profile()?.role ?? ''));
   readonly roleLabel = computed(() => {
@@ -86,7 +86,7 @@ export class AuthService {
 
   /**
    * Sign in with an email or a username. A username is only looked up on the site it
-   * belongs to (labSlug = this lab, null = SpreadApps admin), so another lab's usernames
+   * belongs to (labSlug = this lab, null = Spread Apps admin), so another lab's usernames
    * don't resolve here at all.
    */
   async signIn(identifier: string, password: string, remember: boolean, labSlug: string | null): Promise<Profile> {

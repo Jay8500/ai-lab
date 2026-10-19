@@ -19,7 +19,7 @@ interface PublicPlan {
   features: Record<string, boolean>;
 }
 
-/** Public product page for SpreadApps AI-Lab (ailab.spreadapps.in). */
+/** Public product page for Spread Apps AI-Lab (ailab.spreadapps.in). */
 @Component({
   selector: 'app-sales',
   imports: [FormsModule, RouterLink, LucideAngularModule, FormField],
@@ -164,7 +164,7 @@ export class SalesPage implements OnInit {
       });
       if (error) throw error;
       this.sent.set(data as string);
-      // Email the SpreadApps owner about the new request (best effort, never blocks the visitor)
+      // Email the Spread Apps owner about the new request (best effort, never blocks the visitor)
       void this.sb.client.functions.invoke('lead-alert', { body: {} }).catch(() => undefined);
     } catch (e) {
       const msg = (e as Error).message ?? '';

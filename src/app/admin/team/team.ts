@@ -3,12 +3,12 @@ import { LucideAngularModule } from 'lucide-angular';
 import { environment } from '../../../environments/environment';
 import { TeamManager } from '../../shared/team-manager';
 
-/** Super admin only: the SpreadApps team who can run the admin console. */
+/** Super admin only: the Spread Apps team who can run the admin console. */
 @Component({
   selector: 'app-admin-team',
   imports: [LucideAngularModule, TeamManager],
   template: `
-    <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">SpreadApps team</h1>
+    <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Spread Apps team</h1>
     <p class="text-sm text-slate-500">Platform admins can create labs and their first lab admin, manage plans, billing and support.</p>
 
     <div class="mt-4 grid gap-3 sm:grid-cols-3">

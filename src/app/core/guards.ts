@@ -35,7 +35,7 @@ export const labGuard: CanActivateFn = async (_r, state) => {
   return router.createUrlTree(['/login'], { queryParams: { next: state.url } });
 };
 
-/** Platform team & settings: the SpreadApps owner only. */
+/** Platform team & settings: the Spread Apps owner only. */
 export const rootGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);

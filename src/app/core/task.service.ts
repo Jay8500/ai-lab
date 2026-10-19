@@ -54,7 +54,7 @@ export function dueGroup(t: Pick<Task, 'due_at' | 'has_time'>): DueGroup {
 }
 
 /**
- * Tasks for the current list: this lab's shared list, or the SpreadApps team list
+ * Tasks for the current list: this lab's shared list, or the Spread Apps team list
  * in the admin console. Keeps itself in sync with Realtime.
  */
 @Injectable({ providedIn: 'root' })
@@ -69,7 +69,7 @@ export class TaskService {
   readonly team = signal<Profile[]>([]);
   readonly loading = signal(false);
 
-  /** Lab id, or null for the SpreadApps team list. */
+  /** Lab id, or null for the Spread Apps team list. */
   readonly scope = computed(() => this.tenant.tenant()?.id ?? null);
   readonly categories = computed(() => (this.scope() ? LAB_CATEGORIES : PLATFORM_CATEGORIES));
 

@@ -42,7 +42,7 @@ export function renderMessage(text: string): string {
     .join('');
 }
 
-/** SpreadApps announcements addressed to the signed-in person (in-app inbox). */
+/** Spread Apps announcements addressed to the signed-in person (in-app inbox). */
 @Injectable({ providedIn: 'root' })
 export class InboxService {
   private readonly sb = inject(SupabaseService);

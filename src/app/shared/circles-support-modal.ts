@@ -39,7 +39,7 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent';
             </span>
             <h3 class="mt-4 text-lg font-bold text-slate-800">Ticket raised</h3>
             <p class="mt-1 text-sm text-slate-500">
-              Reference <span class="font-mono font-semibold text-slate-700">#{{ ticketId() }}</span>. The SpreadApps team will get back to you.
+              Reference <span class="font-mono font-semibold text-slate-700">#{{ ticketId() }}</span>. The Spread Apps team will get back to you.
             </p>
             <button class="btn-ghost mt-6" (click)="ticketId.set(null)">Raise another</button>
           </div>

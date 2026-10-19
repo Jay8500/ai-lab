@@ -13,7 +13,7 @@ import { LabStatusPill } from '../lab-status-pill';
   template: `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p class="text-sm text-slate-400">SpreadApps AI-Lab</p>
+        <p class="text-sm text-slate-400">Spread Apps AI-Lab</p>
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-[28px]">Welcome back, {{ name() }}!</h1>
       </div>
       <a routerLink="/admin/labs" [queryParams]="{ new: 1 }" class="btn-primary"><lucide-icon name="plus" class="size-4" /> New lab</a>

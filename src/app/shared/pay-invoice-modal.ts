@@ -14,7 +14,7 @@ type Method = 'upi' | 'bank' | 'cash' | 'cheque';
 
 /**
  * Lab admin pays an invoice: UPI QR / app link (or bank transfer), then submits the
- * transaction reference. SpreadApps verifies it and marks the invoice paid.
+ * transaction reference. Spread Apps verifies it and marks the invoice paid.
  */
 @Component({
   selector: 'app-pay-invoice-modal',
@@ -105,7 +105,7 @@ export class PayInvoiceModal {
   readonly closed = output<void>();
   readonly paid = output<void>();
 
-  protected readonly brandName = 'SpreadApps';
+  protected readonly brandName = 'Spread Apps';
   protected readonly payee = signal<BillingPayee | null>(null);
   protected readonly qr = signal('');
   protected readonly busy = signal(false);
@@ -139,7 +139,7 @@ export class PayInvoiceModal {
   });
 
   constructor() {
-    this.admin.billingPayee().then((p) => this.payee.set(p ?? { upi_id: '', payee_name: 'SpreadApps', bank_details: '', grace_days: 7 }));
+    this.admin.billingPayee().then((p) => this.payee.set(p ?? { upi_id: '', payee_name: 'Spread Apps', bank_details: '', grace_days: 7 }));
     effect(() => {
       const link = this.upiLink();
       if (!link) return;

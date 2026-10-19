@@ -12,7 +12,7 @@ const TONES: Record<DialogTone, { icon: string; badge: string; button: string }>
   success: { icon: 'circle-check', badge: 'bg-emerald-50 text-emerald-600', button: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/25' },
 };
 
-/** Branded confirm / prompt dialog (lab logo + name, or SpreadApps on the admin side). */
+/** Branded confirm / prompt dialog (lab logo + name, or Spread Apps on the admin side). */
 @Component({
   selector: 'app-dialog-host',
   imports: [FormsModule, LucideAngularModule],

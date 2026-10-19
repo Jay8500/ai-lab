@@ -65,7 +65,7 @@ interface BrandSettings {
           <div><h2 class="section-title">Email sender (Resend)</h2><p class="text-xs text-slate-400">Used for announcements to your labs.</p></div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
-          <app-field label="From name" required [error]="emailErr().from_name" hint="Shown as the sender, e.g. SpreadApps.">
+          <app-field label="From name" required [error]="emailErr().from_name" hint="Shown as the sender, e.g. Spread Apps.">
             <input class="input" name="fn" [(ngModel)]="email.from_name" maxlength="60" />
           </app-field>
           <app-field label="From address" required [error]="emailErr().from_email" hint="Must be on your verified Resend domain (mail.spreadapps.in).">
@@ -112,7 +112,7 @@ interface BrandSettings {
       <form class="card space-y-4 p-5 sm:p-6" (ngSubmit)="saveBrand()">
         <div class="flex items-center gap-3">
           <img [src]="logo" alt="" class="size-10" />
-          <div><h2 class="section-title">SpreadApps brand</h2><p class="text-xs text-slate-400">Shown on the platform landing and “Powered by”.</p></div>
+          <div><h2 class="section-title">Spread Apps brand</h2><p class="text-xs text-slate-400">Shown on the platform landing and “Powered by”.</p></div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
           <div><label class="label">Company</label><input class="input" name="n" [(ngModel)]="brand.name" /></div>
@@ -141,7 +141,7 @@ export class AdminSettings implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   protected readonly logo = environment.brand.logo;
   protected circles: CirclesSettings = { enabled: true, api_url: '', project_id: '' };
-  protected email: EmailSettings = { from_name: 'SpreadApps', from_email: 'updates@mail.spreadapps.in', reply_to: '', footer: '' };
+  protected email: EmailSettings = { from_name: 'Spread Apps', from_email: 'updates@mail.spreadapps.in', reply_to: '', footer: '' };
   private emailSubmitted = false;
 
   /** Sender rules — the address must be a real email on a verified domain. */
@@ -162,7 +162,7 @@ export class AdminSettings implements OnInit {
     await this.run(() => this.admin.saveSetting('email', this.email));
   }
 
-  protected billing: BillingSettings = { upi_id: '', payee_name: 'SpreadApps', bank_details: '', grace_days: 7, enforce: true };
+  protected billing: BillingSettings = { upi_id: '', payee_name: 'Spread Apps', bank_details: '', grace_days: 7, enforce: true };
   private billSubmitted = false;
 
   billErr(): Partial<Record<keyof BillingSettings, string>> {
@@ -183,7 +183,7 @@ export class AdminSettings implements OnInit {
     await this.run(() => this.admin.saveSetting('billing', { ...this.billing, upi_id: this.billing.upi_id.trim(), grace_days: Number(this.billing.grace_days) }));
   }
 
-  protected brand: BrandSettings = { name: 'SpreadApps', product: 'AI-Lab', support_email: '', base_domain: environment.baseDomain };
+  protected brand: BrandSettings = { name: 'Spread Apps', product: 'AI-Lab', support_email: '', base_domain: environment.baseDomain };
   protected pw = '';
   protected readonly loaded = signal(false);
 

@@ -1,7 +1,7 @@
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Announcements</h1>
-    <p class="text-sm text-slate-500">Email your labs about payments, new features and maintenance — from SpreadApps.</p>
+    <p class="text-sm text-slate-500">Email your labs about payments, new features and maintenance — from Spread Apps.</p>
   </div>
   @if (fromLabel()) {
     <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-white px-3 py-2 text-xs text-slate-500">
@@ -120,14 +120,14 @@
       <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
           <img src="brand/spreadapps-icon.png" alt="" class="size-6" />
-          <b class="text-sm text-slate-800">SpreadApps <span class="text-brand">AI-Lab</span></b>
+          <b class="text-sm text-slate-800">Spread Apps <span class="text-brand">AI-Lab</span></b>
           <span class="pill ml-auto {{ catLabel(category()).tone }}">{{ catLabel(category()).l }}</span>
         </div>
         <div class="px-5 py-4">
           <h3 class="mb-3 text-base font-bold text-slate-900">{{ previewSubject() }}</h3>
           <div class="space-y-3 text-sm leading-relaxed text-slate-600 [&_p]:m-0" [innerHTML]="previewHtml()"></div>
         </div>
-        <div class="bg-slate-50 px-5 py-3 text-[11px] text-slate-400">© SpreadApps · spreadapps.in</div>
+        <div class="bg-slate-50 px-5 py-3 text-[11px] text-slate-400">© Spread Apps™ · spreadapps.in</div>
       </div>
       @if (audienceInfo()?.sample?.length) {
         <p class="mt-2 text-xs text-slate-400">

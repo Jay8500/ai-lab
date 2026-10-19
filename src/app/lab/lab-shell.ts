@@ -84,7 +84,7 @@ import { TenantHeader } from '../shared/tenant-header';
                   <span class="ml-auto shrink-0 text-xs">Ask your lab admin to pay.</span>
                 }
               } @else {
-                <span>{{ t.status === 'trial' || t.status === 'expired' ? 'Your free trial has ended' : 'Your subscription is ' + t.status }} — new patients and uploads are paused. Contact SpreadApps to continue.</span>
+                <span>{{ t.status === 'trial' || t.status === 'expired' ? 'Your free trial has ended' : 'Your subscription is ' + t.status }} — new patients and uploads are paused. Contact Spread Apps to continue.</span>
               }
             </div>
           </div>

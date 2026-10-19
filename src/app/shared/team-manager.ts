@@ -20,7 +20,7 @@ import { DialogService } from '../core/dialog.service';
 
 /**
  * List + create + edit logins for one scope:
- *   scope "platform" → SpreadApps admins (super admin only)
+ *   scope "platform" → Spread Apps admins (super admin only)
  *   scope "lab"      → one lab's admins and staff
  * The admin-users edge function enforces who may do what.
  */
@@ -347,7 +347,7 @@ export class TeamManager {
     const current = this.email(u);
     const input = await this.dialog.prompt({
       title: `${current ? 'Change' : 'Add'} email for ${u.full_name || u.username}`,
-      message: 'Needed for “Forgot password” and SpreadApps announcements. They can also sign in with it.',
+      message: 'Needed for “Forgot password” and Spread Apps announcements. They can also sign in with it.',
       label: 'Email address',
       type: 'email',
       value: current,

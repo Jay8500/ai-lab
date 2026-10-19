@@ -2,7 +2,7 @@ export type Role = 'super_admin' | 'platform_admin' | 'lab_owner' | 'lab_staff' 
 
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: 'Super admin',
-  platform_admin: 'SpreadApps admin',
+  platform_admin: 'Spread Apps admin',
   lab_owner: 'Lab admin',
   lab_staff: 'Lab staff',
   patient: 'Patient',
@@ -288,7 +288,7 @@ export interface BillingEvent {
   kind: BillingKind;
   amount: number;
   period: string | null;
-  /** verifying = the lab submitted a payment reference, waiting for SpreadApps to confirm */
+  /** verifying = the lab submitted a payment reference, waiting for Spread Apps to confirm */
   status: 'due' | 'verifying' | 'paid' | 'waived';
   note: string | null;
   paid_at: string | null;
@@ -310,7 +310,7 @@ export function realEmail(email: string | null | undefined): string {
   return email && !email.endsWith('@' + NO_EMAIL_DOMAIN) ? email : '';
 }
 
-/** Two-letter initials from a name, ignoring brackets, digits and symbols ("Jay (SpreadApps)" → "JS"). */
+/** Two-letter initials from a name, ignoring brackets, digits and symbols ("Jay (Spread Apps)" → "JS"). */
 export function initialsOf(name: string | null | undefined): string {
   const words = (name ?? '').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean);
   if (!words.length) return '?';

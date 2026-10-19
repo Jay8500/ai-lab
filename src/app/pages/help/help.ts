@@ -81,7 +81,7 @@ type FeedbackType = 'idea' | 'problem' | 'praise';
         <form class="card space-y-4 p-5" (ngSubmit)="send()" novalidate>
           <div class="flex items-center gap-3">
             <span class="grid size-10 place-items-center rounded-xl bg-rose-50 text-rose-500"><lucide-icon name="message-square-heart" class="size-5" /></span>
-            <div><h2 class="section-title">Send feedback</h2><p class="text-xs text-slate-400">Goes straight to the SpreadApps team.</p></div>
+            <div><h2 class="section-title">Send feedback</h2><p class="text-xs text-slate-400">Goes straight to the Spread Apps team.</p></div>
           </div>
 
           <app-field label="How is it going?" required [error]="show('rating')">
@@ -193,7 +193,7 @@ export class HelpPage {
     this.busy.set(true);
     try {
       await this.support.submitFeedback(this.rating(), this.type(), this.message());
-      this.toast.success('Thanks! Your feedback reached the SpreadApps team.');
+      this.toast.success('Thanks! Your feedback reached the Spread Apps team.');
       this.rating.set(0);
       this.message.set('');
       this.submitted.set(false);

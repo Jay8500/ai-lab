@@ -251,7 +251,7 @@ export class LabService {
   }
 
   private friendly(msg: string): string {
-    if (msg.includes('row-level security')) return 'Your lab subscription is inactive or the trial has ended. Contact SpreadApps.';
+    if (msg.includes('row-level security')) return 'Your lab subscription is inactive or the trial has ended. Contact Spread Apps.';
     return msg;
   }
 }

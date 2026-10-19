@@ -157,7 +157,7 @@ export class AdminService {
     this.tenants.update((l) => l.filter((t) => t.id !== id));
   }
 
-  /** API keys are encrypted in Supabase Vault; only SpreadApps admins can decrypt them. */
+  /** API keys are encrypted in Supabase Vault; only Spread Apps admins can decrypt them. */
   async getSecrets(tenantId: string): Promise<TenantSecrets> {
     const { data, error } = await this.sb.client.rpc('get_tenant_secrets', { p_tenant: tenantId });
     if (error) throw error;
@@ -188,7 +188,7 @@ export class AdminService {
   }
 
   // ── Users (via edge function, needs service role) ──
-  // Lab scope: a lab's admins + staff. Platform scope (super admin only): SpreadApps admins.
+  // Lab scope: a lab's admins + staff. Platform scope (super admin only): Spread Apps admins.
   async users(tenantId: string | null, scope: UserScope = 'lab'): Promise<Profile[]> {
     const res = await this.callUsers({ action: 'list', scope, tenant_id: tenantId });
     return res.users ?? [];
@@ -263,7 +263,7 @@ export class AdminService {
       mode === 'new' ? 'Hi {{name}},\n\nA new charge has been added for **{{lab}}**:' : 'Hi {{name}},\n\nThis is a friendly reminder that a payment for **{{lab}}** is pending:',
       [`• **${label}** — ${amount}`, b.period ? `• Period: ${b.period}` : '', due ? `• Due by: **${due}**` : '', b.note ? `• Note: ${b.note}` : ''].filter(Boolean).join('\n'),
       'You can see all invoices in AI-Lab → Plan & team. Reply to this email if you have any questions.',
-      'Thank you for using SpreadApps AI-Lab!',
+      'Thank you for using Spread Apps AI-Lab!',
     ];
     const body = lines.join('\n\n');
     const send = (channels: string[]) =>

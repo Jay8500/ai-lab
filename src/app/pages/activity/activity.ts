@@ -89,7 +89,7 @@ export class ActivityPage implements OnInit {
   protected readonly scopes = computed<{ v: Scope; l: string }[]>(() => {
     if (!this.tenant.tenant()) return [
       { v: 'all', l: 'Everything' },
-      { v: 'platform', l: 'SpreadApps' },
+      { v: 'platform', l: 'Spread Apps' },
       { v: 'me', l: 'Mine' },
     ];
     return this.auth.isOwner() ? [{ v: 'tenant', l: 'Whole lab' }, { v: 'me', l: 'Mine' }] : [{ v: 'me', l: 'Mine' }, { v: 'tenant', l: 'Patients' }];

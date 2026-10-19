@@ -195,7 +195,7 @@
             <app-field label="Footer note" optional [error]="e['footer_note']">
               <input class="input" [(ngModel)]="pages.footer_note" (ngModelChange)="touch()" maxlength="160" placeholder="NABL accredited · Open 7am–9pm" />
             </app-field>
-            <app-field label="Own “How it works” video" optional [error]="e['video_url']" hint="Leave empty to use the standard SpreadApps walkthrough. YouTube or .mp4 link.">
+            <app-field label="Own “How it works” video" optional [error]="e['video_url']" hint="Leave empty to use the standard Spread Apps walkthrough. YouTube or .mp4 link.">
               <input class="input font-mono text-xs" [ngModel]="$any(pages).video_url" (ngModelChange)="$any(pages).video_url = $event; touch()" placeholder="https://youtu.be/…" autocapitalize="none" spellcheck="false" />
             </app-field>
             <h3 class="section-title pt-2">Login page</h3>

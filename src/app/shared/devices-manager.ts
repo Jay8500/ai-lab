@@ -94,7 +94,7 @@ type Draft = Omit<LabDevice, 'id' | 'created_at' | 'key_hint' | 'last_message_at
         <h3 class="section-title">How a machine connects</h3>
         <ol class="list-decimal space-y-1.5 pl-4">
           <li>Add the device here, map its test codes and press <b>Generate key</b>.</li>
-          <li>On the PC next to the analyzer, install the <b>SpreadApps Lab Connector</b> and paste the device key. It listens on the serial port / LAN port the analyzer uses for "LIS / host".</li>
+          <li>On the PC next to the analyzer, install the <b>Spread Apps Lab Connector</b> and paste the device key. It listens on the serial port / LAN port the analyzer uses for "LIS / host".</li>
           <li>Print tube <b>barcode labels</b> from the patient card — the analyzer reads the token from the tube.</li>
           <li>Results arrive in <b>Results</b> as "From analyzer"; a pathologist verifies and the report is created.</li>
         </ol>

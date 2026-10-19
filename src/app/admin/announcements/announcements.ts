@@ -41,7 +41,7 @@ const TEMPLATES: { l: string; category: Category; statuses: string[]; subject: s
     category: 'payment',
     statuses: ['active'],
     subject: 'Payment reminder for {{lab}}',
-    body: 'Hi {{name}},\n\nThis is a friendly reminder that the subscription for **{{lab}}** ({{plan}}) is due.\n\nPlease complete the payment to keep reports flowing without interruption. Reply to this email if you need the invoice again.\n\nThank you for choosing SpreadApps!',
+    body: 'Hi {{name}},\n\nThis is a friendly reminder that the subscription for **{{lab}}** ({{plan}}) is due.\n\nPlease complete the payment to keep reports flowing without interruption. Reply to this email if you need the invoice again.\n\nThank you for choosing Spread Apps!',
   },
   {
     l: 'Trial ending',
@@ -256,7 +256,7 @@ export class AdminAnnouncements implements OnInit {
     const n = this.reach();
     const go = await this.dialog.confirm({
       title: `Send to ${n} recipient${n === 1 ? '' : 's'}?`,
-      message: `“${this.subject().trim()}” will be emailed now from ${this.fromLabel() || 'SpreadApps'}. Sent emails can’t be recalled.`,
+      message: `“${this.subject().trim()}” will be emailed now from ${this.fromLabel() || 'Spread Apps'}. Sent emails can’t be recalled.`,
       details: [
         `Type: ${this.catLabel(this.category()).l}`,
         `Delivery: ${[this.viaEmail() ? `email (${this.audienceInfo()?.count ?? 0})` : '', this.viaApp() ? `in-app (${this.audienceInfo()?.inApp ?? 0})` : ''].filter(Boolean).join(' + ')}`,

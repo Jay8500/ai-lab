@@ -25,7 +25,7 @@ const PRIORITY_STYLE: Record<string, string> = {
   urgent: 'border-rose-100 bg-rose-50 text-rose-600',
 };
 
-/** Shared to-do list: a lab's team (lab workspace) or the SpreadApps team (admin console). */
+/** Shared to-do list: a lab's team (lab workspace) or the Spread Apps team (admin console). */
 @Component({
   selector: 'app-tasks',
   imports: [FormsModule, LucideAngularModule, Avatar, TaskForm],
@@ -33,7 +33,7 @@ const PRIORITY_STYLE: Record<string, string> = {
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Tasks</h1>
-        <p class="text-sm text-slate-500">{{ tasks.scope() ? 'Plan, schedule and share work with your lab team.' : 'The SpreadApps team’s to-do list.' }}</p>
+        <p class="text-sm text-slate-500">{{ tasks.scope() ? 'Plan, schedule and share work with your lab team.' : 'The Spread Apps team’s to-do list.' }}</p>
       </div>
       <button class="btn-primary" (click)="openNew()"><lucide-icon name="plus" class="size-4" /> New task</button>
     </div>

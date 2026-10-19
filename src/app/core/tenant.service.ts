@@ -16,7 +16,7 @@ export interface TenantResolution {
  *  1. srisai.spreadapps.in          -> slug "srisai"
  *  2. reports.srisailabs.com        -> custom domain lookup
  *  3. ?lab=srisai (netlify / local) -> slug, remembered for the session
- * No match = the SpreadApps platform itself (landing + super admin).
+ * No match = the Spread Apps platform itself (landing + super admin).
  */
 @Injectable({ providedIn: 'root' })
 export class TenantService {

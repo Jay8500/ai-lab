@@ -8,12 +8,12 @@ export const environment = {
   platformHost: 'ailab.spreadapps.in',
   /** Subdomains that belong to the platform, never to a lab */
   reservedSubdomains: ['www', 'app', 'admin', 'lab', 'labs', 'ailab', 'ai-lab', 'circles', 'api', 'tools', 'kit', 'mail'],
-  /** Lab used when ?lab= is not given on netlify.app / localhost previews (null = SpreadApps landing) */
+  /** Lab used when ?lab= is not given on netlify.app / localhost previews (null = Spread Apps landing) */
   demoTenant: null as string | null,
   /** Feature switches. googleSignIn: patient accounts + Google login buttons (on hold — set true once Google OAuth is set up). */
   features: { googleSignIn: false },
   brand: {
-    name: 'SpreadApps',
+    name: 'Spread Apps',
     product: 'AI-Lab',
     logo: '/brand/spreadapps-icon.png',
     supportEmail: 'support@spreadapps.in',
